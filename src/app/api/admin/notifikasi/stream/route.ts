@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ForbiddenError, UnauthorizedError } from "@/lib/auth";
-import { requireAdminAktif } from "@/lib/sesi-admin";
+import { requirePermission } from "@/lib/sesi-admin";
+import { AKSI, MODUL } from "@/lib/permission";
 import { forbidden, unauthorized } from "@/lib/response";
 import { hitungBelumDibaca } from "@/lib/notifikasi";
 import { buatStreamHitungan } from "@/lib/sse";
@@ -24,7 +25,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest): Promise<Response> {
   let adminId: string;
   try {
-    const admin = await requireAdminAktif();
+    const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
     adminId = admin.sub;
   } catch (error) {
     if (error instanceof UnauthorizedError) {

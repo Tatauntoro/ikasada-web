@@ -93,7 +93,7 @@ export default async function StatusAkunAlumniPage() {
               : [
                   "Anda masih bisa keluar dari akun ini kapan saja.",
                   "Pendaftaran tidak perlu diulang; pengurus memakai data yang sudah Anda kirim.",
-                  "Setelah disetujui, Anda bisa mengatur profil dan mulai terhubung dengan alumni.",
+                  "Setelah disetujui, Anda bisa mengatur profil, melihat status keterbukaan alumni, dan mulai terhubung dengan alumni lain.",
                 ]
             ).map((baris) => (
               <li key={baris} className="flex gap-3">

@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { okPaginated } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
-import { requireAdminAktif } from "@/lib/sesi-admin";
+import { requirePermission } from "@/lib/sesi-admin";
+import { AKSI, MODUL } from "@/lib/permission";
 import { parsePagination } from "@/lib/pagination";
 import { ambilNotifikasiAdmin, type TipeNotifikasi } from "@/lib/notifikasi";
 
@@ -16,7 +17,7 @@ const TIPE = ["PENDAFTARAN", "KONEKSI", "AKUN"] as const;
  * selalu menghitung semua tipe, tidak terpengaruh filter `?tipe=`.
  */
 async function handler(req: NextRequest): Promise<Response> {
-  const admin = await requireAdminAktif();
+  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
   const pagination = parsePagination(req.nextUrl.searchParams);
 
   const tipeParam = req.nextUrl.searchParams.get("tipe") ?? "";

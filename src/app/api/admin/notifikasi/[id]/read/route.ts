@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { ok, notFound, badRequest } from "@/lib/response";
 import { apiHandler } from "@/lib/api-handler";
-import { requireAdminAktif } from "@/lib/sesi-admin";
+import { requirePermission } from "@/lib/sesi-admin";
+import { AKSI, MODUL } from "@/lib/permission";
 import {
   hitungBelumDibaca,
   tandaiSatuNotifikasiDibaca,
@@ -22,7 +23,7 @@ async function handler(
   _req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const admin = await requireAdminAktif();
+  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
   const { id } = await params;
 
   if (!id) {

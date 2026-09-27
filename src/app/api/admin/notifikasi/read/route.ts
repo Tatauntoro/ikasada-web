@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { ok } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
-import { requireAdminAktif } from "@/lib/sesi-admin";
+import { requirePermission } from "@/lib/sesi-admin";
+import { AKSI, MODUL } from "@/lib/permission";
 import {
   hitungBelumDibaca,
   tandaiSemuaNotifikasiDibaca,
@@ -21,7 +22,7 @@ import {
  */
 async function handler(req: NextRequest): Promise<Response> {
   void req;
-  const admin = await requireAdminAktif();
+  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
 
   await tandaiSemuaNotifikasiDibaca(admin.sub);
 

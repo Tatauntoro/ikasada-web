@@ -52,7 +52,11 @@ type Node =
  */
 const MENU: Node[] = [
   { kind: "link", icon: House, leaf: { href: "/admin", label: "Dashboard" } },
-  { kind: "link", icon: Bell, leaf: { href: "/admin/inbox", label: "Inbox" } },
+  {
+    kind: "link",
+    icon: Bell,
+    leaf: { href: "/admin/inbox", label: "Inbox", modul: MODUL.INBOX },
+  },
   {
     kind: "group",
     icon: Users,

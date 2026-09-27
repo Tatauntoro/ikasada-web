@@ -2,14 +2,22 @@
 
 import Link from "next/link";
 import { Bell } from "@phosphor-icons/react";
+import { MODUL } from "@/lib/permission";
+import { useIzin } from "./IzinProvider";
 import { useNotifikasi } from "./NotifikasiProvider";
 
 /**
  * Lonceng notifikasi untuk header admin. Angka diambil dari provider SSE,
  * jadi berubah tanpa reload saat ada pendaftaran/koneksi baru.
+ *
+ * Disembunyikan bila admin tidak berizin `inbox:lihat` — penegakan sebenarnya
+ * di server, ini hanya UX.
  */
 export function NotifikasiBell() {
   const { belumDibaca, status } = useNotifikasi();
+  const { boleh } = useIzin();
+
+  if (!boleh(MODUL.INBOX, "lihat")) return null;
 
   const label =
     belumDibaca > 0

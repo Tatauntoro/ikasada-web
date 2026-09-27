@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { panggilApi } from "@/lib/api-client";
+import { MODUL } from "@/lib/permission";
+import { useIzin } from "./IzinProvider";
 
 /**
  * Satu koneksi SSE per admin, dipakai bersama oleh lonceng dan halaman inbox.
@@ -45,12 +47,21 @@ export function useNotifikasi(): NilaiNotifikasi {
 const JEDA_COBA_ULANG_MS = 15_000;
 
 export function NotifikasiProvider({ children }: { children: ReactNode }) {
+  const { boleh } = useIzin();
+  const bolehInbox = boleh(MODUL.INBOX, "lihat");
+
   const [belumDibaca, setBelumDibaca] = useState(0);
   const [versi, setVersi] = useState(0);
-  const [status, setStatus] = useState<StatusNotifikasi>("menghubungkan");
+  const [status, setStatus] = useState<StatusNotifikasi>(() =>
+    bolehInbox ? "menghubungkan" : "terputus"
+  );
   const [cobaUlang, setCobaUlang] = useState(0);
 
   useEffect(() => {
+    // Tanpa izin inbox, jangan buka SSE: server menolaknya (403) dan hanya
+    // memicu percobaan ulang yang sia-sia.
+    if (!bolehInbox) return;
+
     const sumber = new EventSource("/api/admin/notifikasi/stream");
     let jadwal: number | undefined;
 
@@ -110,7 +121,7 @@ export function NotifikasiProvider({ children }: { children: ReactNode }) {
       sumber.removeEventListener("error", saatError);
       sumber.close();
     };
-  }, [cobaUlang]);
+  }, [cobaUlang, bolehInbox]);
 
   const tandaiDibaca = useCallback(async () => {
     // Optimistis: badge langsung bersih, server menyusul. Angka dari server

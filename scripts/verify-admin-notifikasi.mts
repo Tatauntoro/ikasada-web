@@ -132,6 +132,7 @@ async function tungguFrame(
 const stamp = Date.now();
 const idAkun: string[] = [];
 const idAlumni: string[] = [];
+const idAdmin: string[] = [];
 
 async function bersihkan() {
   if (idAkun.length > 0) {
@@ -155,6 +156,9 @@ async function bersihkan() {
   }
   if (idAlumni.length > 0) {
     await prisma.alumni.deleteMany({ where: { id: { in: idAlumni } } });
+  }
+  if (idAdmin.length > 0) {
+    await prisma.adminUser.deleteMany({ where: { id: { in: idAdmin } } });
   }
 }
 
@@ -180,6 +184,94 @@ try {
   if (!cookie) {
     throw new Error("Tanpa cookie admin, sisa pengujian tidak bisa dijalankan.");
   }
+
+  /* ---------- 0b. Kontrol akses modul inbox ---------- */
+  /*
+   * Modul `inbox` harus bisa diberikan terpisah lewat Kelola Admin: admin biasa
+   * tanpa izin ditolak (403), yang diberi `inbox:lihat` diloloskan. Superadmin
+   * (akun seed) selalu lolos — itu sebabnya sisa uji di bawah tetap jalan.
+   */
+  const pwUji = await hash("KataSandiUji123!", 10);
+  const buatAdminUji = async (label: string, permissions: Record<string, string[]>) => {
+    const adminUji = await prisma.adminUser.create({
+      data: {
+        nama: `Uji Izin ${label} ${stamp}`,
+        email: `notif-izin-${label.toLowerCase()}-${stamp}@contoh.invalid`,
+        passwordHash: pwUji,
+        role: "ADMIN",
+        isAktif: true,
+        permissions,
+      },
+      select: { id: true, email: true },
+    });
+    idAdmin.push(adminUji.id);
+    return adminUji;
+  };
+
+  const tanpaIzin = await buatAdminUji("tanpa", {});
+  const denganIzin = await buatAdminUji("dengan", { inbox: ["lihat"] });
+
+  const loginTanpa = await panggil("POST", "/api/auth/login", {
+    body: { email: tanpaIzin.email, password: "KataSandiUji123!" },
+  });
+  const cookieTanpa = cookieDari(loginTanpa.setCookie, "ikasada_session") ?? "";
+  cek(
+    "admin biasa (tanpa izin inbox) bisa login",
+    Boolean(cookieTanpa),
+    `status=${loginTanpa.status}`
+  );
+
+  const loginDengan = await panggil("POST", "/api/auth/login", {
+    body: { email: denganIzin.email, password: "KataSandiUji123!" },
+  });
+  const cookieDengan = cookieDari(loginDengan.setCookie, "ikasada_session") ?? "";
+
+  const daftarTanpaIzin = await panggil("GET", "/api/admin/notifikasi", {
+    cookie: cookieTanpa,
+  });
+  cek(
+    "tanpa izin inbox -> GET daftar 403",
+    daftarTanpaIzin.status === 403,
+    `status=${daftarTanpaIzin.status}`
+  );
+
+  const tandaiTanpaIzin = await panggil("POST", "/api/admin/notifikasi/read", {
+    cookie: cookieTanpa,
+  });
+  cek(
+    "tanpa izin inbox -> POST tandai dibaca 403",
+    tandaiTanpaIzin.status === 403,
+    `status=${tandaiTanpaIzin.status}`
+  );
+
+  const kontrolStream = new AbortController();
+  const jedaStream = setTimeout(() => kontrolStream.abort(), 5000);
+  try {
+    const res = await fetch(`${BASE_URL}/api/admin/notifikasi/stream`, {
+      headers: { Cookie: cookieTanpa },
+      signal: kontrolStream.signal,
+      redirect: "manual",
+    });
+    cek(
+      "tanpa izin inbox -> stream SSE 403",
+      res.status === 403,
+      `status=${res.status}`
+    );
+    await res.body?.cancel();
+  } catch (error) {
+    cek("tanpa izin inbox -> stream SSE 403", false, String(error));
+  } finally {
+    clearTimeout(jedaStream);
+  }
+
+  const daftarDenganIzin = await panggil("GET", "/api/admin/notifikasi", {
+    cookie: cookieDengan,
+  });
+  cek(
+    "dengan izin inbox:lihat -> GET daftar 200",
+    daftarDenganIzin.status === 200,
+    `status=${daftarDenganIzin.status}`
+  );
 
   /* ---------- 1. Titik awal: tandai semua sudah dibaca ---------- */
   await panggil("POST", "/api/admin/notifikasi/read", { cookie });

@@ -18,6 +18,7 @@ export const MODUL = {
   JENIS_ARSIP: "jenis-arsip",
   AKTIVITAS: "aktivitas",
   JEJARING: "jejaring",
+  INBOX: "inbox",
 } as const;
 
 export const AKSI = {
@@ -73,6 +74,11 @@ export const MODUL_INFO: {
     label: "Jejaring Alumni",
     aksi: [AKSI.LIHAT],
   },
+  {
+    slug: MODUL.INBOX,
+    label: "Inbox",
+    aksi: [AKSI.LIHAT],
+  },
 ];
 
 export const LABEL_AKSI: Record<AksiSlug, string> = {
@@ -95,6 +101,7 @@ export const MODUL_DARI_SEGMEN: Record<string, ModulSlug> = {
   "jenis-arsip": MODUL.JENIS_ARSIP,
   aktivitas: MODUL.AKTIVITAS,
   jejaring: MODUL.JEJARING,
+  inbox: MODUL.INBOX,
 };
 
 /** Modul yang valid, dipakai validator. */
