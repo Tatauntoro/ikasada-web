@@ -1,0 +1,8 @@
+/* Root tersembunyi sampai MorphText selesai memecah kata (anti-FOUC). */
+.root {
+  opacity: 0;
+}
+
+.root[data-morph="in"] {
+  opacity: 1;
+}

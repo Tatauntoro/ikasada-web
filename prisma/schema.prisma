@@ -1,0 +1,519 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProgramStudi {
+  JAWA
+  SUNDA
+  NUSANTARA
+}
+
+enum StatusAlumni {
+  PUBLISHED
+  HIDDEN
+}
+
+enum StatusKegiatan {
+  DRAFT
+  PUBLISHED
+  SELESAI
+  DIBATALKAN
+}
+
+enum AksiAudit {
+  CREATE
+  UPDATE
+  DELETE
+  // Aksi alumni & koneksi (lihat BE-Planning-Alumni-Network-IKASADA.md §2.5).
+  // Nilai tambahan ini tidak mengubah baris audit lama.
+  ALUMNI_REGISTER
+  ALUMNI_APPROVE
+  ALUMNI_REJECT
+  ALUMNI_SUSPEND
+  ALUMNI_LOGIN
+  ALUMNI_UPDATE_AVAILABILITY
+  // Permintaan reset kata sandi mandiri dari halaman publik (belum ada aktor
+  // login); actor audit = AlumniAccount si pemilik email.
+  ALUMNI_RESET_PASSWORD_REQUEST
+  CONNECTION_CREATE
+  CONNECTION_ACCEPT
+  CONNECTION_DECLINE
+  CONNECTION_CANCEL
+  // Task 20 — memutuskan koneksi yang sudah ACCEPTED.
+  CONNECTION_REVOKE
+  // Arsip dokumen: satu baris per unduhan berkas oleh alumni (actor
+  // `alumniAccountId`). Nilai tambahan ini tidak mengubah baris audit lama.
+  ARSIP_UNDUH
+}
+
+enum StatusKerjasama {
+  DRAFT
+  PUBLISHED
+}
+
+enum StatusArsip {
+  DRAFT
+  PUBLISHED
+}
+
+/*
+ * Di mana berkas arsip disimpan.
+ *
+ * Tidak ada nilai "URL": kolom berkas menyimpan identitas penyimpanan, dan
+ * berkasnya hanya dilayani lewat endpoint berpenjaga (`/api/arsip/[slug]/unduh`).
+ */
+enum PenyimpananBerkas {
+  CLOUDINARY
+  LOKAL
+}
+
+enum JenisMedia {
+  FOTO
+  VIDEO
+}
+
+/*
+ * Siapa yang boleh melihat dan mengunduh satu arsip.
+ *
+ * `status` (DRAFT/PUBLISHED) tetap mengatur apakah entri sudah terbit; enum ini
+ * yang mengatur siapa yang boleh mengaksesnya setelah terbit.
+ */
+enum AksesArsip {
+  /** Dilihat dan diunduh siapa saja. */
+  PUBLIK
+  /** Daftar & detail terbuka; berkas dokumen hanya untuk alumni ACTIVE. */
+  PUBLIK_UNDUH_ALUMNI
+  /** Hanya alumni ACTIVE yang bisa melihat dan mengunduh. */
+  KHUSUS_ALUMNI
+}
+
+enum StatusAlumniAccount {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum RoleAdmin {
+  SUPERADMIN
+  ADMIN
+}
+
+enum StatusConnection {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELED
+  // Task 20 — salah satu pihak memutuskan koneksi yang sudah diterima. Barisnya
+  // tetap ada (bukan hard delete); pasangan ini boleh mencoba lagi nanti, sama
+  // seperti DECLINED/CANCELED.
+  REVOKED
+}
+
+model AdminUser {
+  id           String     @id @default(uuid())
+  nama         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  /*
+   * Role & izin. `SUPERADMIN` selalu punya akses penuh dan boleh mengelola akun
+   * admin lain; `ADMIN` hanya boleh mengakses modul/aksi yang ada di
+   * `permissions`. `permissions` diabaikan untuk SUPERADMIN.
+   */
+  role         RoleAdmin  @default(ADMIN)
+  isAktif      Boolean    @default(true) @map("is_aktif")
+  permissions  Json       @default("{}")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  lastLoginAt  DateTime?  @map("last_login_at")
+  /*
+   * Inbox admin: semua notifikasi (AuditLog) dengan `createdAt` <= nilai ini
+   * sudah dilihat oleh admin ini. `null` berarti belum pernah membuka inbox.
+   */
+  notifikasiDibacaAt DateTime? @map("notifikasi_dibaca_at")
+  notifikasiDibaca   NotifikasiDibaca[]
+  kegiatan     Kegiatan[]
+  alumni       Alumni[]
+  pengurus     Pengurus[]
+  kerjasama    Kerjasama[]
+  arsip        Arsip[]
+  auditLogs    AuditLog[]
+  @@map("admin_user")
+}
+
+model Kegiatan {
+  id                 String           @id @default(uuid())
+  judul              String
+  slug               String           @unique
+  deskripsiSingkat   String           @map("deskripsi_singkat")
+  deskripsiLengkap   String?          @map("deskripsi_lengkap")
+  tanggalMulai       DateTime         @map("tanggal_mulai")
+  tanggalSelesai     DateTime?        @map("tanggal_selesai")
+  lokasi             String
+  kategoriKegiatanId String            @map("kategori_kegiatan_id")
+  kategoriKegiatan   KategoriKegiatan @relation(fields: [kategoriKegiatanId], references: [id])
+  gambarThumbnailUrl String?          @map("gambar_thumbnail_url")
+  videoYoutubeUrl    String?          @map("video_youtube_url")
+  videoYoutubeId     String?          @map("video_youtube_id")
+  galeriGambar       Json?            @map("galeri_gambar")
+  linkPendaftaran    String?          @map("link_pendaftaran")
+  status             StatusKegiatan   @default(DRAFT)
+  createdById        String           @map("created_by")
+  createdBy          AdminUser        @relation(fields: [createdById], references: [id])
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  deletedAt          DateTime?        @map("deleted_at")
+  @@index([status, tanggalMulai])
+  @@map("kegiatan")
+}
+
+model KategoriKegiatan {
+  id           String     @id @default(uuid())
+  namaKategori String     @unique @map("nama_kategori")
+  kegiatan     Kegiatan[]
+  deletedAt    DateTime?  @map("deleted_at")
+  @@map("kategori_kegiatan")
+}
+
+model Pengurus {
+  id          String    @id @default(uuid())
+  nama        String
+  jabatan     String
+  angkatan    String?   @map("angkatan")
+  ket         String?   @map("ket")
+  fotoUrl     String?   @map("foto_url")
+  urutan      Int       @default(0) @map("urutan")
+  createdById String    @map("created_by")
+  createdBy   AdminUser @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  @@map("pengurus")
+}
+
+model SektorIndustri {
+  id         String   @id @default(uuid())
+  namaSektor String   @unique @map("nama_sektor")
+  alumni     Alumni[]
+  deletedAt  DateTime? @map("deleted_at")
+  @@map("sektor_industri")
+}
+
+model Kerjasama {
+  id             String          @id @default(uuid())
+  slug           String          @unique
+  organisasi     String
+  programUtama   String          @map("program_utama")
+  profil         String
+  contohKegiatan String[]        @default([]) @map("contoh_kegiatan")
+  imageUrl       String?         @map("image_url")
+  alt            String
+  // Kanal "Hubungi Kami" pada halaman detail. Semua opsional: kanal yang kosong
+  // tidak dirender, dan bloknya hilang bila ketiganya kosong.
+  linkInstagram  String?         @map("link_instagram")
+  linkTiktok     String?         @map("link_tiktok")
+  email          String?
+  urutan         Int             @default(0)
+  status         StatusKerjasama @default(DRAFT)
+  createdById    String          @map("created_by")
+  createdBy      AdminUser       @relation(fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+  @@index([status, urutan])
+  @@map("kerjasama")
+}
+
+/*
+ * Master data jenis arsip (Laporan, Notulen, Proposal, SK, Publikasi, Materi).
+ *
+ * Dipisah sebagai tabel sendiri supaya filter di halaman publik membaca daftar
+ * yang sama dengan yang dipakai admin — bukan teks bebas yang rawan salah ketik.
+ */
+model JenisArsip {
+  id        String    @id @default(uuid())
+  nama      String    @unique
+  arsip     Arsip[]
+  deletedAt DateTime? @map("deleted_at")
+  @@map("jenis_arsip")
+}
+
+model Arsip {
+  id               String     @id @default(uuid())
+  slug             String     @unique
+  judul            String
+  jenisArsipId     String     @map("jenis_arsip_id")
+  jenisArsip       JenisArsip @relation(fields: [jenisArsipId], references: [id])
+  /*
+   * Dua tanggal dengan arti berbeda:
+   * - `tanggalUpload` kapan entri ini diisi admin (dulu bernama `tanggal`).
+   * - `tanggalKegiatan*` kapan kegiatannya benar-benar berlangsung; boleh
+   *   rentang (mis. kumpulan kegiatan 2019–2023). `selesai` selalu terisi —
+   *   kalau admin tidak mengisi, nilainya disamakan dengan `mulai` supaya
+   *   pencarian rentang tahun cukup satu perbandingan.
+   */
+  tanggalUpload    DateTime   @map("tanggal")
+  tanggalKegiatanMulai   DateTime @map("tanggal_kegiatan_mulai")
+  tanggalKegiatanSelesai DateTime @map("tanggal_kegiatan_selesai")
+  deskripsiSingkat String     @map("deskripsi_singkat")
+  deskripsiLengkap String?    @map("deskripsi_lengkap")
+  gambarSampulUrl  String?    @map("gambar_sampul_url")
+  alt              String?
+  /*
+   * Berkas dokumen — identitas penyimpanan, BUKAN URL.
+   *
+   * Menyimpan URL berkas akan membuat pembatasan "unduh khusus alumni" bisa
+   * dilewati (salin URL → buka langsung). Berkasnya hanya dilayani route
+   * `GET /api/arsip/[slug]/unduh` yang memeriksa sesi alumni.
+   *
+   * `berkasId` null = belum ada berkas: halaman detail menampilkan placeholder
+   * dan tombol unduh tidak dirender.
+   */
+  berkasId          String?             @map("berkas_id")
+  berkasPenyimpanan PenyimpananBerkas?  @map("berkas_penyimpanan")
+  berkasNama        String?             @map("berkas_nama")
+  berkasFormat      String?             @map("berkas_format")
+  berkasUkuran      Int?                @map("berkas_ukuran")
+  jumlahUnduhan     Int                 @default(0) @map("jumlah_unduhan")
+  status            StatusArsip         @default(DRAFT)
+  akses             AksesArsip          @default(PUBLIK_UNDUH_ALUMNI)
+  media             ArsipMedia[]
+  createdById       String              @map("created_by")
+  createdBy         AdminUser           @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  deletedAt         DateTime?           @map("deleted_at")
+  @@index([status, tanggalUpload])
+  @@index([status, tanggalKegiatanMulai])
+  @@index([jenisArsipId])
+  @@map("arsip")
+}
+
+/*
+ * Galeri foto/video satu arsip.
+ *
+ * Media mengikuti aturan akses arsipnya (lihat `AksesArsip`), jadi berkasnya
+ * **tidak punya URL publik**: yang disimpan hanya identitas penyimpanan dan
+ * berkasnya keluar lewat `GET /api/arsip/[slug]/media/[id]` yang memeriksa hak
+ * akses. Kalau URL-nya disimpan apa adanya, arsip "khusus alumni" tinggal
+ * dilewati dengan membuka URL tersebut.
+ *
+ * Baris-baris ini ikut payload simpan arsip: saat arsip diperbarui, seluruh
+ * koleksinya ditulis ulang dari daftar yang dikirim form.
+ */
+model ArsipMedia {
+  id          String            @id @default(uuid())
+  arsipId     String            @map("arsip_id")
+  arsip       Arsip             @relation(fields: [arsipId], references: [id], onDelete: Cascade)
+  jenis       JenisMedia
+  /* Path relatif di dalam `storage/`, atau public_id Cloudinary. */
+  berkasId    String            @map("berkas_id")
+  penyimpanan PenyimpananBerkas @map("berkas_penyimpanan")
+  namaAsli    String?           @map("nama_asli")
+  format      String?
+  ukuran      Int?
+  caption     String?
+  urutan      Int               @default(0)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  @@index([arsipId, urutan])
+  @@map("arsip_media")
+}
+
+model Alumni {
+  id               String         @id @default(uuid())
+  namaLengkap      String         @map("nama_lengkap")
+  gelar            String?
+  fotoUrl          String?        @map("foto_url")
+  angkatan         Int
+  programStudi     ProgramStudi   @map("program_studi")
+  profesi          String
+  instansi         String?
+  sektorIndustriId String         @map("sektor_industri_id")
+  sektorIndustri   SektorIndustri @relation(fields: [sektorIndustriId], references: [id])
+  email            String?
+  noWhatsapp       String?        @map("no_whatsapp")
+  linkInstagram    String?        @map("link_instagram")
+  linkSosmedLain   Json?          @map("link_sosmed_lain")
+  status           StatusAlumni   @default(PUBLISHED)
+  createdById      String         @map("created_by")
+  createdBy        AdminUser      @relation(fields: [createdById], references: [id])
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  deletedAt        DateTime?      @map("deleted_at")
+  account          AlumniAccount?
+  @@index([status, angkatan])
+  @@map("alumni")
+}
+
+/*
+ * Audit dengan actor ganda.
+ *
+ * `adminId` dibuat nullable dan `alumniAccountId` ditambahkan supaya aksi
+ * alumni tidak perlu memalsukan admin. Baris lama tetap punya `adminId`, jadi
+ * perubahan ini backward-compatible; salah satu actor selalu terisi.
+ */
+model AuditLog {
+  id              String         @id @default(uuid())
+  adminId         String?        @map("admin_id")
+  admin           AdminUser?     @relation(fields: [adminId], references: [id])
+  alumniAccountId String?        @map("alumni_account_id")
+  alumniAccount   AlumniAccount? @relation(fields: [alumniAccountId], references: [id])
+  aksi            AksiAudit
+  entitas         String
+  entitasId       String         @map("entitas_id")
+  detailPerubahan Json?          @map("detail_perubahan")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  dibacaOleh      NotifikasiDibaca[]
+  @@index([alumniAccountId, createdAt])
+  @@index([adminId, createdAt])
+  @@index([createdAt])
+  @@index([entitas, createdAt])
+  // Feed notifikasi admin: filter `aksi IN (...)` diurutkan `createdAt DESC`.
+  @@index([aksi, createdAt])
+  @@map("audit_log")
+}
+
+/*
+ * Penanda "notifikasi ini sudah saya baca" untuk satu admin.
+ *
+ * Notifikasi tidak punya tabelnya sendiri — itemnya adalah baris `AuditLog`
+ * (lihat `@/lib/notifikasi`). Penanda baca karena itu disimpan per pasangan
+ * admin+baris audit, sehingga satu notifikasi bisa dibaca admin A tanpa
+ * mengubah statusnya untuk admin B.
+ *
+ * `AdminUser.notifikasiDibacaAt` tetap dipakai untuk "tandai semua sudah
+ * dibaca" (satu penanda waktu, bukan ribuan baris); notifikasi dianggap terbaca
+ * bila createdAt <= penanda itu **atau** ada baris di sini.
+ */
+model NotifikasiDibaca {
+  adminId    String
+  admin      AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  auditLogId String   @map("audit_log_id")
+  auditLog   AuditLog @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
+  dibacaAt   DateTime @default(now()) @map("dibaca_at")
+  @@id([adminId, auditLogId])
+  @@map("notifikasi_dibaca")
+}
+
+/*
+ * Akun alumni — model terpisah dari `AdminUser`, terhubung satu-ke-satu ke
+ * `Alumni` setelah disetujui pengurus.
+ *
+ * `alumniId` null selama status masih `PENDING`: pendaftar belum tentu cocok
+ * dengan satu record `Alumni`, dan pencocokannya dilakukan admin. Karena
+ * `@unique` di Postgres mengizinkan banyak NULL, akun pending tidak saling
+ * bertabrakan, sementara satu `Alumni` tetap hanya boleh punya satu akun.
+ */
+model AlumniAccount {
+  id                            String             @id @default(uuid())
+  alumniId                      String?            @unique @map("alumni_id")
+  alumni                        Alumni?            @relation(fields: [alumniId], references: [id])
+  email                         String             @unique
+  passwordHash                  String             @map("password_hash")
+  status                        StatusAlumniAccount @default(PENDING)
+  namaLengkapSaatDaftar         String             @map("nama_lengkap_saat_daftar")
+  angkatanSaatDaftar            Int                @map("angkatan_saat_daftar")
+  programStudiSaatDaftar        ProgramStudi       @map("program_studi_saat_daftar")
+  consentDataAt                 DateTime           @map("consent_data_at")
+  // Default `false` untuk semua keterbukaan: alumni harus memilih sendiri.
+  openToCollaboration           Boolean            @default(false) @map("open_to_collaboration")
+  openToOpportunity             Boolean            @default(false) @map("open_to_opportunity")
+  showEmailToConnections        Boolean            @default(false) @map("show_email_to_connections")
+  showWhatsappToConnections     Boolean            @default(false) @map("show_whatsapp_to_connections")
+  showSocialLinksToConnections  Boolean            @default(false) @map("show_social_links_to_connections")
+  createdAt                     DateTime           @default(now()) @map("created_at")
+  updatedAt                     DateTime           @updatedAt @map("updated_at")
+  approvedAt                    DateTime?          @map("approved_at")
+  rejectedAt                    DateTime?          @map("rejected_at")
+  suspendedAt                   DateTime?          @map("suspended_at")
+  lastLoginAt                   DateTime?          @map("last_login_at")
+  requestedConnections          Connection[]       @relation("ConnectionRequester")
+  receivedConnections           Connection[]       @relation("ConnectionRecipient")
+  revokedConnections            Connection[]       @relation("ConnectionRevokedBy")
+  auditLogs                     AuditLog[]
+  @@index([status])
+  @@map("alumni_account")
+}
+
+/*
+ * Permintaan koneksi antar alumni.
+ *
+ * `pairKey` adalah pasangan id yang diurutkan deterministik
+ * (`min(a,b) + ":" + max(a,b)`) dengan unique constraint, jadi request balik
+ * arah pun tidak bisa dibuat dua kali di level database — pengaman terakhir
+ * kalau dua request masuk bersamaan.
+ */
+model Connection {
+  id                 String             @id @default(uuid())
+  requesterAccountId String             @map("requester_account_id")
+  requester          AlumniAccount      @relation("ConnectionRequester", fields: [requesterAccountId], references: [id])
+  recipientAccountId String             @map("recipient_account_id")
+  recipient          AlumniAccount      @relation("ConnectionRecipient", fields: [recipientAccountId], references: [id])
+  pairKey            String             @unique @map("pair_key")
+  status             StatusConnection   @default(PENDING)
+  /*
+   * Siapa yang memutus koneksi ini (`REVOKE`). Dipakai untuk memberi tahu
+   * **pihak lain** bahwa koneksinya diputus: pihak yang memutus sendiri sudah
+   * tahu, jadi ia tidak dihitung dan barisnya tidak perlu ia lihat.
+   */
+  revokedByAccountId String?            @map("revoked_by_account_id")
+  revokedBy          AlumniAccount?     @relation("ConnectionRevokedBy", fields: [revokedByAccountId], references: [id])
+  message            String?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  respondedAt        DateTime?          @map("responded_at")
+  /*
+   * Task 21 — kapan penerima membuka permintaan ini. `null` berarti belum
+   * dibaca, dan itulah yang dihitung sebagai "belum dibaca" di halaman
+   * jejaring. Dipisah dari `respondedAt` (keputusan) supaya membuka daftar
+   * tidak pernah dianggap sebagai jawaban.
+   */
+  readAt             DateTime?          @map("read_at")
+  /*
+   * Sisi pengirim: kapan ia melihat jawaban atas permintaannya (diterima atau
+   * ditolak). Tanpa penanda ini, pengirim tidak pernah tahu permintaannya sudah
+   * dijawab — `readAt` hanya milik penerima.
+   */
+  readRespondedAt    DateTime?          @map("read_responded_at")
+  /*
+   * Pihak yang **tidak** memutus: kapan ia melihat bahwa koneksinya sudah
+   * diputus. Terpisah dari `readRespondedAt` karena penerimaan dan pemutusan
+   * adalah dua peristiwa berbeda pada baris yang sama — membersihkan yang satu
+   * tidak boleh menghapus notifikasi yang lain.
+   */
+  readRevokedAt      DateTime?          @map("read_revoked_at")
+  @@index([recipientAccountId, status, createdAt])
+  @@index([requesterAccountId, status, createdAt])
+  @@map("connection")
+}
+
+/*
+ * Rate limit server-side (login, register, connection request).
+ *
+ * Disimpan di database, bukan memory process, karena deployment bisa berjalan
+ * di beberapa instance. `keyHash` menampung hash dari identifier (email/IP),
+ * bukan nilai mentahnya.
+ */
+model AuthRateLimit {
+  id              String    @id @default(uuid())
+  scope           String
+  keyHash         String    @map("key_hash")
+  attemptCount    Int       @default(0) @map("attempt_count")
+  windowStartedAt DateTime  @map("window_started_at")
+  blockedUntil    DateTime? @map("blocked_until")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  @@unique([scope, keyHash])
+  @@map("auth_rate_limit")
+}

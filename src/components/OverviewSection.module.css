@@ -1,0 +1,109 @@
+.stage {
+  position: relative;
+}
+
+.section {
+  position: relative;
+  display: grid;
+  min-height: 100dvh;
+  align-items: center;
+  overflow: hidden;
+  background: #f2f2f4;
+  color: #0f1012;
+  padding: 96px 0;
+}
+
+.section::before {
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  content: "";
+  pointer-events: none;
+}
+
+.inner {
+  display: grid;
+  width: min(100% - 12vw, 1280px);
+  margin: 0 auto;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2.1fr);
+  align-items: start;
+  gap: clamp(42px, 8vw, 140px);
+}
+
+.labelBlock {
+  padding-top: 0.3em;
+}
+
+.label {
+  margin: 0;
+  color: #0f1012;
+  font-family: var(--font-pp-neue), sans-serif;
+  font-size: clamp(16px, 1.35vw, 20px);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.content {
+  max-width: 760px;
+}
+
+.content h2 {
+  margin: 0;
+  font-size: clamp(30px, 3.2vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  white-space: normal;
+  /* Sudut pandang untuk putaran 3D tiap kata (lihat OverviewSection.tsx). */
+  perspective: 900px;
+}
+
+/*
+ * Kata-kata hasil pemisahan GSAP. `inline-block` dengan asal transform di bawah
+ * membuat putarannya berporos di garis dasar kata, seperti kertas yang ditegakkan.
+ */
+.content h2 :global(.word),
+.content :global(.word) {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity, filter;
+}
+
+.body {
+  max-width: 38ch;
+  margin: clamp(34px, 6vw, 80px) 0 0;
+  color: #5e5e5e;
+  font-family: var(--font-pp-neue), sans-serif;
+  font-size: clamp(18px, 1.55vw, 24px);
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+@media (max-width: 767px) {
+  .stage {
+    position: relative;
+  }
+
+  .section {
+    position: relative;
+    min-height: 78svh;
+    padding: 96px 0 108px;
+  }
+
+  .inner {
+    width: min(100% - 40px, 560px);
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .body {
+    max-width: 32ch;
+    margin-top: 26px;
+    font-size: 19px;
+    line-height: 1.45;
+  }
+
+  .content h2 {
+    font-size: clamp(30px, 8vw, 40px);
+  }
+}

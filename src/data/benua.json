@@ -1,0 +1,10 @@
+{
+  "benua": [
+    { "id": "asia", "nama": "Asia", "lat": 35.6762, "lng": 139.6503 },
+    { "id": "australia", "nama": "Australia", "lat": -33.8688, "lng": 151.2093 },
+    { "id": "eropa", "nama": "Eropa", "lat": 52.3676, "lng": 4.9041 },
+    { "id": "afrika", "nama": "Afrika", "lat": -1.2921, "lng": 36.8219 },
+    { "id": "amerika-utara", "nama": "Amerika Utara", "lat": 40.7128, "lng": -74.006 },
+    { "id": "amerika-selatan", "nama": "Amerika Selatan", "lat": -23.5505, "lng": -46.6333 }
+  ]
+}

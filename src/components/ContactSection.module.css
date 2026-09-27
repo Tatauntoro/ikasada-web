@@ -1,0 +1,128 @@
+/* Section penutup memakai oranye Augen dengan teks putih berkontras tinggi. */
+.contactSection {
+  --ink: #fdfdfd;
+  --muted: rgba(253, 253, 253, 0.74);
+  --line: rgba(253, 253, 253, 0.3);
+  position: relative;
+  overflow: hidden;
+  background: #ff4d00;
+  color: var(--ink);
+}
+
+.shell {
+  width: min(100% - 10vw, 1440px);
+  margin: 0 auto;
+  padding: clamp(64px, 7vw, 104px) 0 28px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.lead {
+  min-width: 0;
+}
+
+/* Gaya teksnya milik `.section-title` (globals.css). Ukurannya jauh lebih
+   kecil dari sebelumnya (dulu sampai 132px), jadi lebar maksimumnya dinaikkan
+   supaya bloknya tetap mengisi kolom. */
+.title {
+  max-width: none;
+  margin: 0;
+  color: var(--ink) !important;
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: clamp(30px, 8.5vw, 42px);
+  }
+}
+
+.copy {
+  max-width: 38ch;
+  margin: clamp(22px, 2.6vw, 36px) 0 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.45;
+}
+
+.email {
+  display: inline-block;
+  margin-top: clamp(22px, 2.6vw, 34px);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: clamp(22px, 2.1vw, 34px);
+  letter-spacing: -0.055em;
+  line-height: 1;
+  text-decoration: none;
+  transition: border-color 220ms ease, color 220ms ease;
+}
+
+.email:hover,
+.email:focus-visible {
+  border-color: var(--ink);
+  color: var(--ink);
+  outline: none;
+}
+
+.location,
+.footerLine {
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: var(--tracking-label);
+  line-height: 1.4;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.location {
+  margin: 18px 0 0;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.footerLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(52px, 6vw, 88px);
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 860px) {
+  .shell {
+    width: min(100% - 40px, 620px);
+    padding-top: 64px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    max-width: none;
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 1.05;
+    text-wrap: balance;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .footerLine {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .email {
+    transition: none;
+  }
+}

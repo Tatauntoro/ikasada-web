@@ -1,0 +1,886 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ---- Augen Pro (DESIGN-augen.md) ----
+     Sistem monokrom + satu biru listrik. Biru HANYA untuk border dan teks
+     interaktif — tidak pernah sebagai fill. Elevasi dari beda tone + hairline,
+     bukan shadow. Token lama (brand/cream/forest/sage/terracotta) sudah
+     dihapus — Portal Admin kini memakai token yang sama dengan web publik. */
+  --color-off-black: #0f1012;
+  --color-pure-black: #020201;
+  --color-off-white: #f2f2f4;
+  --color-pure-white: #fdfdfd;
+  --color-steel-gray: #5e5e5e;
+  --color-ash-gray: #8f8f8f;
+  --color-signal-blue: #0071e3;
+
+  /*
+   * Tipografi. `--text-*`, `--leading-*`, `--tracking-*`, dan `--font-weight-*`
+   * adalah namespace tema Tailwind, tapi nama di bawah semuanya BARU (caption,
+   * body, subheading, heading) sehingga tidak menimpa satu pun utilitas bawaan.
+   */
+  --text-caption: 10px;
+  --leading-caption: 12;
+  --tracking-caption: -0.2px;
+
+  --text-body: 16px;
+  --leading-body: 19.2;
+  --tracking-body: -0.32px;
+
+  --text-subheading: 18px;
+  --leading-subheading: 21.6;
+  --tracking-subheading: -0.36px;
+
+  --text-heading: 27px;
+  --leading-heading: 32.4;
+  --tracking-heading: -0.54px;
+
+  --font-weight-regular: 400;
+
+  /*
+   * Skala display — INILAH yang benar-benar dipakai komponen. Skala di atas
+   * (caption/body/subheading/heading) tetap disimpan sebagai rujukan
+   * DESIGN-augen.md, tapi tidak ada satu pun komponen yang mengonsumsinya.
+   * Tiga langkah saja: hero, judul halaman, judul section.
+   */
+  --text-display-hero: clamp(34px, 4.6vw, 56px);
+  --leading-display-hero: 1;
+  --tracking-display-hero: -0.04em;
+
+  --text-display-page: clamp(28px, 4vw, 44px);
+  --leading-display-page: 1.05;
+  --tracking-display-page: -0.03em;
+
+  --text-display-section: clamp(26px, 3vw, 40px);
+  --leading-display-section: 1.1;
+  --tracking-display-section: -0.02em;
+
+  /* Satu nilai tracking untuk semua label uppercase kecil (dulu 0,08–0,3em). */
+  --tracking-label: 0.18em;
+
+  /*
+   * Alias font — SENGAJA bukan nilai literal 'PP Neue Montreal' dari
+   * augentailwind.css. Font itu di-self-host lewat next/font/local, yang
+   * menghasilkan nama keluarga ter-obfuscate dan mengeksposnya sebagai
+   * --font-pp-neue; nama literalnya hanya cocok kalau fontnya kebetulan
+   * terpasang di sistem pengunjung. Sebagai alias, ini selalu benar.
+   */
+  --font-pp-neue-montreal: var(--font-pp-neue);
+
+  /*
+   * Radius bernama. Sengaja memakai nama panjang, BUKAN --radius-sm/lg/3xl/full
+   * seperti di augentailwind.css: nama-nama pendek itu sudah dipakai Tailwind
+   * dan menimpanya akan mengubah arti rounded-full (pill → 54px), rounded-lg,
+   * rounded-3xl, dan rounded-sm di SELURUH aplikasi termasuk area admin.
+   */
+  --radius-nav-pills: 10px;
+  --radius-buttons: 26px;
+  --radius-large-cards: 54px;
+  --radius-tags-and-links: 9999px;
+  --radius-body-containers: 63px;
+  --radius-hairline-elements: 1.8px;
+
+  /*
+   * Layout. `--section-gap` di augenvariables.css bernilai "90-100px" — itu
+   * rentang, bukan panjang CSS yang sah, jadi `padding: var(--section-gap)`
+   * akan gagal dan deklarasinya diabaikan diam-diam. Di sini dipakai satu
+   * angka: titik tengahnya.
+   */
+  --page-max-width: 1200px;
+  --section-gap: 94px;
+  --card-padding: 69px;
+  --element-gap: 6px;
+
+  /*
+   * Palet baru (brand/cream/forest/sage/terracotta) sudah dihapus. Semua
+   * permukaan, teks, dan aksen sekarang memakai token Augen di atas; satu-
+   * satunya warna fungsional di luar itu adalah merah (error/hapus), kuning
+   * (menunggu), dan hijau (sukses/aktif) pada badge & pesan status admin. */
+
+  /*
+   * Empat keluarga benar-benar dirender: PP Neue Montreal (via next/font/local),
+   * Instrument Serif (font-serif), Noto Sans Javanese, dan Plus Jakarta Sans.
+   * Plus Jakarta Sans dipakai di wrapper halaman publik; halaman admin tetap
+   * memakai PP Neue Montreal melalui nilai default body.
+   */
+  --font-sans: var(--font-pp-neue), "PP Neue Montreal", system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), "Instrument Serif", serif;
+  --font-display: var(--font-pp-neue), "PP Neue Montreal", system-ui, sans-serif;
+  --font-javanese: "Noto Sans Javanese", serif;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 4s ease-in-out infinite;
+  --animate-marquee: ik-marquee 30s linear infinite;
+  --animate-bob: ik-bob 1.8s ease-in-out infinite;
+  --animate-drift: ik-drift 18s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.08); }
+  }
+  @keyframes ik-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes ik-bob {
+    0%, 100% { transform: translateY(0); opacity: 0.55; }
+    50% { transform: translateY(5px); opacity: 1; }
+  }
+  @keyframes ik-drift {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    50% { transform: translateX(-26px) rotate(-1.2deg); }
+  }
+}
+
+/*
+ * Judul section beranda — satu sumber kebenaran untuk SEMUA section.
+ *
+ * Sebelumnya sembilan judul section memakai delapan ukuran, empat nilai
+ * tracking, dan tiga di antaranya berbobot 300. Nilai di sini mengikuti
+ * DESIGN-augen: satu typeface (PP Neue Montreal), bobot tidak pernah di atas
+ * 400, dan tracking seragam. Sengaja ditulis di luar `@layer` supaya tidak
+ * adu urutan dengan utility Tailwind — utility font lamanya memang dibuang
+ * dari tiap komponen.
+ */
+.section-title {
+  font-family: var(--font-pp-neue-montreal), "PP Neue Montreal", sans-serif;
+  font-size: var(--text-display-section);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display-section);
+  line-height: var(--leading-display-section);
+  color: #0f1012;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .section-title {
+    font-size: clamp(18px, 5vw, 32px);
+  }
+}
+
+/* Band gelap memakai Pure White, bukan Off-Black yang dibalik. */
+.section-title--terang {
+  color: #fdfdfd;
+}
+
+/* Judul halaman (bukan judul section): /arsip, /event, /arsip/[slug]. */
+.page-title {
+  font-family: var(--font-pp-neue-montreal), "PP Neue Montreal", sans-serif;
+  font-size: var(--text-display-page);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display-page);
+  line-height: var(--leading-display-page);
+  color: #0f1012;
+  text-wrap: balance;
+}
+
+.page-title--single {
+  white-space: nowrap;
+}
+
+/* Status alumni memakai Plus Jakarta Sans agar hierarkinya lebih tegas tanpa mengubah
+   tipografi halaman profil, jejaring, atau halaman publik lain. */
+.alumni-status-page .page-title {
+  font-family: inherit;
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.alumni-status-page .section-label {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+}
+
+.alumni-status-page header > div > a,
+.alumni-status-page header > div button,
+.alumni-status-page nav[aria-label="Menu ruang alumni"] a {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.alumni-status-page nav[aria-label="Breadcrumb"] {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Profil alumni memakai Plus Jakarta Sans tanpa mengubah route lain. */
+.alumni-profile-page .page-title,
+.alumni-profile-page .section-label {
+  font-family: inherit;
+}
+
+/* Jejaring alumni memakai Plus Jakarta Sans tanpa mengubah route lain. */
+.alumni-jejaring-page .page-title,
+.alumni-jejaring-page .section-label {
+  font-family: inherit;
+}
+
+/* Direktori alumni memakai Plus Jakarta Sans untuk heading dan kartu. */
+.alumni-directory-page .section-title,
+.alumni-directory-page .section-label,
+.alumni-directory-page .font-display,
+.alumni-directory-page .font-sans {
+  font-family: inherit;
+}
+
+/* Section lanjutan di Beranda memakai Plus Jakarta Sans secara scoped. */
+.home-jakarta-section .section-title,
+.home-jakarta-section .section-label,
+.home-jakarta-section .font-display,
+.home-jakarta-section .font-sans {
+  font-family: inherit;
+}
+
+@media (max-width: 767px) {
+  .page-title--single {
+    font-size: clamp(16px, 5vw, 32px);
+  }
+}
+
+/* Label kecil di atas judul (pasangan label + judul ala DESIGN-augen). */
+.section-label {
+  font-family: var(--font-pp-neue-montreal), "PP Neue Montreal", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #0f1012;
+}
+
+.section-label--terang {
+  color: #fdfdfd;
+}
+
+body {
+  --font-pp-neue: var(--font-pp-neue-original);
+  --font-sans: var(--font-pp-neue), "PP Neue Montreal", system-ui, sans-serif;
+  --font-display: var(--font-pp-neue), "PP Neue Montreal", system-ui, sans-serif;
+  font-family: var(--font-sans);
+  background-color: #f2f2f4;
+  color: #0f1012;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.light body {
+  background-color: #f2f2f4;
+  color: #0f1012;
+}
+
+/* Halaman publik: kanvas putih Augen. Latar antar-section terpusat di sini,
+   jadi satu perubahan ini menggeser seluruh permukaan halaman. */
+.public-page {
+  --font-pp-neue: var(--font-plus-jakarta);
+  --font-pp-neue-montreal: var(--font-plus-jakarta);
+  --font-sans: var(--font-plus-jakarta), system-ui, sans-serif;
+  --font-display: var(--font-plus-jakarta), system-ui, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+  background: #ffffff;
+  color: #0f1012;
+}
+
+.public-page #alumni,
+.public-page #kegiatan {
+  background: #ffffff !important;
+  color: #0f1012;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Kerjasama Kami: band gelap, momen kontras penuh setelah direktori. */
+.public-page #journal {
+  background: #0f1012 !important;
+  color: #fdfdfd;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.public-page #overview {
+  background: #f2f2f4 !important;
+  color: #0f1012;
+}
+
+/* Statistik duduk di kanvas putih yang sama dengan section lain. Peta sebaran
+   di dalamnya tetap membawa latarnya sendiri (lihat Stats.module.css). */
+.public-page #statistik {
+  background: #ffffff !important;
+  color: #0f1012;
+}
+
+/* Band gelap tetap gelap: Augen menyediakan #0f1012 justru untuk "full-bleed
+   contrast moments", dan staf adalah salah satu dari dua momen itu (satunya
+   lagi Kerjasama Kami, lihat di atas). */
+.public-page #staf {
+  background: #0f1012 !important;
+  color: #fdfdfd;
+}
+
+.public-page #staf > div[aria-hidden="true"],
+.public-page #alumni > div[aria-hidden="true"]:not(:first-child) {
+  display: none;
+}
+
+/* Navbar memakai satu surface susu dengan blur lokal. Section lain tetap datar. */
+
+/*
+ * Hairline Augen: 0.5px, hitam semi-transparan. Section tetap mengandalkan beda
+ * tone; shadow tipis hanya dipakai pada navbar dan silhouette hero.
+ *
+ * Ditulis sebagai kelas CSS biasa, bukan `border-[0.5px]` Tailwind: utilitas
+ * arbitrary itu ternyata tidak menghasilkan 0.5px (computed tetap 1px bahkan di
+ * DPR 2), sedangkan deklarasi langsung ini pasti.
+ */
+.augen-hairline {
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+}
+
+.augen-nav-surface {
+  border: 0.5px solid rgba(15, 16, 18, 0.07);
+  background: rgba(244, 244, 245, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 10px 28px rgba(15, 16, 18, 0.055);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+}
+
+.augen-nav-item {
+  color: #0f1012;
+  transition:
+    filter 220ms ease,
+    opacity 220ms ease;
+}
+
+.augen-nav-item:hover,
+.augen-nav-item:focus-visible {
+  background: transparent;
+}
+
+.augen-cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: #0071e3;
+  color: #ffffff;
+  font-family: var(--font-pp-neue), sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+
+.augen-cta:hover,
+.augen-cta:focus-visible {
+  background: #005fc1;
+  color: #ffffff;
+}
+
+.augen-cta:active {
+  transform: translateY(1px);
+}
+
+.augen-cta:focus-visible {
+  outline: 2px solid #0f1012;
+  outline-offset: 3px;
+}
+
+.augen-cta svg {
+  color: #ffffff;
+}
+
+@supports selector(:has(*)) {
+  .augen-nav-group:has(.augen-nav-item:is(:hover, :focus-visible))
+    .augen-nav-item:not(:hover):not(:focus-visible) {
+    opacity: 0.36;
+    filter: blur(2.4px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .augen-nav-surface {
+    background: #f4f4f5;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.scroll-progress {
+  position: fixed;
+  z-index: 80;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(17, 17, 17, 0.14);
+}
+
+.scroll-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #111111;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .scroll-progress {
+    display: none;
+  }
+}
+
+/*
+ * Panel admin: beda tone (pure white di atas kanvas off-white) + hairline,
+ * tanpa blur dan tanpa shadow — sama seperti filosofi elevasi DESIGN-augen.
+ */
+.glass-card {
+  background: #fdfdfd;
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+}
+
+.glass-card-hover {
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.glass-card-hover:hover {
+  background: #fdfdfd;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-3d {
+  transform-style: preserve-3d;
+}
+
+.reveal-section {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.9s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.reveal-section.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.reveal-section.revealed .reveal-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-section.revealed .reveal-item:nth-child(1) { transition-delay: 0ms; }
+.reveal-section.revealed .reveal-item:nth-child(2) { transition-delay: 90ms; }
+.reveal-section.revealed .reveal-item:nth-child(3) { transition-delay: 180ms; }
+.reveal-section.revealed .reveal-item:nth-child(4) { transition-delay: 270ms; }
+.reveal-section.revealed .reveal-item:nth-child(5) { transition-delay: 360ms; }
+.reveal-section.revealed .reveal-item:nth-child(6) { transition-delay: 450ms; }
+.reveal-section.revealed .reveal-item:nth-child(7) { transition-delay: 540ms; }
+.reveal-section.revealed .reveal-item:nth-child(8) { transition-delay: 630ms; }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f2f2f4;
+}
+/* Scrollbar: memakai dua nada netral Augen, bukan token semantik. */
+::-webkit-scrollbar-thumb {
+  background: #8f8f8f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5e5e5e;
+}
+
+/* Pill button base */
+.btn-pill {
+  border-radius: 999px;
+  transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+.btn-pill:hover {
+  transform: translateY(-2px);
+}
+
+/* Javanese ornament drift animation */
+.ornament-drift {
+  animation: ik-drift 18s ease-in-out infinite;
+}
+
+/* Marquee track for Javanese script ticker */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: ik-marquee 30s linear infinite;
+}
+
+/* Scroll indicator bob animation */
+.scroll-bob {
+  animation: ik-bob 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-bob,
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+/* ---- WayScene: fallback CSS 3D untuk kartu kegiatan & direktori ---- */
+.way-scene__stage { }
+.way-scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  perspective: 760px;
+  overflow: hidden;
+}
+.way-scene__stage {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  transform-style: preserve-3d;
+  animation: way-float 7.5s ease-in-out infinite;
+}
+.way-scene__spin,
+.way-scene__sway {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.way-scene__spin {
+  animation: way-spin 24s linear infinite;
+}
+.way-scene__sway {
+  animation: way-sway 9s ease-in-out infinite;
+}
+@keyframes way-float {
+  0%,
+  100% {
+    transform: translateY(-6px);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@keyframes way-spin {
+  from {
+    transform: rotateX(-14deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(-14deg) rotateY(360deg);
+  }
+}
+@keyframes way-sway {
+  0%,
+  100% {
+    transform: rotateX(-16deg) rotateY(-22deg);
+  }
+  50% {
+    transform: rotateX(-16deg) rotateY(22deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .way-scene__stage,
+  .way-scene__spin,
+  .way-scene__sway {
+    animation: none !important;
+  }
+}
+
+/* ---- Hero WebGL scene ---- */
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.hero-scene-fade {
+  animation: hero-fade 1.4s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scene-fade {
+    animation: none;
+  }
+}
+
+/* ---- Statistik: peta dunia sebaran alumni ---- */
+.dunia-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  filter: drop-shadow(0 0 1.4px rgba(255, 255, 255, 0.7));
+  animation: dunia-draw 4.2s ease-in-out infinite;
+}
+@keyframes dunia-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  46% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  68% {
+    stroke-dashoffset: 0;
+    opacity: 0.12;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.dunia-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: dunia-pulse 3.2s ease-out infinite;
+}
+@keyframes dunia-pulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+@media (max-width: 1023px) {
+  .dunia-label {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dunia-line {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  .dunia-pulse {
+    animation: none;
+  }
+}
+
+/* ---- /event: expanding cards ---- */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .event-card {
+    flex: 1 1 0%;
+    transition: flex-grow 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .event-card:hover,
+  .event-card:focus-within {
+    flex-grow: 2.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .event-card {
+    transition: none;
+  }
+}
+
+/* ---- Detail kegiatan: kartu preview video ---- */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.video-card-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.12) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .video-card-shimmer {
+    animation: none;
+  }
+}
+
+/* ---- Preloader babak 1: aksara digoreskan, lalu pecah ---- */
+
+/*
+ * Satu glif = satu goresan. Panjang dash-nya angka tetap karena `getTotalLength()`
+ * tidak ada untuk `<text>` — keliling glif aksara Jawa tidak bisa diukur dari sini.
+ * Kalau kelilingnya lebih pendek dari 320, goresannya selesai lebih awal dan diam
+ * sampai jadwalnya habis; itu sebabnya isi penuh menyusul setelah semua goresan.
+ */
+@keyframes preloader-tulis {
+  from {
+    stroke-dashoffset: 320;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.preloader-garis {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: preloader-tulis 420ms cubic-bezier(0.45, 0, 0.35, 1) both;
+}
+
+@keyframes preloader-isi-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.preloader-isi {
+  opacity: 0;
+  animation: preloader-isi-in 300ms ease 980ms both;
+}
+
+/* Pecah: aksara yang sudah utuh mengembang jadi serpihan titik lalu sirna. */
+@keyframes preloader-pecah {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+.preloader-pecah {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: preloader-pecah 560ms cubic-bezier(0.3, 0, 0.7, 1) both;
+}
+
+/* ---- Transisi halaman: masuk dari kedalaman ---- */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.035) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * `animation-fill-mode: backwards`, BUKAN `both`.
+ *
+ * Dengan `both`, setelah animasi selesai browser tetap menahan hasilnya dan
+ * menyerialisasi transform sebagai `matrix(1, 0, 0, 1, 0, 0)` — identity,
+ * tapi tetap sebuah transform, sehingga wrapper ini tetap jadi containing
+ * block untuk `position: fixed` di dalamnya (Navbar dan Preloader). Dengan
+ * `backwards`, setelah animasi selesai tidak ada style animasi yang tersisa
+ * dan transform kembali `none`.
+ */
+.page-enter {
+  animation: page-enter 520ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
+
+  /*
+   * Tanpa animasi, aksara harus langsung tampil utuh. `.preloader-isi` punya
+   * `opacity: 0` di aturan dasarnya, jadi kalau animasinya cuma dimatikan
+   * glif-nya tidak pernah muncul.
+   */
+  .preloader-garis {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .preloader-isi {
+    animation: none;
+    opacity: 1;
+  }
+
+  .preloader-pecah {
+    animation: none;
+  }
+}
+
+/* ---- Elemen tersusun saat masuk viewport (kartu direktori, agenda, staf) ---- */
+@keyframes reveal-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Hanya aktif setelah lapisan motion siap (`data-motion-ready`), jadi tanpa
+ * JavaScript elemen tetap terlihat dan tidak ada konten yang tersangkut
+ * tersembunyi.
+ *
+ * `animation-fill-mode: backwards` dipakai supaya setelah animasi selesai tidak
+ * ada style animasi yang tersisa — transform hover milik kartu tetap bekerja.
+ * Keyframe-nya juga berakhir di `transform: none` agar tidak membentuk
+ * containing block.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .public-page[data-motion-ready="true"] .reveal-item:not(.revealed) {
+    opacity: 0;
+  }
+
+  .public-page[data-motion-ready="true"] .reveal-item.revealed {
+    animation: reveal-item-in 620ms cubic-bezier(0.22, 0.61, 0.36, 1)
+      var(--reveal-delay, 0ms) backwards;
+  }
+}

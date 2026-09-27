@@ -1,0 +1,333 @@
+/*
+ * Hero Glyph Portal IKASADA.
+ *
+ * Susunan copy mengapit huruf raksasa dan ter-center: deskripsi di atas
+ * IKASADA, judul + CTA di bawahnya. Pita huruf itu sendiri bukan milik
+ * komposisi ini — posisinya diukur GlyphPortal dan diumumkan lewat
+ * `--gp-word-top`/`--gp-word-bottom`, jadi grid di bawah memakai kedua nilai itu
+ * sebagai batas baris pertama dan baris ketiga.
+ *
+ * Tipografi mengikuti panduan audit (eksekusi-audit-tipografi.md): satu
+ * typeface (Plus Jakarta Sans) dan bobot maksimum 500. Judul sengaja tidak lagi
+ * memakai tier judul mana pun — atas permintaan pemilik, ia disamakan dengan
+ * deskripsi (18px, abu sekunder) supaya IKASADA jadi satu-satunya display.
+ * Dua hal lain juga menyimpang dari dokumen desain atas permintaan pemilik:
+ * copy-nya ter-center (DESIGN.md menyarankan blok kiri), dan CTA-nya biru solid
+ * (DESIGN-augen melarang biru sebagai fill).
+ *
+ * Override di bawah ditulis di atas kelas `.portal` supaya menang dari
+ * <style> internal GlyphPortal (selector-nya ber-spefisitas 0 karena dibungkus
+ * `:where(#id)`), tanpa perlu menyentuh berkas vendored-nya.
+ */
+
+.hero {
+  position: relative;
+  background: #ffffff;
+}
+
+/* Cadangan sebelum font siap / sebelum mount: tinggi hero supaya tidak ada
+   pergeseran tata letak di balik veil. */
+.placeholder {
+  min-height: 100svh;
+  background: #ffffff;
+}
+
+.portal {
+  font-family: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* ---- Markah bawaan GlyphPortal yang tidak dipakai ---- */
+
+/* Baris caption bawaan (link "Lewati ke konten" + petunjuk gulir) tidak dipakai
+   sama sekali — petunjuk gulirnya juga sudah dihapus dari komposisi. */
+.portal [data-gp-caption] {
+  display: none;
+}
+
+/* Pemilih huruf untuk pointer kasar ("Choose a letter") dihapus: di ponsel ia
+   tampil seperti navbar tambahan di tengah hero. */
+.portal [data-gp-touch-picker] {
+  display: none;
+}
+
+/* Panel gelap setelah dive dihapus, jadi wadah kontennya tidak boleh lagi
+   menyumbang satu tinggi layar. */
+.portal [data-gp-content] {
+  min-height: 0;
+  padding: 0;
+}
+
+.portal [data-gp-letter]:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 5px;
+}
+
+.portal [data-gp-select] {
+  border: 1px solid rgba(15, 16, 18, 0.2);
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f1012;
+  font-family: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* ---- Komposisi frame pembuka ---- */
+
+.front {
+  position: relative;
+  display: grid;
+  box-sizing: border-box;
+  height: 100%;
+  /*
+   * Baris 1 = ruang di atas huruf, baris 2 = pita huruf (dikosongkan), baris 3 =
+   * ruang di bawah huruf. Sengaja tanpa padding vertikal: nilai `--gp-word-*`
+   * diukur dari tepi atas pin, jadi padding akan menggeser pita hurufnya.
+   */
+  grid-template-rows:
+    var(--gp-word-top, 30%)
+    calc(var(--gp-word-bottom, 70%) - var(--gp-word-top, 30%))
+    minmax(0, 1fr);
+  padding: 0 clamp(22px, 7vw, 112px);
+  font-family: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  color: #0f1012;
+}
+
+.atas {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  grid-row: 1;
+  /* Jarak ke huruf: deskripsi tidak boleh menempel ke IKASADA. */
+  padding-top: clamp(20px, 2.6vw, 32px);
+  padding-bottom: clamp(14px, 2.2svh, 24px);
+}
+
+.bawah {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  grid-row: 3;
+  padding-top: clamp(12px, 2svh, 26px);
+  padding-bottom: clamp(24px, 4svh, 44px);
+  text-align: center;
+}
+
+/* Pembungkus logo: menahan sapuan kilau supaya tidak meluber keluar lambang,
+   sekaligus jadi sasaran animasi masuk (lihat JEDA.logo di GlyphHero.tsx). */
+.brandWrap {
+  position: relative;
+  display: block;
+  width: clamp(44px, 5vw, 64px);
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.brand {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+
+/*
+ * Kilau logo: sapuan diagonal terang yang lewat berkala. `screen` membuatnya
+ * hanya terlihat di atas pixel gelap lambang — di area putih JPEG-nya sapuan itu
+ * tidak mengubah apa pun, jadi tidak ada kotak yang muncul.
+ */
+.shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.92) 50%,
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+  transform: translateX(-140%);
+}
+
+@keyframes kilauLogo {
+  0% {
+    transform: translateX(-140%);
+  }
+  45% {
+    transform: translateX(140%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
+}
+
+/*
+ * Deskripsi di atas huruf dan judul di bawahnya sengaja memakai gaya yang SAMA
+ * (18px, abu sekunder, bobot 400) — dua baris tenang yang mengapit satu display.
+ */
+.sub,
+.headline {
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif;
+  font-size: var(--text-subheading);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: #5e5e5e;
+  text-align: center;
+}
+
+/* CTA: biru solid. Aksen biru di sini memang jadi fill (menyimpang dari
+   DESIGN-augen) atas permintaan pemilik. */
+.cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: clamp(20px, 3.4svh, 34px);
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9999px;
+  background: #0071e3;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: background-color 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background: #005fc1;
+  color: #ffffff;
+}
+
+.cta:focus-visible {
+  outline: 2px solid #0f1012;
+  outline-offset: 3px;
+}
+
+.cta svg {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+}
+
+/* ---- Urutan masuk setelah veil preloader ---- */
+
+/*
+ * IKASADA lebih dulu: tinta huruf disapu dari bawah ke atas. Memakai mask, bukan
+ * clip-path, karena clip-path elemen ini dipegang inline oleh mesin kamera.
+ */
+@keyframes hurufMasuk {
+  from {
+    opacity: 0;
+    -webkit-mask-position: 0 0%;
+    mask-position: 0 0%;
+  }
+  to {
+    opacity: 1;
+    -webkit-mask-position: 0 100%;
+    mask-position: 0 100%;
+  }
+}
+
+/* CTA dan logo menyusul dengan naik pendek dari bawah. Jedanya datang dari
+   `animationDelay` inline di GlyphHero (lihat konstanta JEDA di sana). */
+@keyframes naikMasuk {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portal[data-gp-ready] [data-gp-field] {
+    -webkit-mask-image: linear-gradient(to top, #000 0 50%, transparent 50% 100%);
+    -webkit-mask-size: 100% 200%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: 0 0%;
+    mask-image: linear-gradient(to top, #000 0 50%, transparent 50% 100%);
+    mask-size: 100% 200%;
+    mask-repeat: no-repeat;
+    mask-position: 0 0%;
+    animation: hurufMasuk 1000ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .cta,
+  .brandWrap {
+    animation: naikMasuk 620ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  /* Mulai setelah logo selesai masuk (JEDA.logo + 620ms), lalu berulang. */
+  .shine {
+    animation: kilauLogo 4200ms cubic-bezier(0.4, 0, 0.2, 1) 2900ms infinite;
+  }
+}
+
+/*
+ * Lewati intro (beranda dibuka lewat navigasi client-side, bukan pemuatan
+ * dokumen): tampilkan keadaan akhir tanpa animasi masuk. `MorphText` ditangani
+ * lewat prop `lewati`; di sini sisa elemen CSS-nya.
+ *
+ * `mask-image: none` penting, bukan sekadar `animation: none`: tanpa animasi,
+ * `mask-position` tertinggal di `0 0%` sehingga huruf justru terpotong.
+ */
+.hero[data-tanpa-intro] .cta,
+.hero[data-tanpa-intro] .brandWrap {
+  animation: none;
+}
+
+.hero[data-tanpa-intro] .portal [data-gp-field] {
+  animation: none;
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* ---- Layar sempit ---- */
+
+@media (max-width: 900px) {
+  .front {
+    padding: 0 clamp(20px, 6vw, 40px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+}
+
+/*
+ * Pin pendek (viewport pendek atau mode statis): ruang di atas/bawah huruf
+ * menyusut, jadi yang dirapatkan hanya bantalan dan jaraknya.
+ * Ambangnya container query karena `[data-gp-pin]` sudah `container-type: size`.
+ */
+@container (max-height: 660px) {
+  .atas {
+    gap: 10px;
+    padding-top: 18px;
+    padding-bottom: 12px;
+  }
+
+  .bawah {
+    padding-top: 10px;
+    padding-bottom: 20px;
+  }
+
+  .cta {
+    min-height: 40px;
+    margin-top: 16px;
+  }
+}

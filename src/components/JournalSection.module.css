@@ -1,0 +1,92 @@
+/*
+ * Section Kerjasama Kami.
+ *
+ * Sisa dari model kartu lama (grid, kartu, bingkai gambar, tombol) sudah dibuang
+ * bersama kartunya — coverflow membawa gayanya sendiri di
+ * `ui/coverflow-carousel.tsx`. Yang tersisa di sini hanya kerangka section-nya.
+ */
+.section {
+  --ink: #fdfdfd;
+  width: 100%;
+  overflow: hidden;
+  background: #0f1012;
+  color: var(--ink);
+  padding: clamp(88px, 12vw, 168px) 0 clamp(96px, 13vw, 184px);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: flex-end;
+  gap: 32px;
+  margin: 0 auto clamp(28px, 4vw, 48px);
+  padding: 0 clamp(20px, 6vw, 96px);
+  max-width: 1440px;
+}
+
+/* Gaya teksnya milik `.section-title` (globals.css). */
+.title {
+  grid-column: 1 / 8;
+  margin: 0;
+}
+
+.section .title {
+  font-family: inherit;
+}
+
+.carousel {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/*
+ * Kerangka saat daftar kerjasama masih diambil dari `/api/public/kerjasama`.
+ * Tinggi dan lebar kartunya disamakan dengan coverflow (`--cf-card` di
+ * `ui/coverflow-carousel.tsx`) supaya tidak ada lompatan tata letak.
+ */
+.skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 28px);
+  height: clamp(190px, 24vw, 320px);
+}
+
+.skeletonCard {
+  flex: 0 0 auto;
+  width: clamp(190px, 24vw, 320px);
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: rgba(253, 253, 253, 0.06);
+  animation: journalPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes journalPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.pesan {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px clamp(20px, 6vw, 96px);
+  color: rgba(253, 253, 253, 0.6);
+  font-size: 14.5px;
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding: 84px 0 100px;
+  }
+
+  .header {
+    display: block;
+    margin-bottom: 24px;
+    padding: 0 20px;
+  }
+}
