@@ -6,11 +6,29 @@
 # aplikasinya, atau siapkan file .env di sebelah file ini sebelum deploy.
 
 services:
+  # Jalan sekali tiap deploy: apply migration Prisma yang belum jalan
+  # (`prisma migrate deploy`, non-interaktif & aman untuk incremental
+  # migration), lalu exit. Service app baru start kalau ini sukses.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    restart: "no"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    networks:
+      - dokploy-network
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: "3000"

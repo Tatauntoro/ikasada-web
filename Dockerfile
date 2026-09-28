@@ -27,6 +27,16 @@ ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
 
 RUN npm run build
 
+# ---- Migrator ---------------------------------------------------------------
+# Image terpisah yang cuma dipakai untuk menjalankan `prisma migrate deploy`
+# sekali sebelum service app start (lihat docker-compose.yml). Butuh Prisma
+# CLI + folder prisma/migrations, makanya build dari stage builder (bukan
+# runner yang sudah di-strip ke standalone output).
+FROM builder AS migrator
+WORKDIR /app
+ENTRYPOINT ["npx", "prisma"]
+CMD ["migrate", "deploy"]
+
 # ---- Runtime ------------------------------------------------------------------
 FROM base AS runner
 WORKDIR /app
