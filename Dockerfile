@@ -53,11 +53,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Folder penyimpanan lokal untuk berkas/media arsip (dipakai kalau Cloudinary
-# tidak dikonfigurasi). Dibuatkan volume terpisah di docker-compose supaya
-# tidak hilang saat redeploy.
-RUN mkdir -p storage public/uploads \
-  && chown -R nextjs:nodejs storage public/uploads
+# Folder penyimpanan lokal untuk berkas/media arsip + gambar upload (dipakai
+# kalau Cloudinary tidak dikonfigurasi). SENGAJA di luar public/ (lihat
+# komentar UPLOAD_DIR di src/lib/upload-lokal.ts) dan dibuatkan volume
+# terpisah di docker-compose supaya tidak hilang saat redeploy.
+RUN mkdir -p storage \
+  && chown -R nextjs:nodejs storage
 
 USER nextjs
 

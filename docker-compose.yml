@@ -47,16 +47,15 @@ services:
     expose:
       - "3000"
     volumes:
-      # Fallback penyimpanan lokal (dipakai kalau Cloudinary tidak dikonfigurasi).
-      # Kalau Cloudinary sudah diisi, dua volume ini tidak akan terpakai.
+      # Fallback penyimpanan lokal (arsip, media galeri, gambar upload) —
+      # dipakai kalau Cloudinary tidak dikonfigurasi. Kalau Cloudinary sudah
+      # diisi, volume ini tidak akan terpakai.
       - app_storage:/app/storage
-      - app_uploads:/app/public/uploads
     networks:
       - dokploy-network
 
 volumes:
   app_storage:
-  app_uploads:
 
 networks:
   # Network bawaan Dokploy (dibuat otomatis oleh Dokploy sendiri) — wajib

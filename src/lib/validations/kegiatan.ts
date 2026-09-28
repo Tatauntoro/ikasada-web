@@ -48,7 +48,7 @@ export const kegiatanBaseSchema = z.object({
         !val ||
         val.startsWith("http://") ||
         val.startsWith("https://") ||
-        val.startsWith("/uploads/"),
+        val.startsWith("/api/uploads/"),
       { message: "URL thumbnail tidak valid" }
     )
     .optional()

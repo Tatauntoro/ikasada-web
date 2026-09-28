@@ -5,7 +5,7 @@ function isValidUrlOrUploadPath(val: string | null | undefined): boolean {
   return (
     val.startsWith("http://") ||
     val.startsWith("https://") ||
-    val.startsWith("/uploads/")
+    val.startsWith("/api/uploads/")
   );
 }
 

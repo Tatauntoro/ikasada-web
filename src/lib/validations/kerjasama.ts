@@ -37,7 +37,7 @@ export const kerjasamaBaseSchema = z.object({
         !val ||
         val.startsWith("http://") ||
         val.startsWith("https://") ||
-        val.startsWith("/uploads/"),
+        val.startsWith("/api/uploads/"),
       { message: "URL gambar tidak valid" }
     )
     .optional()
