@@ -23,7 +23,7 @@ Dibangun dengan [Next.js](https://nextjs.org) (App Router) + [Prisma](https://ww
 | Styling | Tailwind CSS 4 |
 | Database | PostgreSQL + Prisma ORM (migration, bukan `db push`) |
 | Auth | JWT (`jose`) + `bcryptjs`, sesi lewat cookie httpOnly |
-| Penyimpanan berkas | Cloudflare R2 (S3-compatible, `@aws-sdk/client-s3`) — fallback ke disk lokal kalau belum dikonfigurasi |
+| Penyimpanan berkas | Cloudflare R2 (S3-compatible, `@aws-sdk/client-s3`) — **wajib di produksi**; fallback ke disk lokal hanya untuk dev |
 | Validasi | Zod |
 | Animasi/3D | Framer Motion, GSAP, react-three-fiber |
 | Deploy | Docker (multi-stage, standalone output) + Dokploy |
@@ -86,7 +86,7 @@ podman run -d --name ikasada-postgres \
 cp .env.example .env
 ```
 
-Isi minimal `DATABASE_URL` (kalau beda dari default di atas), `JWT_SECRET` (string acak bebas untuk dev), dan `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (kredensial admin yang akan dibuatkan). `R2_*` boleh dikosongkan — semua upload otomatis fallback ke disk lokal (`storage/`) kalau R2 belum dikonfigurasi. Lihat detail tiap variabel di [Environment variables](#environment-variables).
+Isi minimal `DATABASE_URL` (kalau beda dari default di atas), `JWT_SECRET` (string acak bebas untuk dev), dan `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (kredensial admin yang akan dibuatkan). `R2_*` boleh dikosongkan **di dev** — semua upload otomatis fallback ke disk lokal (`storage/`). Di **produksi** `R2_*` wajib: aplikasi menolak start kalau kosong, supaya tidak ada fallback senyap ke disk container. Lihat detail tiap variabel di [Environment variables](#environment-variables).
 
 ### 4. Migrate & seed database
 
@@ -110,9 +110,9 @@ Buka [http://localhost:3000](http://localhost:3000). Login admin di `/admin/logi
 | `DATABASE_URL` | Ya | Connection string PostgreSQL |
 | `JWT_SECRET` | Ya | Secret penandatanganan token sesi (admin & alumni) |
 | `JWT_EXPIRES_IN` | Tidak | Default `8h` |
-| `R2_ACCOUNT_ID` | Tidak | Cloudflare account ID. Kosongkan semua `R2_*` untuk fallback ke disk lokal |
-| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | Tidak | API token R2 (permission read+write ke bucket) |
-| `R2_BUCKET_NAME` | Tidak | Nama bucket R2 |
+| `R2_ACCOUNT_ID` | Ya di produksi | Cloudflare account ID. Di dev boleh kosong → fallback ke disk lokal |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | Ya di produksi | API token R2 (permission read+write ke bucket) |
+| `R2_BUCKET_NAME` | Ya di produksi | Nama bucket R2 |
 | `NEXT_PUBLIC_APP_URL` | Ya | Base URL app (dipakai untuk link di email/notifikasi) |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Ya (untuk `db:seed`) | Kredensial admin yang dibuat `prisma/seed.ts` |
 
@@ -162,3 +162,4 @@ Deploy sebagai container Docker (lihat [`Dockerfile`](Dockerfile) dan [`docker-c
 - `docker-compose.yml` cuma mendefinisikan aplikasi — database PostgreSQL dikelola terpisah.
 - Migration Prisma (`prisma migrate deploy`) jalan otomatis lewat service `migrate` sebelum service `app` start (lihat komentar di `docker-compose.yml`).
 - Environment variable production di-set lewat panel Dokploy (atau `docker-compose.yml` + file `.env` di sebelahnya), bukan file yang di-commit.
+- `R2_*` **wajib** di produksi: kalau belum diisi, container menolak start (lihat `scripts/preflight.mjs`) supaya tidak ada fallback senyap ke disk lokal. Isi dulu di panel Environment Dokploy sebelum deploy.

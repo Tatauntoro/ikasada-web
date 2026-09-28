@@ -53,10 +53,14 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Preflight boot: menolak start kalau R2_* kosong di produksi (lihat file-nya).
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/preflight.mjs ./preflight.mjs
+
 # Folder penyimpanan lokal untuk berkas/media arsip + gambar upload (dipakai
-# kalau Cloudinary tidak dikonfigurasi). SENGAJA di luar public/ (lihat
-# komentar UPLOAD_DIR di src/lib/upload-lokal.ts) dan dibuatkan volume
-# terpisah di docker-compose supaya tidak hilang saat redeploy.
+# hanya di luar produksi; produksi wajib R2 — lihat scripts/preflight.mjs).
+# SENGAJA di luar public/ (lihat komentar UPLOAD_DIR di
+# src/lib/upload-gambar.ts) dan dibuatkan volume terpisah di docker-compose
+# supaya berkas lokal lama tidak hilang saat redeploy.
 RUN mkdir -p storage \
   && chown -R nextjs:nodejs storage
 
@@ -67,4 +71,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node", "server.js"]
+# Preflight dulu (R2 wajib di produksi), baru server.
+CMD ["sh", "-c", "node preflight.mjs && exec node server.js"]

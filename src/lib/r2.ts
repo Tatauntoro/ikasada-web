@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
@@ -17,6 +18,7 @@ import {
 
 let client: S3Client | null = null;
 
+/** Semua variabel R2 terisi? Dipakai juga oleh preflight boot (`scripts/preflight.mjs`). */
 export function isR2Configured(): boolean {
   return !!(
     process.env.R2_ACCOUNT_ID &&
@@ -79,6 +81,26 @@ export async function bacaDariR2(key: string): Promise<Buffer | null> {
       (error as { name?: string } | null)?.name ??
       (error as { Code?: string } | null)?.Code;
     if (kode === "NoSuchKey" || kode === "NotFound") return null;
+    throw error;
+  }
+}
+
+/**
+ * Cek keberadaan objek tanpa mengunduh isinya (`HeadObject`). Dipakai skrip
+ * backfill/verifikasi untuk menetapkan backend berkas lama tanpa menarik
+ * seluruh byte-nya.
+ */
+export async function adaDiR2(key: string): Promise<boolean> {
+  try {
+    await getClient().send(
+      new HeadObjectCommand({ Bucket: bucketName(), Key: key })
+    );
+    return true;
+  } catch (error) {
+    const kode =
+      (error as { name?: string } | null)?.name ??
+      (error as { Code?: string } | null)?.Code;
+    if (kode === "NotFound" || kode === "NoSuchKey") return false;
     throw error;
   }
 }

@@ -36,6 +36,8 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      # R2 wajib di produksi: kalau salah satu kosong, container menolak start
+      # (lihat scripts/preflight.mjs). Isi keempatnya di panel Environment.
       R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
       R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
@@ -48,9 +50,9 @@ services:
     expose:
       - "3000"
     volumes:
-      # Fallback penyimpanan lokal (arsip, media galeri, gambar upload) —
-      # dipakai kalau R2 tidak dikonfigurasi. Kalau R2_* sudah diisi, volume
-      # ini tidak akan terpakai (semua berkas baru masuk ke bucket R2).
+      # Penyimpanan lokal hanya untuk berkas lama / masa transisi: produksi
+      # wajib R2, jadi berkas baru selalu masuk bucket. Volume ini juga yang
+      # dibaca jalur fallback `bacaGambar` saat menemui berkas lokal lama.
       - app_storage:/app/storage
     networks:
       - dokploy-network

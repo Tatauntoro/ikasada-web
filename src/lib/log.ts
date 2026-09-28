@@ -15,9 +15,20 @@ import type { NextRequest } from "next/server";
  * - `login_gagal` — percobaan login alumni yang gagal, dengan sidik jari email.
  * - `rate_limit`  — request yang ditolak karena batas percobaan.
  * - `konflik`     — konflik state koneksi (`409`).
+ * - `penyimpanan` — aset yang gagal diambil karena backend penyimpanannya tidak
+ *                   tersedia di server ini (mis. berkas ada di R2 tapi kredensial
+ *                   R2 kosong). Tanpa ini, kegagalannya cuma tampak sebagai 404.
+ * - `konfigurasi` — masalah konfigurasi saat proses start (mis. R2 wajib di
+ *                   produksi tapi belum diisi).
  */
 
-export type PeristiwaLog = "akses" | "login_gagal" | "rate_limit" | "konflik";
+export type PeristiwaLog =
+  | "akses"
+  | "login_gagal"
+  | "rate_limit"
+  | "konflik"
+  | "penyimpanan"
+  | "konfigurasi";
 
 type DataLog = Record<string, unknown>;
 
