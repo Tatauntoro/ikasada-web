@@ -10,6 +10,21 @@ import {
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
 import { setSessionCookie, signToken } from "@/lib/auth";
+import {
+  ambilIpKlien,
+  catatPercobaan,
+  cekRateLimit,
+  resetRateLimit,
+} from "@/lib/rate-limit";
+import { opsiLoginAdminEmail, opsiLoginAdminIp } from "@/lib/rate-limit-admin";
+
+/**
+ * Login admin.
+ *
+ * Rate limit memakai tabel `AuthRateLimit` (lihat `@/lib/rate-limit`), bukan
+ * `Map` di memory, supaya blokir konsisten lintas instance dan tidak hilang
+ * saat redeploy. Pola ini sama dengan login alumni.
+ */
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email wajib diisi").email("Format email tidak valid"),
@@ -18,52 +33,11 @@ const loginSchema = z.object({
   ingatSaya: z.boolean().optional(),
 });
 
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 menit
 // Hash dummy untuk menyamakan waktu respons saat email tidak ditemukan.
 const DUMMY_HASH = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
-type AttemptEntry = {
-  count: number;
-  resetAt: number;
-};
-
-const loginAttempts = new Map<string, AttemptEntry>();
-
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-function pruneExpiredAttempts(now: number): void {
-  for (const [key, entry] of loginAttempts) {
-    if (now > entry.resetAt) {
-      loginAttempts.delete(key);
-    }
-  }
-}
-
-function getAttempts(key: string): AttemptEntry {
-  const now = Date.now();
-  const entry = loginAttempts.get(key);
-  if (!entry || now > entry.resetAt) {
-    const fresh: AttemptEntry = { count: 0, resetAt: now + WINDOW_MS };
-    loginAttempts.set(key, fresh);
-    return fresh;
-  }
-  return entry;
-}
-
-function isRateLimited(key: string): boolean {
-  return getAttempts(key).count >= MAX_ATTEMPTS;
-}
-
-function recordFailedAttempt(key: string): void {
-  const entry = getAttempts(key);
-  entry.count += 1;
-}
-
-function resetAttempts(key: string): void {
-  loginAttempts.delete(key);
 }
 
 async function handler(req: NextRequest): Promise<Response> {
@@ -77,9 +51,14 @@ async function handler(req: NextRequest): Promise<Response> {
   const email = normalizeEmail(parsed.data.email);
   const { password, ingatSaya } = parsed.data;
 
-  pruneExpiredAttempts(Date.now());
+  const opsiEmail = opsiLoginAdminEmail(email);
+  const opsiIp = opsiLoginAdminIp(ambilIpKlien(req));
 
-  if (isRateLimited(email)) {
+  const [cekEmail, cekIp] = await Promise.all([
+    cekRateLimit(opsiEmail),
+    cekRateLimit(opsiIp),
+  ]);
+  if (cekEmail.blocked || cekIp.blocked) {
     return tooManyRequests(
       "Terlalu banyak percobaan gagal. Silakan coba lagi setelah 15 menit."
     );
@@ -93,19 +72,19 @@ async function handler(req: NextRequest): Promise<Response> {
     // Tetap lakukan perbandingan agar waktu respons tidak membocorkan
     // apakah email terdaftar atau tidak.
     await compare(password, DUMMY_HASH);
-    recordFailedAttempt(email);
+    await Promise.all([catatPercobaan(opsiEmail), catatPercobaan(opsiIp)]);
     return unauthorized("Email atau kata sandi salah");
   }
 
   const isPasswordValid = await compare(password, admin.passwordHash);
 
   if (!isPasswordValid) {
-    recordFailedAttempt(email);
+    await Promise.all([catatPercobaan(opsiEmail), catatPercobaan(opsiIp)]);
     return unauthorized("Email atau kata sandi salah");
   }
 
-  // Reset percobaan gagal setelah login berhasil
-  resetAttempts(email);
+  // Kata sandi benar: bersihkan hitungan sebelum memeriksa status akun.
+  await Promise.all([resetRateLimit(opsiEmail), resetRateLimit(opsiIp)]);
 
   // Akun yang dinonaktifkan superadmin tidak boleh masuk (kata sandi benar pun).
   if (!admin.isAktif) {
