@@ -75,7 +75,7 @@ enum StatusArsip {
  * berkasnya hanya dilayani lewat endpoint berpenjaga (`/api/arsip/[slug]/unduh`).
  */
 enum PenyimpananBerkas {
-  CLOUDINARY
+  R2
   LOKAL
 }
 

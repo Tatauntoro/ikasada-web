@@ -1,19 +1,20 @@
 import { NextRequest } from "next/server";
 import { apiHandler } from "@/lib/api-handler";
 import { notFound } from "@/lib/response";
-import { bacaGambarLokal, TipeUploadLokal } from "@/lib/upload-lokal";
+import { bacaGambar, TipeUploadGambar } from "@/lib/upload-gambar";
 
 /**
- * Sisi baca gambar upload lokal (kegiatan/alumni/kerjasama/arsip): route
- * dinamis, bukan file statis — lihat komentar `UPLOAD_DIR` di
- * `upload-lokal.ts` untuk kenapa ini wajib lewat sini, bukan `public/`.
+ * Sisi baca gambar upload (kegiatan/alumni/kerjasama/arsip): route dinamis,
+ * bukan file statis — lihat komentar di `upload-gambar.ts` untuk kenapa ini
+ * wajib lewat sini (bucket R2 privat / build standalone tidak serve file
+ * `public/` yang ditulis saat runtime).
  *
  * Publik (tanpa sesi): gambar sampul memang ditampilkan di halaman publik.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIPE_VALID: TipeUploadLokal[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
+const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
 
 type RouteParams = {
   params: Promise<{ tipe: string; filename: string }>;
@@ -25,11 +26,11 @@ async function handler(
 ): Promise<Response> {
   const { tipe, filename } = await params;
 
-  if (!TIPE_VALID.includes(tipe as TipeUploadLokal)) {
+  if (!TIPE_VALID.includes(tipe as TipeUploadGambar)) {
     return notFound("Gambar tidak ditemukan");
   }
 
-  const hasil = await bacaGambarLokal(tipe as TipeUploadLokal, filename);
+  const hasil = await bacaGambar(tipe as TipeUploadGambar, filename);
   if (!hasil) {
     return notFound("Gambar tidak ditemukan");
   }

@@ -23,7 +23,7 @@ import { MAX_UKURAN_FOTO, MAX_UKURAN_VIDEO } from "@/lib/batas-media";
 export type MediaGaleri = {
   jenis: "FOTO" | "VIDEO";
   berkasId: string;
-  penyimpanan: "CLOUDINARY" | "LOKAL";
+  penyimpanan: "R2" | "LOKAL";
   namaAsli: string | null;
   format: string | null;
   ukuran: number | null;
@@ -36,7 +36,7 @@ type HasilUpload = {
   success?: boolean;
   data?: {
     berkasId?: string;
-    penyimpanan?: "CLOUDINARY" | "LOKAL";
+    penyimpanan?: "R2" | "LOKAL";
     namaAsli?: string;
     format?: string;
     ukuran?: number;
