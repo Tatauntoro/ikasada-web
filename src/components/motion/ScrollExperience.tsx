@@ -67,7 +67,36 @@ export default function ScrollExperience() {
 
     }, page);
 
+    /*
+     * Section beranda mengisi datanya di klien, jadi tinggi dokumen masih
+     * berubah setelah trigger dibuat — di produksi pernah naik lalu menyusut
+     * lebih dari 1000px. ScrollTrigger menghitung `start` sekali saat dibuat dan
+     * tidak mengulanginya saat tata letak berubah; kalau dokumen menyusut,
+     * `start` judul terakhir jatuh di luar jangkauan gulir, trigger-nya tidak
+     * pernah menyala, dan judulnya tersangkut di keadaan awal (`opacity: .12`,
+     * `clip-path: inset(0 0 100%)`) alias tak terbaca. Tinggi dokumen diamati
+     * lalu ScrollTrigger disegarkan (tertunda) tiap kali berubah supaya `start`
+     * selalu mengikuti tata letak akhir. Tanpa penyegaran ini, peluangnya
+     * bergantung pada isi data — halaman yang lebih pendek lebih rawan.
+     */
+    const JEDA_REFRESH_MS = 150;
+    let tinggiTerakhir = document.documentElement.scrollHeight;
+    let jedaRefresh = 0;
+    const pengamatTinggi = new ResizeObserver(() => {
+      const tinggi = document.documentElement.scrollHeight;
+      if (tinggi === tinggiTerakhir) return;
+      tinggiTerakhir = tinggi;
+      window.clearTimeout(jedaRefresh);
+      jedaRefresh = window.setTimeout(
+        () => ScrollTrigger.refresh(),
+        JEDA_REFRESH_MS
+      );
+    });
+    pengamatTinggi.observe(document.body);
+
     return () => {
+      pengamatTinggi.disconnect();
+      window.clearTimeout(jedaRefresh);
       context.revert();
       delete page.dataset.motionReady;
     };
