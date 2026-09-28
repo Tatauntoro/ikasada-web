@@ -18,7 +18,7 @@ import { formatUkuranBerkas } from "@/lib/format";
  */
 export type BerkasTerunggah = {
   berkasId: string;
-  berkasPenyimpanan: "CLOUDINARY" | "LOKAL";
+  berkasPenyimpanan: "R2" | "LOKAL";
   berkasNama: string;
   berkasFormat: string;
   berkasUkuran: number;
@@ -28,7 +28,7 @@ type HasilUpload = {
   success?: boolean;
   data?: {
     berkasId?: string;
-    penyimpanan?: "CLOUDINARY" | "LOKAL";
+    penyimpanan?: "R2" | "LOKAL";
     namaAsli?: string;
     format?: string;
     ukuran?: number;

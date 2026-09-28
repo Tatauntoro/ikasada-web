@@ -2,23 +2,14 @@ import { NextRequest } from "next/server";
 import { badRequest, ok } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
 import { requireAdminAktif } from "@/lib/sesi-admin";
-import { uploadGambar, TipeUpload } from "@/lib/cloudinary";
-import { uploadGambarLokal } from "@/lib/upload-lokal";
+import { uploadGambar, TipeUploadGambar } from "@/lib/upload-gambar";
 
-const TIPE_VALID: TipeUpload[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
+const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
 const MIME_VALID = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 
 function isValidMimeType(mimeType: string): boolean {
   return MIME_VALID.includes(mimeType.toLowerCase());
-}
-
-function isCloudinaryConfigured(): boolean {
-  return !!(
-    process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
-  );
 }
 
 async function handler(req: NextRequest): Promise<Response> {
@@ -27,7 +18,7 @@ async function handler(req: NextRequest): Promise<Response> {
   const formData = await req.formData();
 
   const tipe = formData.get("tipe");
-  if (typeof tipe !== "string" || !TIPE_VALID.includes(tipe as TipeUpload)) {
+  if (typeof tipe !== "string" || !TIPE_VALID.includes(tipe as TipeUploadGambar)) {
     return badRequest("Tipe upload wajib diisi dengan 'kegiatan' atau 'alumni'");
   }
 
@@ -49,9 +40,7 @@ async function handler(req: NextRequest): Promise<Response> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const hasil = isCloudinaryConfigured()
-    ? await uploadGambar(buffer, tipe as TipeUpload, file.type)
-    : await uploadGambarLokal(buffer, tipe as TipeUpload, file.type);
+  const hasil = await uploadGambar(buffer, tipe as TipeUploadGambar, file.type);
 
   return ok(hasil);
 }

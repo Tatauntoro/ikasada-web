@@ -36,9 +36,10 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     # Tidak publish port ke host: Traefik-nya Dokploy route langsung ke
     # container lewat dokploy-network (pakai port internal 3000 yang sudah
@@ -48,8 +49,8 @@ services:
       - "3000"
     volumes:
       # Fallback penyimpanan lokal (arsip, media galeri, gambar upload) —
-      # dipakai kalau Cloudinary tidak dikonfigurasi. Kalau Cloudinary sudah
-      # diisi, volume ini tidak akan terpakai.
+      # dipakai kalau R2 tidak dikonfigurasi. Kalau R2_* sudah diisi, volume
+      # ini tidak akan terpakai (semua berkas baru masuk ke bucket R2).
       - app_storage:/app/storage
     networks:
       - dokploy-network

@@ -27,13 +27,13 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@paper-design/shaders-react": "^0.0.80",
     "@phosphor-icons/react": "^2.1.10",
     "@prisma/client": "^6.19.3",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "bcryptjs": "^3.0.3",
-    "cloudinary": "^2.11.0",
     "dotted-map": "^3.1.0",
     "framer-motion": "^13.2.0",
     "gsap": "^3.15.0",

@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { v2 as cloudinary } from "cloudinary";
+import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
 import {
   batasUkuranMedia,
   formatMediaDariMime,
@@ -13,10 +13,10 @@ import {
  * Penyimpanan foto/video galeri arsip.
  *
  * Media mengikuti aturan akses arsipnya, jadi berkasnya **privat**:
- * - Lokal: ditulis ke `storage/arsip-media/` (di luar `public/`), tidak bisa
- *   dibuka lewat URL statis.
- * - Cloudinary: diunggah sebagai `type: "authenticated"` sehingga hanya bisa
- *   diambil dengan URL bertanda tangan.
+ * - R2: bucket privat sepenuhnya, satu-satunya jalan keluar adalah server ini
+ *   yang fetch objeknya lewat kredensial API (tidak pernah ada URL publik).
+ * - Lokal: ditulis ke `storage/arsip-media/` (di luar `public/`), dipakai
+ *   kalau R2 belum dikonfigurasi (mis. dev lokal).
  *
  * Yang keluar dari sini hanya **identitas** berkas; isinya dilayani
  * `GET /api/arsip/[slug]/media/[id]` yang memeriksa hak akses lebih dulu
@@ -26,14 +26,13 @@ import {
 
 export type MediaTersimpan = {
   berkasId: string;
-  penyimpanan: "CLOUDINARY" | "LOKAL";
+  penyimpanan: "R2" | "LOKAL";
   namaAsli: string;
   format: string;
   ukuran: number;
   jenis: JenisMedia;
 };
 
-const FOLDER_CLOUDINARY = "ikasada/arsip-media";
 const AKAR_STORAGE = path.join(process.cwd(), "storage");
 const MEDIA_DIR = path.join(AKAR_STORAGE, "arsip-media");
 
@@ -51,14 +50,6 @@ const MIME_MEDIA: Record<string, string> = {
 export function mimeMediaDariFormat(format: string | null | undefined): string {
   if (!format) return "application/octet-stream";
   return MIME_MEDIA[format.toLowerCase()] ?? "application/octet-stream";
-}
-
-function isCloudinaryConfigured(): boolean {
-  return !!(
-    process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
-  );
 }
 
 export async function simpanMediaArsip(
@@ -84,14 +75,15 @@ export async function simpanMediaArsip(
     );
   }
 
-  if (!isCloudinaryConfigured()) {
-    const nama = `${crypto.randomUUID()}.${format}`;
-    await fs.mkdir(MEDIA_DIR, { recursive: true });
-    await fs.writeFile(path.join(MEDIA_DIR, nama), buffer);
+  const nama = `${crypto.randomUUID()}.${format}`;
+  const berkasId = `arsip-media/${nama}`;
+
+  if (isR2Configured()) {
+    await unggahKeR2(berkasId, buffer, mimeMediaDariFormat(format));
 
     return {
-      berkasId: `arsip-media/${nama}`,
-      penyimpanan: "LOKAL",
+      berkasId,
+      penyimpanan: "R2",
       namaAsli,
       format,
       ukuran: buffer.byteLength,
@@ -99,18 +91,12 @@ export async function simpanMediaArsip(
     };
   }
 
-  const dataUri = `data:${mimeType};base64,${buffer.toString("base64")}`;
-
-  const hasil = await cloudinary.uploader.upload(dataUri, {
-    folder: FOLDER_CLOUDINARY,
-    resource_type: jenis === "FOTO" ? "image" : "video",
-    // Privat: hanya bisa diambil lewat URL bertanda tangan.
-    type: "authenticated",
-  });
+  await fs.mkdir(MEDIA_DIR, { recursive: true });
+  await fs.writeFile(path.join(MEDIA_DIR, nama), buffer);
 
   return {
-    berkasId: hasil.public_id,
-    penyimpanan: "CLOUDINARY",
+    berkasId,
+    penyimpanan: "LOKAL",
     namaAsli,
     format,
     ukuran: buffer.byteLength,
@@ -124,23 +110,11 @@ export async function simpanMediaArsip(
  */
 export async function bacaMediaArsip(berkas: {
   berkasId: string;
-  penyimpanan: "CLOUDINARY" | "LOKAL";
+  penyimpanan: "R2" | "LOKAL";
   jenis: JenisMedia;
 }): Promise<Buffer | null> {
-  if (berkas.penyimpanan === "CLOUDINARY") {
-    const url = cloudinary.url(berkas.berkasId, {
-      resource_type: berkas.jenis === "FOTO" ? "image" : "video",
-      type: "authenticated",
-      sign_url: true,
-    });
-
-    const res = await fetch(url);
-    if (res.status === 404 || res.status === 410) return null;
-    if (!res.ok) {
-      throw new Error(`Gagal mengambil media dari Cloudinary (${res.status})`);
-    }
-
-    return Buffer.from(await res.arrayBuffer());
+  if (berkas.penyimpanan === "R2") {
+    return bacaDariR2(berkas.berkasId);
   }
 
   const lengkap = path.resolve(AKAR_STORAGE, berkas.berkasId);
