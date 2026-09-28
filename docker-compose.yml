@@ -1,0 +1,45 @@
+# docker-compose untuk deploy APLIKASI saja (database Postgres dikelola
+# terpisah, tidak didefinisikan di sini). Set DATABASE_URL ke instance
+# Postgres yang sudah kamu buat sendiri.
+#
+# Di Dokploy: isi semua env di bawah lewat panel "Environment" pada
+# aplikasinya, atau siapkan file .env di sebelah file ini sebelum deploy.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # Contoh: postgresql://user:password@host:5432/ikasada
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      # Fallback penyimpanan lokal (dipakai kalau Cloudinary tidak dikonfigurasi).
+      # Kalau Cloudinary sudah diisi, dua volume ini tidak akan terpakai.
+      - app_storage:/app/storage
+      - app_uploads:/app/public/uploads
+    networks:
+      - dokploy-network
+
+volumes:
+  app_storage:
+  app_uploads:
+
+networks:
+  # Network bawaan Dokploy (dibuat otomatis oleh Dokploy sendiri) — wajib
+  # di-join supaya Traefik bisa route domain ke container ini. Kalau Postgres
+  # kamu juga container di server yang sama dan ikut network ini, DATABASE_URL
+  # bisa pakai nama service/container-nya langsung sebagai host.
+  dokploy-network:
+    external: true
