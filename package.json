@@ -21,6 +21,8 @@
     "notifikasi:verify": "tsx scripts/verify-admin-notifikasi.mts",
     "permintaan:verify": "tsx scripts/verify-alumni-permintaan-masuk.mts",
     "db:push": "prisma db push",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },
