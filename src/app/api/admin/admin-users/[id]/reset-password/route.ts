@@ -6,6 +6,7 @@ import { apiHandler, readJsonBody } from "@/lib/api-handler";
 import { requireSuperadmin } from "@/lib/sesi-admin";
 import { catatAudit, diffPerubahan } from "@/lib/audit";
 import { adminResetPasswordSchema } from "@/lib/validations/admin";
+import { bukaBlokirLoginAdmin } from "@/lib/rate-limit-admin";
 
 /**
  * Reset kata sandi akun admin (khusus superadmin).
@@ -35,7 +36,7 @@ async function handler(
 
   const target = await prisma.adminUser.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, email: true },
   });
   if (!target) {
     return notFound("Admin tidak ditemukan");
@@ -60,6 +61,10 @@ async function handler(
       ),
     });
   });
+
+  // Buka blokir rate limit akun ini: kata sandinya sudah diganti, jadi
+  // percobaan gagal sebelumnya tidak boleh menahan pemiliknya masuk.
+  await bukaBlokirLoginAdmin(target.email);
 
   return ok({
     message:
