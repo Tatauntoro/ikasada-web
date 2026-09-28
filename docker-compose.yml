@@ -40,8 +40,12 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-    ports:
-      - "3000:3000"
+    # Tidak publish port ke host: Traefik-nya Dokploy route langsung ke
+    # container lewat dokploy-network (pakai port internal 3000 yang sudah
+    # di-EXPOSE di Dockerfile). Publish ke host malah rawan bentrok "port is
+    # already allocated" kalau ada app lain di server yang juga mau port 3000.
+    expose:
+      - "3000"
     volumes:
       # Fallback penyimpanan lokal (dipakai kalau Cloudinary tidak dikonfigurasi).
       # Kalau Cloudinary sudah diisi, dua volume ini tidak akan terpakai.
