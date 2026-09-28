@@ -5,6 +5,9 @@ import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
 
 export type TipeUploadGambar = "kegiatan" | "alumni" | "kerjasama" | "arsip";
 
+/** Di mana sebuah gambar disimpan. Ikut ditulis di URL sebagai `?b=`. */
+export type BackendGambar = "r2" | "lokal";
+
 /**
  * Gambar sampul (kegiatan/alumni/kerjasama/arsip).
  *
@@ -14,6 +17,10 @@ export type TipeUploadGambar = "kegiatan" | "alumni" | "kerjasama" | "arsip";
  *   `public/`: di build standalone (Docker), Next.js men-snapshot daftar
  *   file `public/` saat build, jadi file yang ditulis saat runtime (hasil
  *   upload) tidak akan pernah ke-serve lewat static file serving bawaannya.
+ *
+ * URL yang dikembalikan membawa penanda backend (`?b=r2` / `?b=lokal`) supaya
+ * route pembaca tidak perlu menebak dari env server. URL tanpa penanda
+ * (data lama) tetap dilayani lewat jalur legacy di `bacaGambar`.
  */
 const UPLOAD_DIR = path.join(process.cwd(), "storage", "uploads-gambar");
 
@@ -36,6 +43,22 @@ function extensionFromMimeType(mimeType: string): string {
   return map[mimeType.toLowerCase()] || "jpg";
 }
 
+/** Backend yang dipakai untuk penulisan gambar baru di server ini. */
+export function backendAktif(): BackendGambar {
+  return isR2Configured() ? "r2" : "lokal";
+}
+
+async function bacaDariLokal(
+  tipe: TipeUploadGambar,
+  filename: string
+): Promise<Buffer | null> {
+  try {
+    return await fs.readFile(path.join(UPLOAD_DIR, tipe, filename));
+  } catch {
+    return null;
+  }
+}
+
 export async function uploadGambar(
   buffer: Buffer,
   tipe: TipeUploadGambar,
@@ -44,8 +67,9 @@ export async function uploadGambar(
   const ext = extensionFromMimeType(mimeType);
   const filename = `${crypto.randomUUID()}.${ext}`;
   const publicId = `${tipe}/${filename}`;
+  const backend = backendAktif();
 
-  if (isR2Configured()) {
+  if (backend === "r2") {
     await unggahKeR2(`uploads-gambar/${publicId}`, buffer, mimeType);
   } else {
     const folder = path.join(UPLOAD_DIR, tipe);
@@ -54,7 +78,7 @@ export async function uploadGambar(
   }
 
   return {
-    url: `/api/uploads/${tipe}/${filename}`,
+    url: `/api/uploads/${tipe}/${filename}?b=${backend}`,
     publicId,
   };
 }
@@ -63,10 +87,16 @@ export async function uploadGambar(
  * Dipakai `GET /api/uploads/[tipe]/[filename]`. `filename` datang dari URL
  * (input tidak terpercaya), jadi divalidasi ketat (UUID + ekstensi dikenal)
  * supaya tidak bisa dipakai untuk path traversal / akses key R2 sembarangan.
+ *
+ * `backend` diambil dari penanda `?b=` pada URL. Backend yang ditandai dicoba
+ * lebih dulu, lalu backend lain sebagai fallback transisi (berkas lama yang
+ * diupload sebelum penanda ada). Nama berkas UUID, jadi tidak mungkin ada dua
+ * berkas berbeda dengan nama sama di dua backend.
  */
 export async function bacaGambar(
   tipe: TipeUploadGambar,
-  filename: string
+  filename: string,
+  backend?: BackendGambar | null
 ): Promise<{ buffer: Buffer; mimeType: string } | null> {
   const cocok = /^[0-9a-f-]{36}\.([a-z]+)$/i.exec(filename);
   if (!cocok) return null;
@@ -76,15 +106,20 @@ export async function bacaGambar(
 
   const mimeType = MIME_DARI_EXT[ext] ?? "application/octet-stream";
 
-  if (isR2Configured()) {
-    const buffer = await bacaDariR2(`uploads-gambar/${tipe}/${filename}`);
-    return buffer ? { buffer, mimeType } : null;
+  const utama = backend ?? backendAktif();
+  const urutan: BackendGambar[] = [utama, utama === "r2" ? "lokal" : "r2"];
+
+  for (const asal of urutan) {
+    // R2 hanya bisa dicoba bila kredensialnya ada di server ini.
+    if (asal === "r2" && !isR2Configured()) continue;
+
+    const buffer =
+      asal === "r2"
+        ? await bacaDariR2(`uploads-gambar/${tipe}/${filename}`)
+        : await bacaDariLokal(tipe, filename);
+
+    if (buffer) return { buffer, mimeType };
   }
 
-  try {
-    const buffer = await fs.readFile(path.join(UPLOAD_DIR, tipe, filename));
-    return { buffer, mimeType };
-  } catch {
-    return null;
-  }
+  return null;
 }
