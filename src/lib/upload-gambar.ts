@@ -88,10 +88,11 @@ export async function uploadGambar(
  * (input tidak terpercaya), jadi divalidasi ketat (UUID + ekstensi dikenal)
  * supaya tidak bisa dipakai untuk path traversal / akses key R2 sembarangan.
  *
- * `backend` diambil dari penanda `?b=` pada URL. Backend yang ditandai dicoba
- * lebih dulu, lalu backend lain sebagai fallback transisi (berkas lama yang
- * diupload sebelum penanda ada). Nama berkas UUID, jadi tidak mungkin ada dua
- * berkas berbeda dengan nama sama di dua backend.
+ * `backend` diambil dari penanda `?b=` pada URL. Penanda `r2` **mengikat**:
+ * berkas itu hanya dilayani dari R2. Penanda `lokal` dan URL lama tanpa
+ * penanda mencoba disk dulu, lalu R2 sebagai fallback transisi (berkas lama
+ * yang belum berpenanda, atau sudah dipindah ke R2). Nama berkas UUID, jadi
+ * tidak mungkin ada dua berkas berbeda dengan nama sama di dua backend.
  */
 export async function bacaGambar(
   tipe: TipeUploadGambar,
@@ -106,19 +107,30 @@ export async function bacaGambar(
 
   const mimeType = MIME_DARI_EXT[ext] ?? "application/octet-stream";
 
-  const utama = backend ?? backendAktif();
-  const urutan: BackendGambar[] = [utama, utama === "r2" ? "lokal" : "r2"];
+  /*
+   * Penanda `r2` bersifat mengikat: berkas yang URL-nya bilang R2 tidak boleh
+   * dilayani dari disk lokal. Kalau server ini tidak punya kredensial R2, jawab
+   * `null` (route memberi 404 + log diagnostik) — bukan diam-diam menyajikan
+   * salinan lokal yang kebetulan bernama sama.
+   */
+  if (backend === "r2") {
+    if (!isR2Configured()) return null;
 
-  for (const asal of urutan) {
-    // R2 hanya bisa dicoba bila kredensialnya ada di server ini.
-    if (asal === "r2" && !isR2Configured()) continue;
+    const buffer = await bacaDariR2(`uploads-gambar/${tipe}/${filename}`);
+    return buffer ? { buffer, mimeType } : null;
+  }
 
-    const buffer =
-      asal === "r2"
-        ? await bacaDariR2(`uploads-gambar/${tipe}/${filename}`)
-        : await bacaDariLokal(tipe, filename);
+  /*
+   * `lokal` eksplisit atau URL lama tanpa penanda: coba disk dulu, lalu R2
+   * sebagai fallback transisi. Urutan ini yang membuat berkas lokal lama tetap
+   * tampil setelah R2 diaktifkan.
+   */
+  const bufferLokal = await bacaDariLokal(tipe, filename);
+  if (bufferLokal) return { buffer: bufferLokal, mimeType };
 
-    if (buffer) return { buffer, mimeType };
+  if (isR2Configured()) {
+    const bufferR2 = await bacaDariR2(`uploads-gambar/${tipe}/${filename}`);
+    if (bufferR2) return { buffer: bufferR2, mimeType };
   }
 
   return null;

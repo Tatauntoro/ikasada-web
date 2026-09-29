@@ -141,6 +141,19 @@ async function main(): Promise<void> {
     );
   }
 
+  // Penanda `r2` mengikat: berkas yang hanya ada di lokal tidak boleh dilayani
+  // saat diminta sebagai r2 (tidak ada fallback ke salinan lokal).
+  const namaLokalSaja = `${randomUUID()}.png`;
+  await fs.mkdir(path.join(UPLOAD_DIR, "kegiatan"), { recursive: true });
+  await fs.writeFile(path.join(UPLOAD_DIR, "kegiatan", namaLokalSaja), PNG_1X1);
+  const r2Ketat = await fetch(`${BASE_URL}/api/uploads/kegiatan/${namaLokalSaja}?b=r2`);
+  cek(
+    "?b=r2 tidak pernah dilayani dari salinan lokal",
+    r2Ketat.status === 404,
+    `HTTP ${r2Ketat.status}`
+  );
+  await fs.rm(path.join(UPLOAD_DIR, "kegiatan", namaLokalSaja), { force: true });
+
   // `?b=r2` tanpa kredensial harus 404 (bukan 500) dan tercatat di log.
   // Dipakai nama acak supaya fallback ke backend lokal tidak menemukan apa pun
   // — kalau nama yang sudah ada, fallback lokal akan melayaninya (200), dan itu
