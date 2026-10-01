@@ -56,14 +56,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Preflight boot: menolak start kalau R2_* kosong di produksi (lihat file-nya).
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/preflight.mjs ./preflight.mjs
 
-# Folder penyimpanan lokal untuk berkas/media arsip + gambar upload (dipakai
-# hanya di luar produksi; produksi wajib R2 — lihat scripts/preflight.mjs).
-# SENGAJA di luar public/ (lihat komentar UPLOAD_DIR di
-# src/lib/upload-gambar.ts) dan dibuatkan volume terpisah di docker-compose
-# supaya berkas lokal lama tidak hilang saat redeploy.
-RUN mkdir -p storage \
-  && chown -R nextjs:nodejs storage
-
 USER nextjs
 
 EXPOSE 3000

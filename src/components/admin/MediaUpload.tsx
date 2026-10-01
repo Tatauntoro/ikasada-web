@@ -104,7 +104,7 @@ export function MediaUpload({
         berhasil.push({
           jenis: hasil.data.jenis ?? "FOTO",
           berkasId: hasil.data.berkasId,
-          penyimpanan: hasil.data.penyimpanan ?? "LOKAL",
+          penyimpanan: hasil.data.penyimpanan ?? "R2",
           namaAsli: hasil.data.namaAsli ?? file.name,
           format: hasil.data.format ?? null,
           ukuran: hasil.data.ukuran ?? file.size,

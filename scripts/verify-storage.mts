@@ -1,13 +1,11 @@
 #!/usr/bin/env tsx
 /**
- * Verifikasi penyimpanan gambar: penanda backend di URL + jalur baca legacy.
+ * Verifikasi penyimpanan gambar: semua upload ke R2 dan terbaca dari R2.
  *
- * Yang diuji lewat HTTP sungguhan (butuh `npm run dev` jalan):
- *  - `POST /api/admin/upload` mengembalikan URL dengan penanda `?b=r2|lokal`
- *    yang cocok dengan backend aktif server;
- *  - URL ber-penanda bisa dibaca (200, `content-type: image/*`);
- *  - URL **tanpa** penanda (data lama) tetap terbaca lewat jalur legacy;
- *  - permintaan `?b=r2` saat kredensial R2 kosong ditolak 404 (bukan 500).
+ * Yang diuji lewat HTTP sungguhan (butuh `npm run dev` jalan + R2_* di .env):
+ *  - `POST /api/admin/upload` sukses dan URL-nya terbaca (200, `image/*`);
+ *  - URL lama ber-`?b=r2` tetap terbaca, termasuk lewat `/_next/image`;
+ *  - berkas yang tidak ada -> 404.
  *
  * Pakai:
  *   npm run dev            # di terminal lain
@@ -15,10 +13,8 @@
  */
 
 import { existsSync } from "node:fs";
-import { promises as fs } from "node:fs";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
-import { backendAktif, type TipeUploadGambar } from "@/lib/upload-gambar";
+import { type TipeUploadGambar } from "@/lib/upload-gambar";
 import { hapusDariR2, isR2Configured } from "@/lib/r2";
 
 if (existsSync(".env")) {
@@ -42,12 +38,10 @@ const PNG_1X1 = Buffer.from(
   "base64"
 );
 
-const UPLOAD_DIR = path.join(process.cwd(), "storage", "uploads-gambar");
-
 let lulus = 0;
 let gagal = 0;
 let dibersihkan = false;
-let tipeTerpakai: TipeUploadGambar = "kegiatan";
+const tipeTerpakai: TipeUploadGambar = "kegiatan";
 let namaBerkas = "";
 
 function cek(nama: string, kondisi: boolean, detail = ""): void {
@@ -73,20 +67,16 @@ async function loginAdmin(): Promise<string> {
   return cookies.map((c) => c.split(";")[0]).join("; ");
 }
 
-async function bersihkan(backend: "r2" | "lokal", nama: string): Promise<void> {
-  if (dibersihkan) return;
+async function bersihkan(nama: string): Promise<void> {
+  if (dibersihkan || !nama) return;
   dibersihkan = true;
-  if (!nama) return;
-  if (backend === "r2" && isR2Configured()) {
-    await hapusDariR2(`uploads-gambar/${tipeTerpakai}/${nama}`);
-    return;
-  }
-  await fs.rm(path.join(UPLOAD_DIR, tipeTerpakai, nama), { force: true });
+  await hapusDariR2(`uploads-gambar/${tipeTerpakai}/${nama}`);
 }
 
 async function main(): Promise<void> {
-  const backend = backendAktif();
-  console.log(`Backend aktif server: ${backend}`);
+  if (!isR2Configured()) {
+    throw new Error("R2_* belum terisi di .env; semua upload wajib ke R2.");
+  }
 
   const cookie = await loginAdmin();
 
@@ -100,7 +90,6 @@ async function main(): Promise<void> {
     body: form,
   });
   const uploadBody = (await upload.json()) as {
-    success?: boolean;
     data?: { url?: string };
     error?: { message?: string };
   };
@@ -109,66 +98,28 @@ async function main(): Promise<void> {
   const url = uploadBody.data?.url ?? "";
   cek("URL mengembalikan data.url", Boolean(url), JSON.stringify(uploadBody.error));
 
-  cek(
-    `URL membawa penanda backend (?b=${backend})`,
-    url.includes(`?b=${backend}`),
-    url
-  );
-
-  const cocok = /\/api\/uploads\/kegiatan\/([^?]+)\?b=(r2|lokal)/.exec(url);
-  if (cocok) {
-    tipeTerpakai = "kegiatan";
-    namaBerkas = cocok[1];
-  }
+  const cocok = /\/api\/uploads\/kegiatan\/([^?]+)/.exec(url);
+  if (cocok) namaBerkas = cocok[1];
 
   if (url) {
-    const berPenanda = await fetch(`${BASE_URL}${url}`);
-    cek(
-      "URL ber-penanda terbaca (200)",
-      berPenanda.status === 200,
-      `HTTP ${berPenanda.status}`
-    );
+    const res = await fetch(`${BASE_URL}${url}`);
+    cek("gambar terbaca dari R2 (200)", res.status === 200, `HTTP ${res.status}`);
     cek(
       "content-type gambar benar",
-      (berPenanda.headers.get("content-type") ?? "").startsWith("image/")
+      (res.headers.get("content-type") ?? "").startsWith("image/")
     );
 
-    const legacy = await fetch(`${BASE_URL}${url.split("?")[0]}`);
-    cek(
-      "URL tanpa penanda tetap terbaca (jalur legacy)",
-      legacy.status === 200,
-      `HTTP ${legacy.status}`
+    const lama = await fetch(`${BASE_URL}${url}?b=r2`);
+    cek("URL lama ber-?b=r2 tetap terbaca", lama.status === 200, `HTTP ${lama.status}`);
+
+    const optimasi = await fetch(
+      `${BASE_URL}/_next/image?url=${encodeURIComponent(`${url}?b=r2`)}&w=1080&q=75`
     );
+    cek("/_next/image untuk URL ber-query (200)", optimasi.status === 200, `HTTP ${optimasi.status}`);
   }
 
-  // Penanda `r2` mengikat: berkas yang hanya ada di lokal tidak boleh dilayani
-  // saat diminta sebagai r2 (tidak ada fallback ke salinan lokal).
-  const namaLokalSaja = `${randomUUID()}.png`;
-  await fs.mkdir(path.join(UPLOAD_DIR, "kegiatan"), { recursive: true });
-  await fs.writeFile(path.join(UPLOAD_DIR, "kegiatan", namaLokalSaja), PNG_1X1);
-  const r2Ketat = await fetch(`${BASE_URL}/api/uploads/kegiatan/${namaLokalSaja}?b=r2`);
-  cek(
-    "?b=r2 tidak pernah dilayani dari salinan lokal",
-    r2Ketat.status === 404,
-    `HTTP ${r2Ketat.status}`
-  );
-  await fs.rm(path.join(UPLOAD_DIR, "kegiatan", namaLokalSaja), { force: true });
-
-  // `?b=r2` tanpa kredensial harus 404 (bukan 500) dan tercatat di log.
-  // Dipakai nama acak supaya fallback ke backend lokal tidak menemukan apa pun
-  // — kalau nama yang sudah ada, fallback lokal akan melayaninya (200), dan itu
-  // memang perilaku yang diinginkan.
-  if (!isR2Configured()) {
-    const namaAcak = `${randomUUID()}.png`;
-    const paksaR2 = await fetch(`${BASE_URL}/api/uploads/kegiatan/${namaAcak}?b=r2`);
-    cek(
-      "?b=r2 tanpa kredensial -> 404 (bukan 500)",
-      paksaR2.status === 404,
-      `HTTP ${paksaR2.status}`
-    );
-  } else {
-    console.log("  --   (uji '?b=r2 tanpa kredensial' dilewati: R2 terkonfigurasi)");
-  }
+  const tidakAda = await fetch(`${BASE_URL}/api/uploads/kegiatan/${randomUUID()}.png`);
+  cek("berkas tak ada -> 404", tidakAda.status === 404, `HTTP ${tidakAda.status}`);
 }
 
 main()
@@ -177,7 +128,7 @@ main()
     console.error("Error:", e instanceof Error ? e.message : e);
   })
   .finally(async () => {
-    await bersihkan(backendAktif(), namaBerkas);
+    await bersihkan(namaBerkas);
     console.log(`\n${gagal === 0 ? "SEMUA LULUS" : `${gagal} GAGAL`} (${lulus} lulus)`);
     process.exit(gagal === 0 ? 0 : 1);
   });

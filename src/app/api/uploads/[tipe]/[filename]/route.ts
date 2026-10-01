@@ -2,18 +2,12 @@ import { NextRequest } from "next/server";
 import { apiHandler } from "@/lib/api-handler";
 import { notFound } from "@/lib/response";
 import { isR2Configured } from "@/lib/r2";
-import {
-  bacaGambar,
-  TipeUploadGambar,
-  type BackendGambar,
-} from "@/lib/upload-gambar";
+import { bacaGambar, TipeUploadGambar } from "@/lib/upload-gambar";
 import { logPeristiwa, requestIdDari } from "@/lib/log";
 
 /**
- * Sisi baca gambar upload (kegiatan/alumni/kerjasama/arsip): route dinamis,
- * bukan file statis — lihat komentar di `upload-gambar.ts` untuk kenapa ini
- * wajib lewat sini (bucket R2 privat / build standalone tidak serve file
- * `public/` yang ditulis saat runtime).
+ * Sisi baca gambar upload (kegiatan/alumni/kerjasama/arsip): route dinamis
+ * yang membaca dari R2 (bucket privat). Query `?b=` pada URL lama diabaikan.
  *
  * Publik (tanpa sesi): gambar sampul memang ditampilkan di halaman publik.
  */
@@ -26,14 +20,6 @@ type RouteParams = {
   params: Promise<{ tipe: string; filename: string }>;
 };
 
-/**
- * Penanda backend dari URL (`?b=r2|lokal`). Nilai tak dikenal diperlakukan
- * sebagai legacy (`null`) supaya URL lama tetap dilayani lewat heuristik.
- */
-function parseBackend(nilai: string | null): BackendGambar | null {
-  return nilai === "r2" || nilai === "lokal" ? nilai : null;
-}
-
 async function handler(
   req: NextRequest,
   { params }: RouteParams
@@ -44,25 +30,17 @@ async function handler(
     return notFound("Gambar tidak ditemukan");
   }
 
-  const backend = parseBackend(req.nextUrl.searchParams.get("b"));
-
-  /*
-   * Berkas ditandai tersimpan di R2, tapi server ini tidak punya kredensialnya.
-   * Tanpa baris log ini, kegagalannya cuma tampak sebagai 404 biasa — persis
-   * yang bikin insiden "aset gagal tampil" sulit dilacak.
-   */
-  if (backend === "r2" && !isR2Configured()) {
+  if (!isR2Configured()) {
     logPeristiwa("penyimpanan", {
       requestId: requestIdDari(req),
       endpoint: "/api/uploads",
       tipe,
       filename,
-      backend,
       alasan: "r2_tanpa_kredensial",
     });
   }
 
-  const hasil = await bacaGambar(tipe as TipeUploadGambar, filename, backend);
+  const hasil = await bacaGambar(tipe as TipeUploadGambar, filename);
   if (!hasil) {
     return notFound("Gambar tidak ditemukan");
   }
