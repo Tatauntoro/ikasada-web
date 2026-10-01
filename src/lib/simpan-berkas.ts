@@ -1,5 +1,3 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import crypto from "node:crypto";
 import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
 
@@ -15,7 +13,6 @@ import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
  * Yang disimpan ke database adalah **identitas** berkas (`berkasId`), bukan URL:
  * - R2: key objek di bucket privat (tidak bisa diakses publik tanpa kredensial
  *   API — bacanya selalu dari server ini).
- * - Lokal: path relatif terhadap `storage/`, mis. `arsip/laporan-a1b2c3d4.pdf`.
  */
 
 export type PenyimpananBerkas = "R2" | "LOKAL";
@@ -47,8 +44,6 @@ export const MIME_BERKAS: Record<string, string> = {
 
 export const MAX_UKURAN_BERKAS = 4 * 1024 * 1024; // 4 MB
 
-const BERKAS_DIR = path.join(process.cwd(), "storage", "arsip");
-const AKAR_STORAGE = path.join(process.cwd(), "storage");
 
 /** MIME untuk header respons, dibalik dari `MIME_BERKAS`. */
 const MIME_DARI_FORMAT: Record<string, string> = {
@@ -102,24 +97,15 @@ export async function simpanBerkasArsip(
   const namaBerkas = namaAman(namaAsli, format);
   const berkasId = `arsip/${namaBerkas}`;
 
-  if (isR2Configured()) {
-    await unggahKeR2(berkasId, buffer, mimeDariFormat(format));
-
-    return {
-      berkasId,
-      penyimpanan: "R2",
-      namaAsli,
-      format,
-      ukuran: buffer.byteLength,
-    };
+  if (!isR2Configured()) {
+    throw new Error("Penyimpanan R2 belum dikonfigurasi (R2_* kosong)");
   }
 
-  await fs.mkdir(BERKAS_DIR, { recursive: true });
-  await fs.writeFile(path.join(BERKAS_DIR, namaBerkas), buffer);
+  await unggahKeR2(berkasId, buffer, mimeDariFormat(format));
 
   return {
     berkasId,
-    penyimpanan: "LOKAL",
+    penyimpanan: "R2",
     namaAsli,
     format,
     ukuran: buffer.byteLength,
@@ -139,22 +125,6 @@ export async function bacaBerkasArsip(berkas: {
   penyimpanan: PenyimpananBerkas;
   berkasFormat: string | null;
 }): Promise<Buffer | null> {
-  if (berkas.penyimpanan === "R2") {
-    return bacaDariR2(berkas.berkasId);
-  }
-
-  // Cegah path keluar dari folder storage (`../`) kalau data DB tidak wajar.
-  const lengkap = path.resolve(AKAR_STORAGE, berkas.berkasId);
-  if (lengkap !== AKAR_STORAGE && !lengkap.startsWith(AKAR_STORAGE + path.sep)) {
-    throw new Error("Lokasi berkas tidak valid");
-  }
-
-  try {
-    return await fs.readFile(lengkap);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return null;
-    }
-    throw error;
-  }
+  // Semua berkas ada di R2 (baris lama berpenanda LOKAL dicoba di R2 juga).
+  return bacaDariR2(berkas.berkasId);
 }

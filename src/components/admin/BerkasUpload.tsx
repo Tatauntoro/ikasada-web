@@ -81,7 +81,7 @@ export function BerkasUpload({
 
       onChange({
         berkasId: result.data.berkasId,
-        berkasPenyimpanan: result.data.penyimpanan ?? "LOKAL",
+        berkasPenyimpanan: result.data.penyimpanan ?? "R2",
         berkasNama: result.data.namaAsli ?? file.name,
         berkasFormat: result.data.format ?? "",
         berkasUkuran: result.data.ukuran ?? file.size,

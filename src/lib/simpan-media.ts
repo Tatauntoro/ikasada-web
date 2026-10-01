@@ -1,5 +1,3 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import crypto from "node:crypto";
 import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
 import {
@@ -15,8 +13,6 @@ import {
  * Media mengikuti aturan akses arsipnya, jadi berkasnya **privat**:
  * - R2: bucket privat sepenuhnya, satu-satunya jalan keluar adalah server ini
  *   yang fetch objeknya lewat kredensial API (tidak pernah ada URL publik).
- * - Lokal: ditulis ke `storage/arsip-media/` (di luar `public/`), dipakai
- *   kalau R2 belum dikonfigurasi (mis. dev lokal).
  *
  * Yang keluar dari sini hanya **identitas** berkas; isinya dilayani
  * `GET /api/arsip/[slug]/media/[id]` yang memeriksa hak akses lebih dulu
@@ -32,9 +28,6 @@ export type MediaTersimpan = {
   ukuran: number;
   jenis: JenisMedia;
 };
-
-const AKAR_STORAGE = path.join(process.cwd(), "storage");
-const MEDIA_DIR = path.join(AKAR_STORAGE, "arsip-media");
 
 /** MIME untuk header respons, dibalik dari daftar di `batas-media.ts`. */
 const MIME_MEDIA: Record<string, string> = {
@@ -78,25 +71,15 @@ export async function simpanMediaArsip(
   const nama = `${crypto.randomUUID()}.${format}`;
   const berkasId = `arsip-media/${nama}`;
 
-  if (isR2Configured()) {
-    await unggahKeR2(berkasId, buffer, mimeMediaDariFormat(format));
-
-    return {
-      berkasId,
-      penyimpanan: "R2",
-      namaAsli,
-      format,
-      ukuran: buffer.byteLength,
-      jenis,
-    };
+  if (!isR2Configured()) {
+    throw new Error("Penyimpanan R2 belum dikonfigurasi (R2_* kosong)");
   }
 
-  await fs.mkdir(MEDIA_DIR, { recursive: true });
-  await fs.writeFile(path.join(MEDIA_DIR, nama), buffer);
+  await unggahKeR2(berkasId, buffer, mimeMediaDariFormat(format));
 
   return {
     berkasId,
-    penyimpanan: "LOKAL",
+    penyimpanan: "R2",
     namaAsli,
     format,
     ukuran: buffer.byteLength,
@@ -113,21 +96,5 @@ export async function bacaMediaArsip(berkas: {
   penyimpanan: "R2" | "LOKAL";
   jenis: JenisMedia;
 }): Promise<Buffer | null> {
-  if (berkas.penyimpanan === "R2") {
-    return bacaDariR2(berkas.berkasId);
-  }
-
-  const lengkap = path.resolve(AKAR_STORAGE, berkas.berkasId);
-  if (lengkap !== AKAR_STORAGE && !lengkap.startsWith(AKAR_STORAGE + path.sep)) {
-    throw new Error("Lokasi media tidak valid");
-  }
-
-  try {
-    return await fs.readFile(lengkap);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return null;
-    }
-    throw error;
-  }
+  return bacaDariR2(berkas.berkasId);
 }

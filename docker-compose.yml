@@ -49,16 +49,9 @@ services:
     # already allocated" kalau ada app lain di server yang juga mau port 3000.
     expose:
       - "3000"
-    volumes:
-      # Penyimpanan lokal hanya untuk berkas lama / masa transisi: produksi
-      # wajib R2, jadi berkas baru selalu masuk bucket. Volume ini juga yang
-      # dibaca jalur fallback `bacaGambar` saat menemui berkas lokal lama.
-      - app_storage:/app/storage
     networks:
       - dokploy-network
 
-volumes:
-  app_storage:
 
 networks:
   # Network bawaan Dokploy (dibuat otomatis oleh Dokploy sendiri) — wajib
