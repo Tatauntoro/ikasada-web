@@ -27,6 +27,7 @@ const navItems: { id: string; label: string; href?: string }[] = [
   { id: "hero", label: "Beranda" },
   { id: "alumni", label: "Direktori Alumni" },
   { id: "arsip", label: "Arsip" },
+  { id: "berita", label: "Berita" },
   { id: "kegiatan", label: "Kegiatan" },
 ];
 

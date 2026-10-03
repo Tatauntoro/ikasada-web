@@ -1,6 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import type { AlumniInput } from "@/lib/validations/alumni";
 import type { ArsipInput } from "@/lib/validations/arsip";
+import type { BeritaInput } from "@/lib/validations/berita";
 import type { KegiatanInput } from "@/lib/validations/kegiatan";
 import type { KerjasamaInput } from "@/lib/validations/kerjasama";
 import type { PengurusInput } from "@/lib/validations/pengurus";
@@ -113,6 +114,20 @@ export function normalizeKerjasamaInput(
     linkTiktok: normalisasiTiktok(input.linkTiktok),
     email: input.email?.trim() || null,
     urutan: input.urutan,
+    status: input.status,
+  };
+}
+
+export function normalizeBeritaInput(
+  input: BeritaInput
+): Omit<Prisma.BeritaUncheckedCreateInput, "createdById" | "slug"> {
+  return {
+    judul: input.judul.trim(),
+    jenisBeritaId: input.jenisBeritaId,
+    tanggal: input.tanggal,
+    deskripsiSingkat: input.deskripsiSingkat.trim(),
+    deskripsiLengkap: input.deskripsiLengkap?.trim() || null,
+    gambarUrl: input.gambarUrl?.trim() || null,
     status: input.status,
   };
 }

@@ -14,7 +14,7 @@ import { logPeristiwa, requestIdDari } from "@/lib/log";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
+const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip", "berita"];
 
 type RouteParams = {
   params: Promise<{ tipe: string; filename: string }>;

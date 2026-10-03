@@ -290,7 +290,8 @@ html.light body {
 }
 
 .public-page #alumni,
-.public-page #kegiatan {
+.public-page #kegiatan,
+.public-page #berita {
   background: #ffffff !important;
   color: #0f1012;
   border-color: rgba(0, 0, 0, 0.06) !important;

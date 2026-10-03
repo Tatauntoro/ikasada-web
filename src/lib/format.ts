@@ -15,6 +15,23 @@ export function formatTanggalWIB(
   }).format(date);
 }
 
+export function formatWaktuWIB(
+  value: string | Date | null | undefined
+): string {
+  if (!value) return "-";
+
+  const date = typeof value === "string" ? new Date(value) : value;
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 export function getInitials(nama: string): string {
   return nama
     .trim()

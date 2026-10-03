@@ -8,6 +8,7 @@ import type {
   StatusAlumni,
   StatusKerjasama,
   StatusArsip,
+  StatusBerita,
 } from "@/generated/prisma/client";
 
 export interface AlumniAwal {
@@ -77,6 +78,18 @@ export interface KerjasamaAwal {
   email?: string;
   urutan: number;
   status: StatusKerjasama;
+}
+
+export interface BeritaAwal {
+  slug: string;
+  judul: string;
+  jenis: string;
+  /** Waktu terbit berita; dipakai juga sebagai urutan terbaru. */
+  tanggal: string; // ISO 8601
+  deskripsiSingkat: string;
+  deskripsiLengkap: string;
+  gambarUrl: string;
+  status: StatusBerita;
 }
 
 export const alumniAwal: AlumniAwal[] = [
@@ -617,6 +630,185 @@ export const arsipAwal: ArsipAwal[] = [
     deskripsiLengkap:
       "Dokumen ini merupakan bentuk pertanggungjawaban kepengurusan periode sebelumnya pada Musyawarah Besar 2019, mencakup laporan program dan keuangan.\n\nMusyawarah menghasilkan sejumlah keputusan organisasi yang menjadi dasar penyusunan program pada periode berikutnya.",
     ...GRAFIK_DOKUMEN,
+    status: "PUBLISHED",
+  },
+];
+
+/** Master data jenis berita. Dipakai admin maupun badge di halaman publik. */
+export const jenisBeritaAwal: string[] = [
+  "Prestasi",
+  "Kegiatan",
+  "Pengumuman",
+  "Kerjasama",
+];
+
+export const beritaAwal: BeritaAwal[] = [
+  {
+    slug: "alumni-fib-ui-raih-beasiswa-riset-luar-negeri",
+    judul: "Alumni FIB UI Raih Beasiswa Riset ke Universitas Leiden",
+    jenis: "Prestasi",
+    tanggal: "2026-09-28T09:30:00+07:00",
+    deskripsiSingkat:
+      "Alumni Sastra Daerah lolos seleksi beasiswa riset dan akan meneliti naskah kuno Nusantara di Universitas Leiden.",
+    deskripsiLengkap:
+      "Salah satu alumni Program Studi Sastra Daerah FIB UI berhasil lolos seleksi beasiswa riset ke Universitas Leiden, Belanda. Ia akan menghabiskan satu semester untuk meneliti naskah kuno Nusantara bersama tim filologi di sana.\n\nPrestasi ini diharapkan membuka jalan bagi lebih banyak alumni untuk terlibat dalam riset kebudayaan lintas negara serta memperkuat jejaring akademik IKASADA.",
+    gambarUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "reuni-akbar-angkatan-2010-kembali-ke-kampus",
+    judul: "Reuni Akbar Angkatan 2010 Kembali ke Kampus Depok",
+    jenis: "Kegiatan",
+    tanggal: "2026-09-21T13:00:00+07:00",
+    deskripsiSingkat:
+      "Lebih dari seratus alumni angkatan 2010 berkumpul kembali di kampus Depok untuk bernostalgia dan memperbarui jejaring.",
+    deskripsiLengkap:
+      "Reuni akbar angkatan 2010 berlangsung hangat di kampus Depok. Lebih dari seratus alumni hadir, sebagian datang dari luar kota, untuk bertemu kembali dengan teman seangkatan dan para dosen.\n\nAcara diisi dengan sesi berbagi karier, tur singkat ke ruang kuliah lama, serta penyerahan kenang-kenangan kepada program studi.",
+    gambarUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "pendaftaran-program-mentoring-karier-dibuka",
+    judul: "Pendaftaran Program Mentoring Karier Alumni Dibuka",
+    jenis: "Pengumuman",
+    tanggal: "2026-09-15T08:00:00+07:00",
+    deskripsiSingkat:
+      "Program mentoring karier untuk alumni muda kembali dibuka. Peserta akan didampingi mentor dari berbagai bidang.",
+    deskripsiLengkap:
+      "IKASADA membuka pendaftaran program mentoring karier bagi alumni muda. Setiap peserta akan didampingi satu mentor dari bidang yang relevan selama tiga bulan.\n\nMentor berasal dari kalangan alumni yang berkecimpung di dunia media, pendidikan, pemerintahan, dan sektor swasta. Pendaftaran ditutup pada akhir bulan September.",
+    gambarUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "kerjasama-ikasada-dengan-perusahaan-teknologi",
+    judul: "IKASADA Jalin Kerjasama dengan Perusahaan Teknologi Nasional",
+    jenis: "Kerjasama",
+    tanggal: "2026-09-08T10:15:00+07:00",
+    deskripsiSingkat:
+      "Kerjasama ini membuka peluang magang dan pelatihan digital untuk alumni serta mahasiswa tingkat akhir.",
+    deskripsiLengkap:
+      "IKASADA menandatangani perjanjian kerjasama dengan sebuah perusahaan teknologi nasional. Ruang lingkup kerjasama meliputi program magang, pelatihan keterampilan digital, dan rekrutmen bersama.\n\nKerjasama ini diharapkan memperluas akses alumni terhadap kebutuhan industri sekaligus memperkuat relevansi lulusan Sastra Daerah di dunia kerja.",
+    gambarUrl: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "lokakarya-penulisan-karya-ilmiah-untuk-alumni",
+    judul: "Lokakarya Penulisan Karya Ilmiah untuk Alumni Muda",
+    jenis: "Kegiatan",
+    tanggal: "2026-08-30T15:45:00+07:00",
+    deskripsiSingkat:
+      "Lokakarya ini melatih alumni menyusun artikel ilmiah yang layak terbit di jurnal maupun media populer.",
+    deskripsiLengkap:
+      "Lokakarya penulisan karya ilmiah digelar secara hibrida, diikuti puluhan alumni muda. Materi mencakup penyusunan kerangka, tata cara pengutipan, hingga strategi memilih jurnal tujuan.\n\nPeserta diminta menyelesaikan satu draf artikel sebagai syarat mengikuti sesi pendampingan lanjutan.",
+    gambarUrl: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "pendaftaran-beasiswa-pascasarjana-2026-dibuka",
+    judul: "Pendaftaran Beasiswa Pascasarjana 2026 Resmi Dibuka",
+    jenis: "Pengumuman",
+    tanggal: "2026-08-22T09:00:00+07:00",
+    deskripsiSingkat:
+      "Beasiswa untuk alumni yang ingin melanjutkan studi magister terbuka hingga akhir Oktober 2026.",
+    deskripsiLengkap:
+      "IKASADA membuka pendaftaran beasiswa pascasarjana 2026 bagi alumni yang ingin melanjutkan studi magister di dalam maupun luar negeri. Kuota tahun ini diperbesar menjadi sepuluh penerima.\n\nSeleksi mencakup penilaian berkas, esai rencana studi, dan wawancara daring. Pendaftaran ditutup pada akhir Oktober 2026.",
+    gambarUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "alumni-jadi-pembicara-forum-budaya-asia-tenggara",
+    judul: "Alumni Jadi Pembicara Forum Budaya Asia Tenggara",
+    jenis: "Prestasi",
+    tanggal: "2026-08-14T11:30:00+07:00",
+    deskripsiSingkat:
+      "Seorang alumni diundang sebagai pembicara di forum budaya Asia Tenggara untuk memaparkan pelestarian sastra daerah.",
+    deskripsiLengkap:
+      "Salah satu alumni IKASADA diundang sebagai pembicara dalam forum budaya Asia Tenggara. Ia memaparkan praktik pelestarian sastra daerah melalui komunitas akar rumput dan media digital.\n\nForum ini dihadiri perwakilan dari beberapa negara dan menghasilkan komitmen pertukaran program kebudayaan.",
+    gambarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "halal-bihalal-ikasada-bersama-para-pengurus",
+    judul: "Halal Bihalal IKASADA Bersama Para Pengurus dan Alumni",
+    jenis: "Kegiatan",
+    tanggal: "2026-08-05T16:00:00+07:00",
+    deskripsiSingkat:
+      "Acara halal bihalal menjadi ajang silaturahmi pengurus, alumni, dan dosen program studi.",
+    deskripsiLengkap:
+      "IKASADA menggelar acara halal bihalal yang dihadiri pengurus, alumni lintas angkatan, dan para dosen. Acara berlangsung santai dengan sesi makan bersama dan ramah tamah.\n\nPada kesempatan ini pengurus juga memaparkan rencana program semester berikutnya dan membuka ruang masukan dari alumni.",
+    gambarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "penandatanganan-mou-dengan-yayasan-pendidikan",
+    judul: "Penandatanganan MoU dengan Yayasan Pendidikan Nusantara",
+    jenis: "Kerjasama",
+    tanggal: "2026-07-27T10:00:00+07:00",
+    deskripsiSingkat:
+      "MoU mencakup program pengajaran sastra daerah di sekolah binaan yayasan dan pertukaran pengajar.",
+    deskripsiLengkap:
+      "IKASADA menandatangani nota kesepahaman dengan Yayasan Pendidikan Nusantara. Kerjasama meliputi program pengenalan sastra daerah di sekolah binaan serta pertukaran pengajar sukarela dari kalangan alumni.\n\nProgram percontohan akan dimulai di tiga sekolah pada semester mendatang.",
+    gambarUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "susunan-pengurus-ikasada-periode-2026-2029",
+    judul: "Susunan Pengurus IKASADA Periode 2026–2029 Diumumkan",
+    jenis: "Pengumuman",
+    tanggal: "2026-07-18T14:20:00+07:00",
+    deskripsiSingkat:
+      "Susunan pengurus hasil musyawarah besar telah diumumkan dan mulai menjalankan tugasnya.",
+    deskripsiLengkap:
+      "Susunan pengurus IKASADA periode 2026–2029 resmi diumumkan setelah melalui musyawarah besar. Kepengurusan baru terdiri atas ketua, sekretaris, bendahara, dan beberapa bidang.\n\nDaftar lengkap pengurus dapat dilihat pada bagian Pengurus Inti di situs ini.",
+    gambarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "bakti-sosial-alumni-di-desa-binaan",
+    judul: "Bakti Sosial Alumni di Desa Binaan Kecamatan Ciampea",
+    jenis: "Kegiatan",
+    tanggal: "2026-07-09T07:30:00+07:00",
+    deskripsiSingkat:
+      "Alumni menggelar bakti sosial berupa pengajaran, donasi buku, dan pemeriksaan kesehatan gratis.",
+    deskripsiLengkap:
+      "Puluhan alumni terlibat dalam kegiatan bakti sosial di desa binaan Kecamatan Ciampea. Kegiatan meliputi pengajaran sastra daerah untuk anak-anak, donasi buku perpustakaan desa, dan pemeriksaan kesehatan gratis.\n\nAgenda ini merupakan bagian dari program pengabdian berkelanjutan IKASADA.",
+    gambarUrl: "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "peluncuran-buku-antologi-alumni-sastra-daerah",
+    judul: "Peluncuran Buku Antologi Karya Alumni Sastra Daerah",
+    jenis: "Prestasi",
+    tanggal: "2026-06-30T13:45:00+07:00",
+    deskripsiSingkat:
+      "Antologi berisi puisi, cerpen, dan esai budaya karya alumni dari berbagai angkatan.",
+    deskripsiLengkap:
+      "Buku antologi karya alumni Sastra Daerah resmi diluncurkan. Antologi ini memuat puisi, cerpen, dan esai budaya dari puluhan alumni lintas angkatan.\n\nPeluncuran diisi dengan pembacaan karya dan diskusi bersama editor serta beberapa penulis yang terlibat.",
+    gambarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "webinar-karier-di-industri-kreatif",
+    judul: "Webinar Karier di Industri Kreatif untuk Alumni Baru",
+    jenis: "Pengumuman",
+    tanggal: "2026-06-20T19:00:00+07:00",
+    deskripsiSingkat:
+      "Webinar membahas peluang karier lulusan sastra daerah di industri kreatif dan media digital.",
+    deskripsiLengkap:
+      "IKASADA menggelar webinar karier bertema industri kreatif. Narasumber dari kalangan alumni berbagi pengalaman tentang bekerja di media digital, penerbitan, dan produksi konten.\n\nSesi tanya jawab berlangsung ramai, terutama dari alumni yang baru lulus.",
+    gambarUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800",
+    status: "PUBLISHED",
+  },
+  {
+    slug: "gathering-regional-alumni-jabodetabek",
+    judul: "Gathering Regional Alumni Jabodetabek Kembali Digelar",
+    jenis: "Kegiatan",
+    tanggal: "2026-06-11T18:30:00+07:00",
+    deskripsiSingkat:
+      "Alumni Jabodetabek berkumpul dalam gathering santai untuk mempererat jejaring profesional.",
+    deskripsiLengkap:
+      "Gathering regional alumni Jabodetabek kembali digelar setelah sempat tertunda. Acara berlangsung santai dengan sesi perkenalan dan diskusi peluang kolaborasi antaralumni.\n\nKe depan, gathering serupa akan diadakan bergiliran di kota lain.",
+    gambarUrl: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=800",
     status: "PUBLISHED",
   },
 ];

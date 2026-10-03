@@ -97,6 +97,26 @@ export type PublicKerjasama = {
 };
 
 /**
+ * Satu berita versi publik (`GET /api/public/berita`).
+ *
+ * Bentuknya sengaja ringkas: cukup untuk baris daftar (gambar, tipe, judul,
+ * tanggal) dan halaman detail (deskripsi). `status`/`createdById`/`deletedAt`
+ * tidak pernah ikut keluar.
+ */
+export type PublicBerita = {
+  id: string;
+  slug: string;
+  /** Nama jenis berita, mis. "Prestasi", "Kegiatan", "Pengumuman". */
+  tipe: string;
+  judul: string;
+  deskripsiSingkat: string;
+  deskripsiLengkap: string | null;
+  /** ISO 8601; diformat ke WIB di komponen. */
+  tanggal: string;
+  gambarUrl: string | null;
+};
+
+/**
  * Satu kartu direktori alumni (`GET /api/public/alumni`, BE-Planning §4.3).
  *
  * Server sengaja mengirim dua bentuk yang berbeda, bukan satu bentuk dengan
