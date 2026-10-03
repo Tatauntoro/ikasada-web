@@ -4,7 +4,7 @@ import { apiHandlerWithoutParams } from "@/lib/api-handler";
 import { requireAdminAktif } from "@/lib/sesi-admin";
 import { uploadGambar, TipeUploadGambar } from "@/lib/upload-gambar";
 
-const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip"];
+const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip", "berita"];
 const MIME_VALID = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 
@@ -19,7 +19,7 @@ async function handler(req: NextRequest): Promise<Response> {
 
   const tipe = formData.get("tipe");
   if (typeof tipe !== "string" || !TIPE_VALID.includes(tipe as TipeUploadGambar)) {
-    return badRequest("Tipe upload wajib diisi dengan 'kegiatan' atau 'alumni'");
+    return badRequest("Tipe upload wajib diisi dengan salah satu tipe yang dikenal");
   }
 
   const file = formData.get("file");

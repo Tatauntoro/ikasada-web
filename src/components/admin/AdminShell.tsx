@@ -14,6 +14,7 @@ import {
   X,
   Handshake,
   Archive,
+  Newspaper,
   ShieldCheck,
   ClockCounterClockwise,
   CaretDown,
@@ -114,6 +115,19 @@ const MENU: Node[] = [
     anak: [
       { href: "/admin/arsip", label: "Data Arsip", modul: MODUL.ARSIP },
       { href: "/admin/jenis-arsip", label: "Jenis Arsip", modul: MODUL.JENIS_ARSIP },
+    ],
+  },
+  {
+    kind: "group",
+    icon: Newspaper,
+    label: "Berita",
+    anak: [
+      { href: "/admin/berita", label: "Data Berita", modul: MODUL.BERITA },
+      {
+        href: "/admin/jenis-berita",
+        label: "Jenis Berita",
+        modul: MODUL.JENIS_BERITA,
+      },
     ],
   },
   {

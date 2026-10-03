@@ -4,7 +4,9 @@ import { prisma } from "../src/lib/db";
 import {
   alumniAwal,
   arsipAwal,
+  beritaAwal,
   jenisArsipAwal,
+  jenisBeritaAwal,
   kegiatanAwal,
   kerjasamaAwal,
   pengurusAwal,
@@ -188,6 +190,41 @@ async function main() {
     console.log(`✅ ${arsipAwal.length} arsip awal dibuat`);
   } else {
     console.log("ℹ️ Arsip sudah ada, skip seed arsip awal");
+  }
+
+  // 10. Seed jenis berita (master data)
+  const jenisBeritaMap = new Map<string, string>();
+
+  for (const nama of jenisBeritaAwal) {
+    const jenis = await prisma.jenisBerita.upsert({
+      where: { nama },
+      update: {},
+      create: { nama },
+    });
+    jenisBeritaMap.set(nama, jenis.id);
+    console.log(`✅ Jenis berita: ${jenis.nama}`);
+  }
+
+  // 11. Seed berita awal (hanya jika belum ada data berita)
+  const beritaCount = await prisma.berita.count({
+    where: { deletedAt: null },
+  });
+  if (beritaCount === 0) {
+    await prisma.berita.createMany({
+      data: beritaAwal.map((b) => {
+        const { jenis, tanggal, ...rest } = b;
+        return {
+          ...rest,
+          tanggal: new Date(tanggal),
+          jenisBeritaId:
+            jenisBeritaMap.get(jenis) ?? jenisBeritaMap.get("Pengumuman")!,
+          createdById: admin.id,
+        };
+      }),
+    });
+    console.log(`✅ ${beritaAwal.length} berita awal dibuat`);
+  } else {
+    console.log("ℹ️ Berita sudah ada, skip seed berita awal");
   }
 }
 

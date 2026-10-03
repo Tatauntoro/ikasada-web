@@ -68,6 +68,11 @@ enum StatusArsip {
   PUBLISHED
 }
 
+enum StatusBerita {
+  DRAFT
+  PUBLISHED
+}
+
 /*
  * Di mana berkas arsip disimpan.
  *
@@ -148,6 +153,7 @@ model AdminUser {
   pengurus     Pengurus[]
   kerjasama    Kerjasama[]
   arsip        Arsip[]
+  berita       Berita[]
   auditLogs    AuditLog[]
   @@map("admin_user")
 }
@@ -184,6 +190,35 @@ model KategoriKegiatan {
   kegiatan     Kegiatan[]
   deletedAt    DateTime?  @map("deleted_at")
   @@map("kategori_kegiatan")
+}
+
+model JenisBerita {
+  id        String    @id @default(uuid())
+  nama      String    @unique
+  berita    Berita[]
+  deletedAt DateTime? @map("deleted_at")
+  @@map("jenis_berita")
+}
+
+model Berita {
+  id               String       @id @default(uuid())
+  slug             String       @unique
+  judul            String
+  jenisBeritaId    String       @map("jenis_berita_id")
+  jenisBerita      JenisBerita  @relation(fields: [jenisBeritaId], references: [id])
+  tanggal          DateTime
+  deskripsiSingkat String       @map("deskripsi_singkat")
+  deskripsiLengkap String?      @map("deskripsi_lengkap")
+  gambarUrl        String?      @map("gambar_url")
+  status           StatusBerita @default(DRAFT)
+  createdById      String       @map("created_by")
+  createdBy        AdminUser    @relation(fields: [createdById], references: [id])
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  deletedAt        DateTime?    @map("deleted_at")
+  @@index([status, tanggal])
+  @@index([jenisBeritaId])
+  @@map("berita")
 }
 
 model Pengurus {

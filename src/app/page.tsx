@@ -5,6 +5,7 @@ import GlyphHero from "@/components/hero/GlyphHero";
 import OverviewSection from "@/components/OverviewSection";
 import WaysSection from "@/components/WaysSection";
 import Stats from "@/components/Stats";
+import BeritaSection from "@/components/BeritaSection";
 import StaffSection from "@/components/StaffSection";
 import JournalSection from "@/components/JournalSection";
 import AlumniDirectory from "@/components/AlumniDirectory";
@@ -26,6 +27,7 @@ export default function Home() {
         <OverviewSection />
         <WaysSection />
         <Stats />
+        <BeritaSection />
         <AlumniDirectory limit={6} sort="createdAt:desc" />
         <JournalSection />
         <EventsSection />

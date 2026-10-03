@@ -6,7 +6,7 @@ import { UploadSimple, Trash, Spinner } from "@phosphor-icons/react";
 
 export type ImageUploadProps = {
   label?: string;
-  tipe: "kegiatan" | "alumni" | "kerjasama" | "arsip";
+  tipe: "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita";
   value?: string | null;
   onChange: (url: string | null) => void;
   error?: string;

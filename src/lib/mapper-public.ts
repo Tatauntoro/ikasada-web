@@ -18,6 +18,10 @@ export type ArsipDenganJenis = Prisma.ArsipGetPayload<{
   include: { jenisArsip: true; _count: { select: { media: true } } };
 }>;
 
+export type BeritaDenganJenis = Prisma.BeritaGetPayload<{
+  include: { jenisBerita: true };
+}>;
+
 export type PublicKegiatan = {
   id: string;
   slug: string;
@@ -114,6 +118,25 @@ export type PublicKerjasama = {
   linkTiktok: string | null;
   email: string | null;
   urutan: number;
+};
+
+/**
+ * Satu berita versi publik.
+ *
+ * `status`, `createdById`, dan `deletedAt` sengaja tidak ikut: route publik
+ * hanya mengambil baris `PUBLISHED`. `tipe` adalah nama `jenisBerita`, dan
+ * `tanggal` sudah ISO supaya `formatTanggalWIB`/`formatWaktuWIB` bisa memformat
+ * ke WIB di klien.
+ */
+export type PublicBerita = {
+  id: string;
+  slug: string;
+  tipe: string;
+  judul: string;
+  deskripsiSingkat: string;
+  deskripsiLengkap: string | null;
+  tanggal: string;
+  gambarUrl: string | null;
 };
 
 export function toPublicKegiatan(
@@ -235,5 +258,18 @@ export function toPublicKerjasama(kerjasama: Kerjasama): PublicKerjasama {
     linkTiktok: kerjasama.linkTiktok,
     email: kerjasama.email,
     urutan: kerjasama.urutan,
+  };
+}
+
+export function toPublicBerita(berita: BeritaDenganJenis): PublicBerita {
+  return {
+    id: berita.id,
+    slug: berita.slug,
+    tipe: berita.jenisBerita.nama,
+    judul: berita.judul,
+    deskripsiSingkat: berita.deskripsiSingkat,
+    deskripsiLengkap: berita.deskripsiLengkap,
+    tanggal: berita.tanggal.toISOString(),
+    gambarUrl: berita.gambarUrl,
   };
 }

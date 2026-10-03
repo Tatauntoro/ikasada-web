@@ -10,6 +10,17 @@ import { usePathname, useSearchParams } from "next/navigation";
  */
 import { catatRouteAktif } from "@/lib/preloader-gate";
 
+/*
+ * Satu `scrollIntoView` saja tidak cukup: section di beranda memuat datanya
+ * sendiri (statistik, direktori alumni), jadi tinggi dokumen masih bertambah
+ * setelah guliran pertama. Kalau tidak dikoreksi, section tujuan ikut tergeser
+ * turun dan tampilan mendarat di atasnya. Karena itu guliran pertama dibuat
+ * halus, lalu posisinya diselaraskan ulang sebentar sampai tata letak tenang.
+ */
+const DURASI_PENYESUAIAN_MS = 2000;
+const JEDA_PENYESUAIAN_MS = 100;
+const TOLERANSI_PX = 12;
+
 export function ScrollToHash() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,16 +36,68 @@ export function ScrollToHash() {
      * kali `pathname` berubah. Itu membuat tombol back/forward selalu mendarat
      * di puncak halaman. Sekarang: navigasi maju tanpa hash di-scroll ke atas
      * oleh Next sendiri, dan back/forward dipulihkan browser.
+     *
+     * Back/forward yang mendarat di hash ditangani di sini juga — selama itu
+     * bukan pemulihan posisi yang sudah diurus `ScrollRestoration`.
      */
     const hash = window.location.hash.replace("#", "");
     if (!hash) return;
 
-    // Delay sedikit agar elemen tujuan sudah ter-render (terutama setelah navigasi)
-    const timer = setTimeout(() => {
-      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    const mulai = performance.now();
+    let frame = 0;
+    let timer = 0;
+    let dibatalkan = false;
 
-    return () => clearTimeout(timer);
+    const lepas = () => {
+      window.removeEventListener("wheel", batalkan);
+      window.removeEventListener("touchstart", batalkan);
+      window.removeEventListener("keydown", batalkan);
+    };
+
+    // Pengunjung sudah mengambil alih gulirnya; jangan ditimpa lagi.
+    const batalkan = () => {
+      dibatalkan = true;
+      if (frame) cancelAnimationFrame(frame);
+      if (timer) window.clearTimeout(timer);
+      lepas();
+    };
+
+    window.addEventListener("wheel", batalkan, { passive: true });
+    window.addEventListener("touchstart", batalkan, { passive: true });
+    window.addEventListener("keydown", batalkan);
+
+    frame = window.requestAnimationFrame(() => {
+      if (dibatalkan) return;
+
+      // Guliran pertama: halus, supaya terasa seperti animasi.
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+
+      // Koreksi berikutnya instan, supaya pergeseran tata letak langsung
+      // ditutup alih-alih memulai ulang animasi.
+      const koreksi = () => {
+        if (dibatalkan) return;
+
+        const el = document.getElementById(hash);
+        if (el && Math.abs(el.getBoundingClientRect().top) > TOLERANSI_PX) {
+          el.scrollIntoView({ behavior: "auto" });
+        }
+
+        if (performance.now() - mulai < DURASI_PENYESUAIAN_MS) {
+          timer = window.setTimeout(koreksi, JEDA_PENYESUAIAN_MS);
+        } else {
+          lepas();
+        }
+      };
+
+      timer = window.setTimeout(koreksi, JEDA_PENYESUAIAN_MS);
+    });
+
+    return () => {
+      dibatalkan = true;
+      if (frame) cancelAnimationFrame(frame);
+      if (timer) window.clearTimeout(timer);
+      lepas();
+    };
   }, [pathname, searchParams]);
 
   return null;
