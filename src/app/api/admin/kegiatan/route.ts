@@ -4,19 +4,20 @@ import { prisma } from "@/lib/db";
 import {
   created,
   badRequest,
+  conflict,
   validationError,
   okPaginated,
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
-import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul, whereDivisi } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { parsePagination } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
 import { catatAudit } from "@/lib/audit";
 import { generateUniqueSlug } from "@/lib/slug";
-import { normalizeKegiatanInput } from "@/lib/normalize-input";
+import { normalizeKegiatanInput, normalizeMediaKegiatan } from "@/lib/normalize-input";
 import { kegiatanCreateSchema } from "@/lib/validations/kegiatan";
+import { gateSimpan } from "@/lib/verifikasi-konten";
 
 const SORTABLE_FIELDS = [
   "judul",
@@ -26,7 +27,7 @@ const SORTABLE_FIELDS = [
 ] as const;
 
 async function handleList(req: NextRequest): Promise<Response> {
-  await requireAdmin();
+  const sesi = await requireAdminAktif();
 
   const { searchParams } = req.nextUrl;
   const pagination = parsePagination(searchParams);
@@ -74,6 +75,10 @@ async function handleList(req: NextRequest): Promise<Response> {
     }
   }
 
+  // Pemisahan per divisi: staf hanya melihat konten divisinya (+ konten lama).
+  const scope = whereDivisi(sesi);
+  if (scope) where.OR = scope.OR;
+
   const [data, total] = await prisma.$transaction([
     prisma.kegiatan.findMany({
       where,
@@ -93,7 +98,7 @@ async function handleList(req: NextRequest): Promise<Response> {
 }
 
 async function handleCreate(req: NextRequest): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const body = await readJsonBody(req);
 
   const parsed = kegiatanCreateSchema.safeParse(body);
@@ -102,6 +107,11 @@ async function handleCreate(req: NextRequest): Promise<Response> {
   }
 
   const data = normalizeKegiatanInput(parsed.data);
+  const media = normalizeMediaKegiatan(parsed.data.media);
+
+  // Non-verifikator tidak boleh membuat konten langsung berstatus terbit.
+  const gate = gateSimpan(session, { statusBaru: data.status });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const kategori = await prisma.kategoriKegiatan.findFirst({
     where: { id: data.kategoriKegiatanId, deletedAt: null },
@@ -120,6 +130,8 @@ async function handleCreate(req: NextRequest): Promise<Response> {
         ...data,
         slug,
         createdById: session.sub,
+        divisiId: session.divisi?.id ?? null,
+        media: media.length > 0 ? { create: media } : undefined,
       },
     });
 

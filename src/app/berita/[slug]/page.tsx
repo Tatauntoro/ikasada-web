@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
+import RichText from "@/components/RichText";
 import ScrollReveal from "@/components/ScrollReveal";
-import { ambilBeritaPublik } from "@/lib/berita-publik";
+import { ambilBeritaPublik, ambilMediaBeritaPublik } from "@/lib/berita-publik";
 import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -26,7 +27,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 /** Halaman detail berita. */
 export default async function BeritaDetailPage({ params }: Params) {
   const { slug } = await params;
-  const berita = await ambilBeritaPublik(slug);
+  const [berita, media] = await Promise.all([
+    ambilBeritaPublik(slug),
+    ambilMediaBeritaPublik(slug),
+  ]);
 
   if (!berita) notFound();
 
@@ -68,11 +72,50 @@ export default async function BeritaDetailPage({ params }: Params) {
               </div>
             )}
 
-            <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-black/68 sm:text-base">
-              {isi.split("\n\n").map((paragraf, i) => (
-                <p key={i}>{paragraf}</p>
-              ))}
-            </div>
+            <RichText
+              teks={isi}
+              className="mt-10 space-y-5 text-[15px] leading-relaxed text-black/68 sm:text-base"
+            />
+
+            {media.length > 0 && (
+              <section className="mt-12 border-t border-black/10 pt-8">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-black/50">
+                  Galeri ({media.length})
+                </h2>
+                <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {media.map((item) => {
+                    const sumber = `/api/berita/${berita.slug}/media/${item.id}`;
+                    return (
+                      <li key={item.id}>
+                        {item.jenis === "VIDEO" ? (
+                          <video
+                            src={sumber}
+                            controls
+                            preload="metadata"
+                            className="w-full rounded-[12px] border border-black/10 bg-black"
+                          />
+                        ) : (
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-black/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sumber}
+                              alt={item.caption ?? berita.judul}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        {item.caption && (
+                          <p className="mt-2 text-[13px] leading-relaxed text-black/60">
+                            {item.caption}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
           </div>
         </section>
       </div>

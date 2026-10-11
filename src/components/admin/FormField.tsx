@@ -5,6 +5,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { ChipBerubah, KELAS_FIELD_BERUBAH } from "./ChipBerubah";
 
 export type FormFieldProps = {
   label: string;
@@ -13,6 +14,8 @@ export type FormFieldProps = {
   children: ReactNode;
   hint?: string;
   required?: boolean;
+  /** Nilainya berbeda dari versi terverifikasi (mode tinjau) — tampilkan chip. */
+  berubah?: boolean;
 };
 
 export function FormField({
@@ -22,6 +25,7 @@ export function FormField({
   children,
   hint,
   required,
+  berubah = false,
 }: FormFieldProps) {
   const messageId = useId();
   const hasMessage = Boolean(error || hint);
@@ -38,13 +42,20 @@ export function FormField({
   }
 
   return (
-    <div className="space-y-1.5">
+    <div
+      className={`space-y-1.5 ${berubah ? KELAS_FIELD_BERUBAH : ""}`}
+    >
       <label
         htmlFor={htmlFor}
-        className="block text-sm font-semibold text-[#0f1012]"
+        className={`flex items-center gap-2 text-sm font-semibold ${
+          berubah ? "text-red-700" : "text-[#0f1012]"
+        }`}
       >
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        <span>
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </span>
+        {berubah && <ChipBerubah />}
       </label>
       {control}
       {hint && !error && (

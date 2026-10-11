@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 import { ok } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
-import { requirePermission } from "@/lib/sesi-admin";
-import { AKSI, MODUL } from "@/lib/permission";
+import { requireAdminAktif } from "@/lib/sesi-admin";
 import {
   hitungBelumDibaca,
   tandaiSemuaNotifikasiDibaca,
@@ -22,11 +21,11 @@ import {
  */
 async function handler(req: NextRequest): Promise<Response> {
   void req;
-  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
+  const admin = await requireAdminAktif();
 
   await tandaiSemuaNotifikasiDibaca(admin.sub);
 
-  return ok({ belumDibaca: await hitungBelumDibaca(admin.sub) });
+  return ok({ belumDibaca: await hitungBelumDibaca(admin) });
 }
 
 export const POST = apiHandlerWithoutParams(handler);

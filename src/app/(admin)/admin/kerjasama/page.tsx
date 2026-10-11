@@ -13,6 +13,11 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import {
+  BadgeVerifikasi,
+  type StatusVerifikasiUI,
+} from "@/components/admin/VerifikasiKonten";
+import { keTeksBiasa } from "@/lib/rich-text";
 
 const STATUS_OPTIONS = Object.values(StatusKerjasama);
 
@@ -156,7 +161,7 @@ export default function KerjasamaListPage() {
     {
       key: "programUtama",
       header: "Program Utama",
-      cell: (row: Kerjasama) => row.programUtama,
+      cell: (row: Kerjasama) => keTeksBiasa(row.programUtama),
     },
     {
       key: "contohKegiatan",
@@ -172,6 +177,14 @@ export default function KerjasamaListPage() {
       key: "status",
       header: "Status",
       cell: (row: Kerjasama) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "verifikasi",
+      header: "Verifikasi",
+      className: "hidden lg:table-cell",
+      cell: (row: Kerjasama) => (
+        <BadgeVerifikasi verifikasi={row.verifikasi as StatusVerifikasiUI} />
+      ),
     },
     {
       key: "aksi",

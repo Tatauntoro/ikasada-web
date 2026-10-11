@@ -5,6 +5,7 @@ import {
   AKSI,
   boleh,
   normalisasiIzin,
+  MODUL,
   type AksiSlug,
   type Izin,
   type ModulSlug,
@@ -28,6 +29,8 @@ export type AdminSesi = {
   email: string;
   role: RoleAdmin;
   permissions: Izin;
+  /** Divisi tempat admin bertugas; `null` untuk admin teknis/tanpa divisi. */
+  divisi: { id: string; nama: string; lintasDivisi: boolean } | null;
 };
 
 const SELECT_ADMIN = {
@@ -37,6 +40,7 @@ const SELECT_ADMIN = {
   role: true,
   isAktif: true,
   permissions: true,
+  divisi: { select: { id: true, nama: true, lintasDivisi: true } },
 } as const;
 
 async function ambilAdmin(id: string): Promise<AdminSesi | null> {
@@ -53,7 +57,53 @@ async function ambilAdmin(id: string): Promise<AdminSesi | null> {
     email: admin.email,
     role: admin.role,
     permissions: normalisasiIzin(admin.permissions),
+    divisi: admin.divisi,
   };
+}
+
+/**
+ * Apakah admin boleh melihat konten **semua** divisi.
+ *
+ * Benar untuk superadmin, admin tanpa divisi (mis. admin teknis), dan divisi
+ * bertanda `lintasDivisi` (mis. Ketua Umum). Selain itu, admin hanya melihat
+ * konten divisinya sendiri (plus konten lama yang belum berdivisi).
+ */
+export function bolehLihatSemuaDivisi(sesi: {
+  role: RoleAdmin;
+  divisi: { lintasDivisi: boolean } | null;
+}): boolean {
+  return (
+    sesi.role === RoleAdmin.SUPERADMIN ||
+    !sesi.divisi ||
+    sesi.divisi.lintasDivisi
+  );
+}
+
+/**
+ * Fragmen `where` untuk membatasi daftar konten ke divisi admin.
+ *
+ * `null` berarti tidak perlu dibatasi (admin boleh lihat semua divisi). Konten
+ * lama yang `divisiId`-nya masih `null` tetap ikut terlihat, supaya pemisahan
+ * baru ini tidak menyembunyikan data yang sudah ada.
+ */
+export function whereDivisi(sesi: AdminSesi): {
+  OR: { divisiId: string | null }[];
+} | null {
+  if (bolehLihatSemuaDivisi(sesi)) return null;
+  return { OR: [{ divisiId: sesi.divisi!.id }, { divisiId: null }] };
+}
+
+/**
+ * Apakah admin boleh memverifikasi konten (mis. Ketua Umum).
+ *
+ * Berdasarkan izin `verifikasi-konten` (aksi `ubah`); superadmin selalu boleh.
+ * Verifikator juga boleh Publish tanpa menunggu verifikasi.
+ */
+export function bolehVerifikasiKonten(sesi: AdminSesi): boolean {
+  return (
+    sesi.role === RoleAdmin.SUPERADMIN ||
+    boleh(sesi.permissions, MODUL.VERIFIKASI_KONTEN, AKSI.UBAH)
+  );
 }
 
 /** `null` kalau tidak ada session, akun hilang, atau dinonaktifkan. */

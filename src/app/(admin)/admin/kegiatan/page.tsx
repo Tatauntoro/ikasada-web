@@ -14,6 +14,10 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import {
+  BadgeVerifikasi,
+  type StatusVerifikasiUI,
+} from "@/components/admin/VerifikasiKonten";
 import { formatTanggalWIB } from "@/lib/format";
 
 type Kegiatan = KegiatanModel & { kategoriKegiatan: KategoriKegiatan };
@@ -208,6 +212,14 @@ export default function KegiatanListPage() {
       key: "status",
       header: "Status",
       cell: (row: Kegiatan) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "verifikasi",
+      header: "Verifikasi",
+      className: "hidden lg:table-cell",
+      cell: (row: Kegiatan) => (
+        <BadgeVerifikasi verifikasi={row.verifikasi as StatusVerifikasiUI} />
+      ),
     },
     {
       key: "aksi",

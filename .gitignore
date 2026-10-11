@@ -73,3 +73,7 @@ public/uploads
 
 # referensi desain (hanya lokal, tidak dipakai kode)
 /augen
+
+# artefak desain lokal (preview gambar) & catatan prompt — tidak untuk deploy
+/output
+/IKASADA-prompt.md

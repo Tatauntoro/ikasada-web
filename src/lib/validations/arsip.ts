@@ -1,11 +1,11 @@
 import { z } from "zod";
 import {
   AksesArsip,
-  JenisMedia,
   PenyimpananBerkas,
   StatusArsip,
 } from "@/generated/prisma/enums";
 import { MAX_MEDIA_PER_ARSIP } from "@/lib/batas-media";
+import { mediaSchema, type MediaInput } from "@/lib/validations/media";
 
 const statusValues = Object.values(StatusArsip) as [
   StatusArsip,
@@ -19,26 +19,13 @@ const penyimpananValues = Object.values(PenyimpananBerkas) as [
   ...PenyimpananBerkas[],
 ];
 
-const jenisMediaValues = Object.values(JenisMedia) as [
-  JenisMedia,
-  ...JenisMedia[],
-];
+/**
+ * Satu foto/video galeri. Definisi bersama ada di `validations/media.ts`;
+ * nama lama tetap diekspor supaya pemanggil arsip tidak perlu berubah.
+ */
+export const mediaArsipSchema = mediaSchema;
 
-/** Satu foto/video galeri. Disimpan sebagai identitas berkas, bukan URL. */
-export const mediaArsipSchema = z.object({
-  jenis: z.enum(jenisMediaValues, { message: "Jenis media tidak valid" }),
-  berkasId: z
-    .string({ message: "Berkas media belum diunggah" })
-    .min(1, "Berkas media belum diunggah")
-    .max(255),
-  penyimpanan: z.enum(penyimpananValues, { message: "Penyimpanan tidak valid" }),
-  namaAsli: z.string().max(255).optional().nullable(),
-  format: z.string().max(10).optional().nullable(),
-  ukuran: z.coerce.number().int().min(0).optional().nullable(),
-  caption: z.string().max(200, "Keterangan maksimal 200 karakter").optional().nullable(),
-});
-
-export type MediaArsipInput = z.infer<typeof mediaArsipSchema>;
+export type MediaArsipInput = MediaInput;
 
 export const arsipBaseSchema = z.object({
   judul: z

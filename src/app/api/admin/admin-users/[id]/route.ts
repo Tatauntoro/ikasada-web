@@ -34,8 +34,10 @@ const SELECT_ADMIN = {
   role: true,
   isAktif: true,
   permissions: true,
+  izinKhusus: true,
   createdAt: true,
   lastLoginAt: true,
+  divisi: { select: { id: true, nama: true } },
 } as const;
 
 async function handler(
@@ -65,6 +67,8 @@ async function handler(
       role: true,
       isAktif: true,
       permissions: true,
+      izinKhusus: true,
+      divisiId: true,
     },
   });
   if (!target) {
@@ -107,15 +111,67 @@ async function handler(
     }
   }
 
-  const updateData: Prisma.AdminUserUpdateInput = {};
+  // Divisi tujuan harus ada (bila diisi); izinnya dipakai sebagai template
+  // saat admin dipindahkan ke divisi itu.
+  let izinDivisiTujuan: Prisma.InputJsonValue | null = null;
+  if (data.divisiId) {
+    const divisi = await prisma.divisi.findFirst({
+      where: { id: data.divisiId, deletedAt: null },
+      select: { id: true, permissions: true },
+    });
+    if (!divisi) {
+      return badRequest("Divisi tidak ditemukan", {
+        divisiId: "Divisi tidak valid",
+      });
+    }
+    izinDivisiTujuan = normalisasiIzin(
+      divisi.permissions
+    ) as Prisma.InputJsonValue;
+  }
+
+  const updateData: Prisma.AdminUserUncheckedUpdateInput = {};
   if (data.nama !== undefined) updateData.nama = data.nama;
   if (data.email !== undefined) updateData.email = data.email;
   if (data.role !== undefined) updateData.role = data.role;
   if (data.isAktif !== undefined) updateData.isAktif = data.isAktif;
+  if (data.divisiId !== undefined) updateData.divisiId = data.divisiId;
+
   if (data.permissions !== undefined) {
+    // "Atur izin" mengirim izin eksplisit → tandai izin khusus supaya tidak
+    // ditimpa template divisi di kemudian hari.
     updateData.permissions = normalisasiIzin(
       data.permissions
     ) as Prisma.InputJsonValue;
+    updateData.izinKhusus = true;
+  } else if (data.izinKhusus === true) {
+    updateData.izinKhusus = true;
+  } else if (data.izinKhusus === false) {
+    // "Ikuti template divisi": lepas penanda & salin template divisi saat ini
+    // (atau divisi tujuan bila sekalian pindah).
+    updateData.izinKhusus = false;
+    const divisiTemplateId =
+      data.divisiId !== undefined ? data.divisiId : target.divisiId;
+    if (divisiTemplateId) {
+      const tmpl = await prisma.divisi.findUnique({
+        where: { id: divisiTemplateId },
+        select: { permissions: true },
+      });
+      if (tmpl) {
+        updateData.permissions = normalisasiIzin(
+          tmpl.permissions
+        ) as Prisma.InputJsonValue;
+      }
+    }
+  } else if (
+    data.divisiId !== undefined &&
+    data.divisiId !== null &&
+    data.divisiId !== target.divisiId &&
+    izinDivisiTujuan &&
+    !target.izinKhusus
+  ) {
+    // Pindah divisi tanpa izin eksplisit (dan bukan izin khusus) → izin
+    // mengikuti template divisi baru.
+    updateData.permissions = izinDivisiTujuan;
   }
 
   const hasil = await prisma.$transaction(async (tx) => {
@@ -127,7 +183,7 @@ async function handler(
 
     await catatAudit(tx, {
       adminId: session.sub,
-      aksi: "UPDATE",
+      aksi: "ADMIN_UPDATE",
       entitas: "AdminUser",
       entitasId: id,
       detailPerubahan: diffPerubahan(
@@ -137,6 +193,7 @@ async function handler(
           role: target.role,
           isAktif: target.isAktif,
           permissions: target.permissions,
+          divisiId: target.divisiId,
         },
         {
           nama: diperbarui.nama,
@@ -144,6 +201,7 @@ async function handler(
           role: diperbarui.role,
           isAktif: diperbarui.isAktif,
           permissions: diperbarui.permissions,
+          divisiId: diperbarui.divisi?.id ?? null,
         }
       ),
     });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bell } from "@phosphor-icons/react";
-import { MODUL } from "@/lib/permission";
+import { MODUL_INBOX } from "@/lib/permission";
 import { useIzin } from "./IzinProvider";
 import { useNotifikasi } from "./NotifikasiProvider";
 
@@ -17,7 +17,7 @@ export function NotifikasiBell() {
   const { belumDibaca, status } = useNotifikasi();
   const { boleh } = useIzin();
 
-  if (!boleh(MODUL.INBOX, "lihat")) return null;
+  if (!MODUL_INBOX.some((m) => boleh(m, "lihat"))) return null;
 
   const label =
     belumDibaca > 0

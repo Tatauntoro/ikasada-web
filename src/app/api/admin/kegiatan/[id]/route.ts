@@ -3,17 +3,24 @@ import { prisma } from "@/lib/db";
 import {
   ok,
   badRequest,
+  conflict,
   notFound,
   validationError,
 } from "@/lib/response";
 import { apiHandler, readJsonBody } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { catatAudit, diffPerubahan } from "@/lib/audit";
 import { generateUniqueSlug, generateSlug } from "@/lib/slug";
-import { normalizeKegiatanInput } from "@/lib/normalize-input";
+import { normalizeKegiatanInput, normalizeMediaKegiatan } from "@/lib/normalize-input";
 import { kegiatanUpdateSchema } from "@/lib/validations/kegiatan";
+import {
+  gateSimpan,
+  kontenBerubah,
+  mediaBerubah,
+  RESET_VERIFIKASI,
+} from "@/lib/verifikasi-konten";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -22,7 +29,10 @@ type RouteParams = {
 async function getKegiatanOr404(id: string) {
   const kegiatan = await prisma.kegiatan.findUnique({
     where: { id, deletedAt: null },
-    include: { kategoriKegiatan: true },
+    include: {
+      kategoriKegiatan: true,
+      media: { orderBy: { urutan: "asc" } },
+    },
   });
 
   if (!kegiatan) {
@@ -50,7 +60,7 @@ async function handleUpdate(
   req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const { id } = await params;
 
   const existing = await getKegiatanOr404(id);
@@ -65,6 +75,18 @@ async function handleUpdate(
   }
 
   const data = normalizeKegiatanInput(parsed.data);
+  const media = normalizeMediaKegiatan(parsed.data.media);
+
+  // Gate verifikasi: edit yang mengubah isi membatalkan verifikasi; publish
+  // hanya boleh bila konten sudah DISETUJUI dan isinya tidak berubah.
+  const gate = gateSimpan(session, {
+    statusBaru: data.status,
+    verifikasiLama: existing.verifikasi,
+    kontenBerubah:
+      kontenBerubah(existing, data) ||
+      mediaBerubah(existing.media ?? [], media),
+  });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const kategori = await prisma.kategoriKegiatan.findFirst({
     where: { id: data.kategoriKegiatanId, deletedAt: null },
@@ -90,12 +112,21 @@ async function handleUpdate(
     const updateData = {
       ...data,
       slug,
+      ...(gate.reset ? RESET_VERIFIKASI : {}),
     };
 
     const result = await tx.kegiatan.update({
       where: { id },
       data: updateData,
     });
+
+    /* Galeri ditulis ulang dari daftar form: hapus lalu buat lagi. */
+    await tx.kegiatanMedia.deleteMany({ where: { kegiatanId: id } });
+    if (media.length > 0) {
+      await tx.kegiatanMedia.createMany({
+        data: media.map((item) => ({ ...item, kegiatanId: id })),
+      });
+    }
 
     const perubahan = diffPerubahan(
       {

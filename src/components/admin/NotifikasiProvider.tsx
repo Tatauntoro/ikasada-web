@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { panggilApi } from "@/lib/api-client";
-import { MODUL } from "@/lib/permission";
+import { MODUL_INBOX } from "@/lib/permission";
 import { useIzin } from "./IzinProvider";
 
 /**
@@ -48,7 +48,7 @@ const JEDA_COBA_ULANG_MS = 15_000;
 
 export function NotifikasiProvider({ children }: { children: ReactNode }) {
   const { boleh } = useIzin();
-  const bolehInbox = boleh(MODUL.INBOX, "lihat");
+  const bolehInbox = MODUL_INBOX.some((m) => boleh(m, "lihat"));
 
   const [belumDibaca, setBelumDibaca] = useState(0);
   const [versi, setVersi] = useState(0);

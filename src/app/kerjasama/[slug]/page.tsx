@@ -7,6 +7,7 @@ import {
   TiktokLogo,
 } from "@phosphor-icons/react/dist/ssr";
 import Breadcrumb from "@/components/Breadcrumb";
+import RichText from "@/components/RichText";
 import { prisma } from "@/lib/db";
 
 const GAMBAR_CADANGAN = "/images/placeholder-event.jpg";
@@ -110,7 +111,7 @@ export default async function KerjasamaDetailPage({ params }: PageProps) {
           className="mb-12"
           items={[
             { label: "Beranda", href: "/" },
-            { label: "Kerjasama Kami", href: "/#journal" },
+            { label: "Kerjasama Kami", href: "/", sectionId: "journal" },
             { label: item.organisasi },
           ]}
         />
@@ -135,9 +136,10 @@ export default async function KerjasamaDetailPage({ params }: PageProps) {
             <h1 className="mb-6 font-serif text-[length:var(--text-display-page)] font-normal leading-tight tracking-[-0.03em] text-neutral-900">
               {item.organisasi}
             </h1>
-            <p className="mb-4 max-w-2xl font-normal leading-relaxed text-black/70">
-              {item.profil}
-            </p>
+            <RichText
+              teks={item.profil}
+              className="mb-4 max-w-2xl space-y-4 font-normal leading-relaxed text-black/70"
+            />
           </div>
 
           <div className="md:col-span-5">

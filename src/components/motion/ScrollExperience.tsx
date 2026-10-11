@@ -14,6 +14,10 @@ export default function ScrollExperience() {
     if (!page) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lewatiAnimasiMasuk =
+      document.documentElement.dataset.historyRestoring === "true" ||
+      document.documentElement.dataset.sectionNavigation === "true" ||
+      window.scrollY > 0;
     const progress = progressRef.current;
 
     page.dataset.motionReady = "true";
@@ -45,12 +49,20 @@ export default function ScrollExperience() {
       const headings = page.querySelectorAll<HTMLElement>("[data-editorial-heading]");
       headings.forEach((heading) => {
         if (heading.closest("#hero")) return;
+        if (lewatiAnimasiMasuk) {
+          gsap.set(heading, {
+            opacity: 1,
+            y: 0,
+            clipPath: "inset(0 0 0% 0)",
+          });
+          return;
+        }
         /*
          * Judul Tentang Kami dipegang OverviewSection dengan animasi kata
          * sendiri (kata per kata berputar masuk). Kalau ia ikut animasi umum ini,
          * clip-path di level <h2> memotong kata-kata yang sedang berputar.
          */
-        if (heading.closest("#overview")) return;
+        if (heading.id === "overview-title") return;
         gsap.fromTo(
           heading,
           { opacity: 0.12, y: 28, clipPath: "inset(0 0 100% 0)" },
@@ -66,6 +78,25 @@ export default function ScrollExperience() {
       });
 
     }, page);
+
+    const finalkanHeadingSaatKembali = () => {
+      page
+        .querySelectorAll<HTMLElement>("[data-editorial-heading]")
+        .forEach((heading) => {
+          if (heading.closest("#hero")) return;
+
+          ScrollTrigger.getAll()
+            .filter((trigger) => trigger.trigger === heading)
+            .forEach((trigger) => trigger.kill());
+          gsap.killTweensOf(heading);
+          gsap.set(heading, {
+            opacity: 1,
+            y: 0,
+            clipPath: "inset(0 0 0% 0)",
+          });
+        });
+    };
+    window.addEventListener("popstate", finalkanHeadingSaatKembali);
 
     /*
      * Section beranda mengisi datanya di klien, jadi tinggi dokumen masih
@@ -95,6 +126,7 @@ export default function ScrollExperience() {
     pengamatTinggi.observe(document.body);
 
     return () => {
+      window.removeEventListener("popstate", finalkanHeadingSaatKembali);
       pengamatTinggi.disconnect();
       window.clearTimeout(jedaRefresh);
       context.revert();

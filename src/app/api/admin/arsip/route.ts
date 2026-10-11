@@ -4,12 +4,12 @@ import { prisma } from "@/lib/db";
 import {
   created,
   badRequest,
+  conflict,
   validationError,
   okPaginated,
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
-import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul, whereDivisi } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { parsePagination } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
@@ -18,6 +18,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { whereTahunKegiatan } from "@/lib/arsip-publik";
 import { normalizeArsipInput, normalizeMediaArsip } from "@/lib/normalize-input";
 import { arsipCreateSchema } from "@/lib/validations/arsip";
+import { gateSimpan } from "@/lib/verifikasi-konten";
 
 const SORTABLE_FIELDS = [
   "judul",
@@ -28,6 +29,7 @@ const SORTABLE_FIELDS = [
 ] as const;
 
 async function handleList(req: NextRequest): Promise<Response> {
+  const sesi = await requireAdminAktif();
   const { searchParams } = req.nextUrl;
   const pagination = parsePagination(searchParams);
   const { field, direction } = parseSort(
@@ -58,6 +60,10 @@ async function handleList(req: NextRequest): Promise<Response> {
   // Filter tahun mengikuti rentang tanggal kegiatan (lihat `whereTahunKegiatan`).
   Object.assign(where, whereTahunKegiatan(searchParams.get("tahun")));
 
+  // Pemisahan per divisi: staf hanya melihat konten divisinya (+ konten lama).
+  const scope = whereDivisi(sesi);
+  if (scope) where.OR = scope.OR;
+
   const [data, total] = await prisma.$transaction([
     prisma.arsip.findMany({
       where,
@@ -77,7 +83,7 @@ async function handleList(req: NextRequest): Promise<Response> {
 }
 
 async function handleCreate(req: NextRequest): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const body = await readJsonBody(req);
 
   const parsed = arsipCreateSchema.safeParse(body);
@@ -87,6 +93,9 @@ async function handleCreate(req: NextRequest): Promise<Response> {
 
   const data = normalizeArsipInput(parsed.data);
   const media = normalizeMediaArsip(parsed.data.media);
+
+  const gate = gateSimpan(session, { statusBaru: data.status });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const jenis = await prisma.jenisArsip.findFirst({
     where: { id: data.jenisArsipId, deletedAt: null },
@@ -105,6 +114,7 @@ async function handleCreate(req: NextRequest): Promise<Response> {
         ...data,
         slug,
         createdById: session.sub,
+        divisiId: session.divisi?.id ?? null,
         media: media.length > 0 ? { create: media } : undefined,
       },
     });

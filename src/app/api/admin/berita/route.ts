@@ -4,24 +4,25 @@ import { prisma } from "@/lib/db";
 import {
   created,
   badRequest,
+  conflict,
   validationError,
   okPaginated,
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
-import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul, whereDivisi } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { parsePagination } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
 import { catatAudit } from "@/lib/audit";
 import { generateUniqueSlug } from "@/lib/slug";
-import { normalizeBeritaInput } from "@/lib/normalize-input";
+import { normalizeBeritaInput, normalizeMediaBerita } from "@/lib/normalize-input";
 import { beritaCreateSchema } from "@/lib/validations/berita";
+import { gateSimpan } from "@/lib/verifikasi-konten";
 
 const SORTABLE_FIELDS = ["judul", "tanggal", "createdAt", "updatedAt"] as const;
 
 async function handleList(req: NextRequest): Promise<Response> {
-  await requireAdmin();
+  const sesi = await requireAdminAktif();
 
   const { searchParams } = req.nextUrl;
   const pagination = parsePagination(searchParams);
@@ -55,6 +56,10 @@ async function handleList(req: NextRequest): Promise<Response> {
     where.jenisBeritaId = jenisBeritaId;
   }
 
+  // Pemisahan per divisi: staf hanya melihat konten divisinya (+ konten lama).
+  const scope = whereDivisi(sesi);
+  if (scope) where.OR = scope.OR;
+
   const [data, total] = await prisma.$transaction([
     prisma.berita.findMany({
       where,
@@ -74,7 +79,7 @@ async function handleList(req: NextRequest): Promise<Response> {
 }
 
 async function handleCreate(req: NextRequest): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const body = await readJsonBody(req);
 
   const parsed = beritaCreateSchema.safeParse(body);
@@ -83,6 +88,10 @@ async function handleCreate(req: NextRequest): Promise<Response> {
   }
 
   const data = normalizeBeritaInput(parsed.data);
+  const media = normalizeMediaBerita(parsed.data.media);
+
+  const gate = gateSimpan(session, { statusBaru: data.status });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const jenis = await prisma.jenisBerita.findFirst({
     where: { id: data.jenisBeritaId, deletedAt: null },
@@ -101,6 +110,8 @@ async function handleCreate(req: NextRequest): Promise<Response> {
         ...data,
         slug,
         createdById: session.sub,
+        divisiId: session.divisi?.id ?? null,
+        media: media.length > 0 ? { create: media } : undefined,
       },
     });
 

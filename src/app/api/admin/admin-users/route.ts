@@ -10,7 +10,9 @@ import {
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
 import { requireSuperadmin } from "@/lib/sesi-admin";
+import { normalisasiIzin } from "@/lib/permission";
 import { catatAudit } from "@/lib/audit";
+import { parsePagination } from "@/lib/pagination";
 import { aktivitasTerakhirPerAdmin } from "@/lib/aktivitas-server";
 import { adminCreateSchema } from "@/lib/validations/admin";
 
@@ -31,17 +33,27 @@ const SELECT_ADMIN = {
   role: true,
   isAktif: true,
   permissions: true,
+  izinKhusus: true,
   createdAt: true,
   lastLoginAt: true,
+  divisi: { select: { id: true, nama: true } },
 } as const;
 
-async function handleList(): Promise<Response> {
-  const data = await prisma.adminUser.findMany({
-    select: SELECT_ADMIN,
-    orderBy: [{ role: "asc" }, { createdAt: "asc" }],
-  });
+async function handleList(req: NextRequest): Promise<Response> {
+  const pagination = parsePagination(req.nextUrl.searchParams);
 
-  // Aktivitas terbaru per admin (dipisah dari "login terakhir").
+  const [data, total] = await prisma.$transaction([
+    prisma.adminUser.findMany({
+      select: SELECT_ADMIN,
+      orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+    prisma.adminUser.count(),
+  ]);
+
+  // Aktivitas terbaru per admin (dipisah dari "login terakhir"), hanya untuk
+  // baris di halaman ini.
   const aktivitas = await aktivitasTerakhirPerAdmin(data.map((a) => a.id));
   const items = data.map((a) => ({
     ...a,
@@ -49,9 +61,9 @@ async function handleList(): Promise<Response> {
   }));
 
   return okPaginated(items, {
-    page: 1,
-    limit: items.length,
-    total: items.length,
+    page: pagination.page,
+    limit: pagination.limit,
+    total,
   });
 }
 
@@ -64,7 +76,7 @@ async function handleCreate(req: NextRequest): Promise<Response> {
     return validationError(parsed.error);
   }
 
-  const { nama, email, password } = parsed.data;
+  const { nama, email, password, divisiId } = parsed.data;
 
   const sudahAda = await prisma.adminUser.findUnique({
     where: { email },
@@ -72,6 +84,21 @@ async function handleCreate(req: NextRequest): Promise<Response> {
   });
   if (sudahAda) {
     return conflict("Email sudah dipakai admin lain.");
+  }
+
+  // Bila divisi dipilih, izin awal diambil dari template divisi tersebut
+  // (tetap bisa disesuaikan per-admin lewat PATCH).
+  let divisi: { id: string; permissions: unknown } | null = null;
+  if (divisiId) {
+    divisi = await prisma.divisi.findFirst({
+      where: { id: divisiId, deletedAt: null },
+      select: { id: true, permissions: true },
+    });
+    if (!divisi) {
+      return badRequest("Divisi tidak ditemukan", {
+        divisiId: "Divisi tidak valid",
+      });
+    }
   }
 
   const passwordHash = await hash(password, BCRYPT_ROUNDS);
@@ -84,15 +111,16 @@ async function handleCreate(req: NextRequest): Promise<Response> {
         passwordHash,
         role: "ADMIN",
         isAktif: true,
-        // Izin kosong dulu; superadmin mengaturnya setelah ini.
-        permissions: {},
+        divisiId: divisi?.id ?? null,
+        // Dari template divisi (bila ada), selain itu kosong (least privilege).
+        permissions: divisi ? normalisasiIzin(divisi.permissions) : {},
       },
       select: SELECT_ADMIN,
     });
 
     await catatAudit(tx, {
       adminId: session.sub,
-      aksi: "CREATE",
+      aksi: "ADMIN_CREATE",
       entitas: "AdminUser",
       entitasId: dibuat.id,
     });
@@ -106,7 +134,7 @@ async function handleCreate(req: NextRequest): Promise<Response> {
 async function handler(req: NextRequest): Promise<Response> {
   if (req.method === "GET") {
     await requireSuperadmin();
-    return handleList();
+    return handleList(req);
   }
 
   if (req.method === "POST") {

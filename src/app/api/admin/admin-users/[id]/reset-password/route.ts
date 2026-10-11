@@ -52,7 +52,7 @@ async function handler(
 
     await catatAudit(tx, {
       adminId: session.sub,
-      aksi: "UPDATE",
+      aksi: "ADMIN_UPDATE",
       entitas: "AdminUser",
       entitasId: id,
       detailPerubahan: diffPerubahan(

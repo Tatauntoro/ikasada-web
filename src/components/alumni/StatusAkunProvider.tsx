@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle, WarningCircle, X } from "@phosphor-icons/react";
 import { KODE_STATUS_AKUN, KODE_STATUS_TIDAK_DIKENAL } from "@/lib/status-akun";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 
 /**
  * Pemberitahuan realtime perubahan status akun alumni.
@@ -70,8 +71,10 @@ export function StatusAkunProvider({ aktif }: { aktif: boolean }) {
       if (kode === KODE_STATUS_AKUN.ACTIVE) {
         setPemberitahuan({
           jenis: "aktif",
-          teks: "Akun Anda sudah aktif. Anda kini bisa mengatur profil dan mulai terhubung dengan alumni lain.",
-          tautan: "/alumni/profil",
+          teks: FITUR_JEJARING_ALUMNI
+            ? "Akun Anda sudah aktif. Anda kini bisa mengatur profil dan mulai terhubung dengan alumni lain."
+            : "Akun Anda sudah aktif. Anda kini bisa melihat email alumni lain di direktori alumni.",
+          tautan: FITUR_JEJARING_ALUMNI ? "/alumni/profil" : "/alumni",
         });
       } else if (kode === KODE_STATUS_AKUN.SUSPENDED) {
         setPemberitahuan({

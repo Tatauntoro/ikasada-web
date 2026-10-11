@@ -1,14 +1,15 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { ok, badRequest, notFound, validationError } from "@/lib/response";
+import { ok, badRequest, conflict, notFound, validationError } from "@/lib/response";
 import { apiHandler, readJsonBody } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { catatAudit, diffPerubahan } from "@/lib/audit";
 import { generateUniqueSlug, generateSlug } from "@/lib/slug";
 import { normalizeKerjasamaInput } from "@/lib/normalize-input";
 import { kerjasamaUpdateSchema } from "@/lib/validations/kerjasama";
+import { gateSimpan, kontenBerubah, RESET_VERIFIKASI } from "@/lib/verifikasi-konten";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -39,7 +40,7 @@ async function handleUpdate(
   req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const { id } = await params;
 
   const existing = await getKerjasamaOr404(id);
@@ -55,6 +56,13 @@ async function handleUpdate(
 
   const data = normalizeKerjasamaInput(parsed.data);
 
+  const gate = gateSimpan(session, {
+    statusBaru: data.status,
+    verifikasiLama: existing.verifikasi,
+    kontenBerubah: kontenBerubah(existing, data),
+  });
+  if (!gate.ok) return conflict(gate.pesan);
+
   const updated = await prisma.$transaction(async (tx) => {
     let slug = existing.slug;
     if (data.organisasi !== existing.organisasi) {
@@ -69,7 +77,7 @@ async function handleUpdate(
 
     const result = await tx.kerjasama.update({
       where: { id },
-      data: { ...data, slug },
+      data: { ...data, slug, ...(gate.reset ? RESET_VERIFIKASI : {}) },
     });
 
     const perubahan = diffPerubahan(

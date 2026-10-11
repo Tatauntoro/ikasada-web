@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 
 const KUNCI_RUTE_AKTIF = "ikasada:rute-aktif";
 const KUNCI_RUTE_SEBELUMNYA = "ikasada:rute-sebelumnya";
+const KUNCI_TUJUAN_GULIR = "ikasada:tujuan-gulir";
+const KUNCI_POSISI_GULIR = "ikasada:posisi-gulir";
 
 export default function BackButton({
   fallback,
@@ -18,6 +20,25 @@ export default function BackButton({
 
   function kembali() {
     if (forceFallback) {
+      const tujuan = new URL(fallback, window.location.origin);
+      const section = tujuan.hash.slice(1);
+
+      if (section) {
+        let targetTersimpan = false;
+        try {
+          window.sessionStorage.setItem(KUNCI_TUJUAN_GULIR, section);
+          targetTersimpan = true;
+        } catch {
+          // Navigasi tetap dilanjutkan tanpa target gulir jika storage diblokir.
+        }
+
+        if (targetTersimpan) {
+          document.documentElement.dataset.sectionNavigation = "true";
+        }
+        router.push(`${tujuan.pathname}${tujuan.search}`, { scroll: false });
+        return;
+      }
+
       router.push(fallback);
       return;
     }
@@ -34,6 +55,21 @@ export default function BackButton({
         ruteSebelumnya &&
         ruteSebelumnya !== pathname
       ) {
+        if (ruteSebelumnya === "/") {
+          try {
+            const peta = JSON.parse(
+              window.sessionStorage.getItem(KUNCI_POSISI_GULIR) ?? "{}"
+            ) as Record<string, number>;
+            if ((peta["/"] ?? 0) > window.innerHeight) {
+              document.documentElement.dataset.historyHideHero = "true";
+              window.setTimeout(() => {
+                delete document.documentElement.dataset.historyHideHero;
+              }, 1800);
+            }
+          } catch {
+            // Pemulihan tetap berjalan tanpa menyembunyikan hero lebih awal.
+          }
+        }
         router.back();
         return;
       }

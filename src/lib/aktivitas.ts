@@ -25,6 +25,14 @@ export const KALIMAT_AKSI: Record<AksiAudit, string> = {
   CONNECTION_CANCEL: "Membatalkan permintaan koneksi",
   CONNECTION_REVOKE: "Memutus koneksi",
   ARSIP_UNDUH: "Mengunduh berkas arsip",
+  KONTEN_AJUKAN: "Mengajukan verifikasi konten",
+  KONTEN_VERIFIKASI: "Memverifikasi konten",
+  KONTEN_TOLAK: "Menolak verifikasi konten",
+  DIVISI_CREATE: "Menambahkan divisi",
+  DIVISI_UPDATE: "Mengubah divisi",
+  DIVISI_DELETE: "Menghapus divisi",
+  ADMIN_CREATE: "Membuat akun admin",
+  ADMIN_UPDATE: "Mengubah akun admin",
 };
 
 /** Label modul (entitas audit) untuk kolom & filter. */
@@ -37,6 +45,9 @@ export const LABEL_ENTITAS: Record<string, string> = {
   AlumniAccount: "Akun Alumni",
   Connection: "Koneksi",
   AdminUser: "Akun Admin",
+  Divisi: "Divisi",
+  SectionBeranda: "Beranda",
+  TitikSebaran: "Sebaran Geografis",
 };
 
 export const DAFTAR_ENTITAS = Object.entries(LABEL_ENTITAS).map(

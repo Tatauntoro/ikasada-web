@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 import { ok, notFound, badRequest } from "@/lib/response";
 import { apiHandler } from "@/lib/api-handler";
-import { requirePermission } from "@/lib/sesi-admin";
-import { AKSI, MODUL } from "@/lib/permission";
+import { requireAdminAktif } from "@/lib/sesi-admin";
 import {
   hitungBelumDibaca,
   tandaiSatuNotifikasiDibaca,
@@ -23,14 +22,14 @@ async function handler(
   _req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
+  const admin = await requireAdminAktif();
   const { id } = await params;
 
   if (!id) {
     return badRequest("Id notifikasi wajib diisi");
   }
 
-  const hasil = await tandaiSatuNotifikasiDibaca(admin.sub, id);
+  const hasil = await tandaiSatuNotifikasiDibaca(admin, id);
 
   if (!hasil.ada) {
     return notFound("Notifikasi tidak ditemukan");
@@ -38,7 +37,7 @@ async function handler(
 
   return ok({
     read: hasil.berubah,
-    belumDibaca: await hitungBelumDibaca(admin.sub),
+    belumDibaca: await hitungBelumDibaca(admin),
   });
 }
 

@@ -50,7 +50,7 @@ type ConnectionRequestDialogProps = {
 };
 
 const controlClassName =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2 text-[12px] font-normal tracking-[-0.01em] transition-colors active:translate-y-px focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#69adff]";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2 text-[12px] font-normal tracking-[-0.01em] transition-colors active:translate-y-px focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#0071e3]";
 
 /** Label keadaan yang tidak punya aksi di kartu (bukan tombol), atau tautannya. */
 function LabelKoneksi({
@@ -64,7 +64,7 @@ function LabelKoneksi({
 }) {
   const isi = (
     <>
-      <span className="text-base text-white/60" aria-hidden="true">
+      <span className="text-base text-[#0071e3]" aria-hidden="true">
         {ikon}
       </span>
       {teks}
@@ -75,7 +75,7 @@ function LabelKoneksi({
     return (
       <Link
         href={tautan}
-        className={`${controlClassName} border-white/25 text-white/90 hover:border-white/60 hover:text-white`}
+        className={`${controlClassName} border-[#c9dced] text-[#334155] hover:border-[#0071e3] hover:text-[#005bbb]`}
       >
         {isi}
       </Link>
@@ -84,7 +84,7 @@ function LabelKoneksi({
 
   return (
     <span
-      className={`${controlClassName} cursor-default border-white/25 text-white/75`}
+      className={`${controlClassName} cursor-default border-[#d9e8f5] text-[#5e5e5e]`}
       aria-live="polite"
     >
       {isi}
@@ -156,9 +156,9 @@ export function ConnectionButton({
     <button
       type="button"
       onClick={onConnect}
-      className={`${controlClassName} border-[#0071e3] text-white hover:bg-[#0071e3]/15`}
+      className={`${controlClassName} border-[#0071e3]/35 bg-[#eaf4ff] text-[#005bbb] hover:border-[#0071e3] hover:bg-[#dceeff]`}
     >
-      <Handshake weight="regular" className="text-base text-[#69adff]" aria-hidden="true" />
+      <Handshake weight="regular" className="text-base text-[#0071e3]" aria-hidden="true" />
       Hubungkan
     </button>
   );

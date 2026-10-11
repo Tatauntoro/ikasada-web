@@ -36,12 +36,19 @@ const namaField = z
  * (Zod 4 `z.record` dengan enum menuntut semua key); `normalisasiIzin()` yang
  * membuang modul/aksi tak dikenal sebelum disimpan.
  */
-const izinField = z.record(z.string(), z.array(z.enum(AKSI_SLUGS)));
+export const izinField = z.record(z.string(), z.array(z.enum(AKSI_SLUGS)));
+
+/** Divisi tempat admin bertugas; `null` mengosongkan (admin teknis). */
+const divisiIdField = z
+  .string()
+  .max(64, "ID divisi terlalu panjang")
+  .nullable();
 
 export const adminCreateSchema = z.object({
   nama: namaField,
   email: emailField,
   password: kataSandiField,
+  divisiId: divisiIdField.optional(),
 });
 
 export const adminUpdateSchema = z
@@ -52,6 +59,11 @@ export const adminUpdateSchema = z
     role: z.enum(roleValues, { message: "Role tidak valid" }).optional(),
     isAktif: z.boolean({ message: "Status aktif harus boolean" }).optional(),
     permissions: izinField.optional(),
+    divisiId: divisiIdField.optional(),
+    /** `false` = kembali ikut template divisi; `true` = tandai izin khusus. */
+    izinKhusus: z
+      .boolean({ message: "Penanda izin khusus harus boolean" })
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Tidak ada perubahan yang dikirim",

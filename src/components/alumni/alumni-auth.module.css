@@ -1082,3 +1082,388 @@
     animation: none;
   }
 }
+
+/* Tema autentikasi: satu kartu dengan panel intro dan form yang menyatu. */
+.shellRegister {
+  position: relative;
+  isolation: isolate;
+  padding: 20px clamp(16px, 5vw, 80px) 80px;
+  background: #fff;
+}
+
+.registerBackdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    url("/decoration/register-wave-top.svg") top right / min(65%, 940px) 180px no-repeat,
+    url("/decoration/register-wave-bottom.svg") bottom left / 100% 220px no-repeat;
+}
+
+.registerBackdrop::after {
+  position: absolute;
+  top: 130px;
+  right: 0;
+  width: min(28vw, 420px);
+  height: 600px;
+  background: url("/decoration/ikasada-template-reference.png") right -230px / 1100px 1100px no-repeat;
+  content: "";
+  mix-blend-mode: multiply;
+  opacity: .7;
+}
+
+.topbarRegister {
+  width: min(100%, 1080px);
+  min-height: 44px;
+  border: 0;
+}
+
+.topbarRegister .brand,
+.shellRegister .breadcrumbs {
+  display: none;
+}
+
+.registerHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #475569;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.registerHome:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 4px;
+}
+
+.layoutRegister {
+  width: min(100%, 1080px);
+  min-height: auto;
+  margin: 24px auto 0;
+  padding: 0;
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #cfdff0;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(23, 65, 106, .09);
+}
+
+.introRegister {
+  max-width: none;
+  padding: 28px 38px 38px;
+  background: linear-gradient(150deg, #e8f5ff, #f2f9ff);
+  border: 0;
+  border-radius: 0;
+}
+
+.registerIntroBrand {
+  display: block;
+  width: 105px;
+  margin: -10px 0 22px;
+  mix-blend-mode: multiply;
+}
+
+.registerIntroBrand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.registerIntroBrand:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 4px;
+}
+
+.introRegister::before {
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  right: -35px;
+  width: 230px;
+  height: 170px;
+  background: url("/decoration/ikasada-template-reference.png") right -65px / 460px 460px no-repeat;
+  content: "";
+  opacity: .6;
+  mix-blend-mode: multiply;
+  mask-image:
+    linear-gradient(to bottom, transparent, #000 12%),
+    linear-gradient(to right, #000 65%, transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+.introRegister::after {
+  content: none;
+}
+
+.introRegister .eyebrow {
+  max-width: 15ch;
+  margin: 0 0 12px;
+  color: #072d73;
+  font-size: clamp(25px, 2.5vw, 32px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.035em;
+  text-transform: none;
+}
+
+.introRegister h1,
+.introRegister > h2 {
+  max-width: 28ch;
+  color: #334155;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -.02em;
+}
+
+.introRegister .description {
+  margin-top: 12px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.introRegister .steps {
+  gap: 22px;
+  margin-top: 30px;
+}
+
+.introRegister .step {
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+}
+
+.introRegister .step::after,
+.introRegister .step p {
+  display: none;
+}
+
+.introRegister .stepMarker,
+.introRegister .step[data-state="current"] .stepMarker,
+.introRegister .step[data-state="complete"] .stepMarker {
+  width: 44px;
+  height: 44px;
+  color: #0083fa;
+  background: #d0eaff;
+  border: 0;
+}
+
+.introRegister .stepMarker svg {
+  width: 24px;
+  height: 24px;
+}
+
+.introRegister .step h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.introRegister .benefits {
+  grid-template-columns: 1fr;
+  gap: 22px;
+  margin-top: 30px;
+}
+
+.introRegister .benefits li {
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.introRegister .benefits svg {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  color: #0083fa;
+  background: #d0eaff;
+  border-radius: 50%;
+}
+
+.formPanelRegister {
+  max-width: none;
+  padding: 34px 38px 28px;
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+}
+
+.formPanelRegister .formIcon {
+  display: none;
+}
+
+.formPanelRegister .formHeader h2 {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.formPanelRegister .formHeader p:last-child {
+  max-width: none;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.formPanelRegister .form {
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.formPanelRegister .fieldGroup {
+  gap: 6px;
+}
+
+.formPanelRegister .inputWrap > span {
+  display: none;
+}
+
+.formPanelRegister .inputWrap input {
+  min-height: 42px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #cfdbea;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.formPanelRegister .inputWrap input.passwordInput {
+  padding-right: 46px;
+}
+
+.formPanelRegister .inputWrap input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 2px rgba(0,113,227,.12);
+}
+
+.formPanelRegister .inputWrap input[aria-invalid="true"] {
+  border-color: #dc2626;
+}
+
+.formPanelRegister .consent {
+  color: #475569;
+  line-height: 1.5;
+}
+
+.formPanelRegister .formFooter {
+  display: flex;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #d9e3ef;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.formPanelRegister .formFooter a {
+  color: #0071e3;
+}
+
+.submitRegister {
+  min-height: 46px;
+  background: #1689ff;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.submitRegister > svg {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .shellRegister {
+    padding-bottom: 60px;
+  }
+
+  .registerBackdrop {
+    background-size: 85% 115px, 170% 150px;
+  }
+
+  .layoutRegister {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 16px;
+  }
+
+  .introRegister {
+    padding: 22px 24px 28px;
+  }
+
+  .introRegister::before {
+    right: -30px;
+    width: 180px;
+    height: 130px;
+    background-position: right -50px;
+    background-size: 360px 360px;
+    opacity: .5;
+  }
+
+  .registerIntroBrand {
+    width: 82px;
+    margin-bottom: 12px;
+  }
+
+  .introRegister .eyebrow {
+    max-width: none;
+    font-size: 27px;
+  }
+
+  .introRegister .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .introRegister .step {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-content: start;
+  }
+
+  .introRegister .step h2 {
+    font-size: 12px;
+  }
+
+  .introRegister .benefits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .introRegister .benefits li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .registerBackdrop::after {
+    display: none;
+  }
+
+  .formPanelRegister {
+    padding: 26px 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .introRegister,
+  .formPanelRegister {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .formPanelRegister .formHeader h2 {
+    font-size: 23px;
+  }
+}

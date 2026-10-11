@@ -15,15 +15,19 @@ import {
   Handshake,
   Archive,
   Newspaper,
+  SealCheck,
   ShieldCheck,
   ClockCounterClockwise,
+  GlobeHemisphereWest,
   CaretDown,
   type Icon,
 } from "@phosphor-icons/react";
 import { LogoutButton } from "./LogoutButton";
+import { GantiSandiButton } from "./GantiSandiButton";
 import { NotifikasiBell } from "./NotifikasiBell";
 import { useIzin } from "./IzinProvider";
-import { MODUL, type ModulSlug } from "@/lib/permission";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+import { MODUL, MODUL_INBOX, type ModulSlug } from "@/lib/permission";
 
 type Admin = {
   id: string;
@@ -32,6 +36,8 @@ type Admin = {
   role: string;
   createdAt: Date;
   lastLoginAt: Date | null;
+  /** Divisi tempat admin bertugas; `null` untuk admin teknis/superadmin. */
+  divisi: { nama: string } | null;
 };
 
 type Leaf = {
@@ -39,6 +45,8 @@ type Leaf = {
   label: string;
   /** Modul yang menggerbangi item; tanpa `modul` = selalu tampil. */
   modul?: ModulSlug;
+  /** Tampil bila admin punya `lihat` pada **salah satu** modul ini (mis. Inbox). */
+  modulAny?: ModulSlug[];
   superadminOnly?: boolean;
 };
 
@@ -52,11 +60,37 @@ type Node =
  * Sektor Industri) supaya sidebar ringkas dan tidak perlu digulir.
  */
 const MENU: Node[] = [
-  { kind: "link", icon: House, leaf: { href: "/admin", label: "Dashboard" } },
+  {
+    kind: "link",
+    icon: House,
+    leaf: { href: "/admin", label: "Dashboard", modul: MODUL.DASHBOARD },
+  },
+  {
+    kind: "link",
+    icon: GlobeHemisphereWest,
+    leaf: {
+      href: "/admin/beranda",
+      label: "Kelola Beranda",
+      modul: MODUL.BERANDA,
+    },
+  },
   {
     kind: "link",
     icon: Bell,
-    leaf: { href: "/admin/inbox", label: "Inbox", modul: MODUL.INBOX },
+    leaf: {
+      href: "/admin/inbox",
+      label: "Inbox",
+      modulAny: MODUL_INBOX,
+    },
+  },
+  {
+    kind: "link",
+    icon: SealCheck,
+    leaf: {
+      href: "/admin/verifikasi",
+      label: "Verifikasi Konten",
+      modul: MODUL.VERIFIKASI_KONTEN,
+    },
   },
   {
     kind: "group",
@@ -69,11 +103,16 @@ const MENU: Node[] = [
         label: "Sektor Industri",
         modul: MODUL.SEKTOR_INDUSTRI,
       },
-      {
-        href: "/admin/jejaring",
-        label: "Jejaring Alumni",
-        modul: MODUL.JEJARING,
-      },
+      /* Item jejaring disembunyikan saat mode jejaring dimatikan (`@/lib/fitur`). */
+      ...(FITUR_JEJARING_ALUMNI
+        ? [
+            {
+              href: "/admin/jejaring",
+              label: "Jejaring Alumni",
+              modul: MODUL.JEJARING,
+            },
+          ]
+        : []),
     ],
   },
   {
@@ -197,12 +236,12 @@ function MenuList({ onNavigate }: { onNavigate?: () => void }) {
   /** Buka/tutup manual; kalau belum disentuh, grup yang memuat rute aktif dibuka. */
   const [manual, setManual] = useState<Record<string, boolean>>({});
 
-  const terlihat = (leaf: Leaf) =>
-    leaf.superadminOnly
-      ? superadmin
-      : leaf.modul
-        ? boleh(leaf.modul, "lihat")
-        : true;
+  const terlihat = (leaf: Leaf) => {
+    if (leaf.superadminOnly) return superadmin;
+    if (leaf.modulAny) return leaf.modulAny.some((m) => boleh(m, "lihat"));
+    if (leaf.modul) return boleh(leaf.modul, "lihat");
+    return true;
+  };
 
   const grupTerbuka = (label: string, anak: Leaf[]) =>
     manual[label] ?? anak.some((a) => pathname?.startsWith(a.href));
@@ -310,7 +349,12 @@ export function AdminShell({
             <div className="w-9 h-9 rounded-lg bg-[#0071e3] text-white flex items-center justify-center">
               <House weight="bold" />
             </div>
-            <span className="font-bold">Portal IKASADA</span>
+            <div className="leading-tight">
+              <span className="block font-bold">Portal IKASADA</span>
+              <span className="block text-sm font-semibold text-[#0071e3]">
+                {admin.divisi?.nama ?? "Tanpa Divisi"}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <NotifikasiBell />
@@ -325,18 +369,29 @@ export function AdminShell({
         </header>
 
         {/* Desktop Header */}
-        <header className="hidden lg:flex items-center justify-end gap-4 px-8 py-4 bg-[#fdfdfd] border-b border-black/[0.06]">
-          <NotifikasiBell />
-          {superadmin && (
-            <span className="rounded-full bg-[#0071e3]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#0071e3]">
-              Superadmin
+        <header className="hidden lg:flex items-center justify-between gap-4 px-8 py-4 bg-[#fdfdfd] border-b border-black/[0.06]">
+          <div className="min-w-0">
+            <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#8f8f8f]">
+              Divisi
             </span>
-          )}
-          <div className="text-right">
-            <p className="text-sm font-bold">{admin.nama}</p>
-            <p className="text-xs text-[#5e5e5e]">{admin.email}</p>
+            <span className="block text-xl font-bold leading-tight text-[#0f1012]">
+              {admin.divisi?.nama ?? "Tanpa Divisi"}
+            </span>
           </div>
-          <LogoutButton variant="header" />
+          <div className="flex items-center gap-4">
+            <NotifikasiBell />
+            {superadmin && (
+              <span className="rounded-full bg-[#0071e3]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#0071e3]">
+                Superadmin
+              </span>
+            )}
+            <div className="text-right">
+              <p className="text-sm font-bold">{admin.nama}</p>
+              <p className="text-xs text-[#5e5e5e]">{admin.email}</p>
+            </div>
+            <GantiSandiButton variant="header" />
+            <LogoutButton variant="header" />
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
@@ -384,7 +439,10 @@ export function AdminShell({
                   </p>
                 )}
               </div>
-              <LogoutButton />
+              <div className="space-y-2">
+                <GantiSandiButton variant="sidebar" />
+                <LogoutButton />
+              </div>
             </div>
           </aside>
         </>

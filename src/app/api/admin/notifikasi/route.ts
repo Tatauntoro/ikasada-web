@@ -1,34 +1,42 @@
 import { NextRequest } from "next/server";
-import { okPaginated } from "@/lib/response";
+import { forbidden, okPaginated } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
-import { requirePermission } from "@/lib/sesi-admin";
-import { AKSI, MODUL } from "@/lib/permission";
+import { requireAdminAktif } from "@/lib/sesi-admin";
 import { parsePagination } from "@/lib/pagination";
-import { ambilNotifikasiAdmin, type TipeNotifikasi } from "@/lib/notifikasi";
-
-const TIPE = ["PENDAFTARAN", "KONEKSI", "AKUN"] as const;
+import {
+  ambilNotifikasiAdmin,
+  tipeNotifikasiDiizinkan,
+  type TipeNotifikasi,
+} from "@/lib/notifikasi";
 
 /**
  * Daftar notifikasi admin (inbox).
  *
  * Item dipetakan dari `AuditLog` (lihat `@/lib/notifikasi`), bukan tabel
- * notifikasi tersendiri. `meta.belumDibaca` ikut dikirim lewat kanal `tambahan`
- * `okPaginated` supaya badge lonceng tidak butuh request kedua — dan nilainya
- * selalu menghitung semua tipe, tidak terpengaruh filter `?tipe=`.
+ * notifikasi tersendiri. Akses dipecah per kategori (izin modul Inbox), jadi
+ * admin hanya menerima tipe yang ia berhak lihat. `meta.belumDibaca` mengikuti
+ * tipe yang boleh dilihat, bukan filter `?tipe=`.
  */
 async function handler(req: NextRequest): Promise<Response> {
-  const admin = await requirePermission(MODUL.INBOX, AKSI.LIHAT);
+  const admin = await requireAdminAktif();
+  const diizinkan = tipeNotifikasiDiizinkan(admin);
+
+  if (diizinkan.length === 0) {
+    return forbidden("Anda tidak punya akses ke Inbox.");
+  }
+
   const pagination = parsePagination(req.nextUrl.searchParams);
 
   const tipeParam = req.nextUrl.searchParams.get("tipe") ?? "";
-  const tipe = (TIPE as readonly string[]).includes(tipeParam)
+  const tipe = diizinkan.includes(tipeParam as TipeNotifikasi)
     ? (tipeParam as TipeNotifikasi)
     : undefined;
 
-  const { items, total, belumDibaca } = await ambilNotifikasiAdmin(admin.sub, {
+  const { items, total, belumDibaca } = await ambilNotifikasiAdmin(admin, {
     skip: pagination.skip,
     take: pagination.take,
     tipe,
+    tipeDiizinkan: diizinkan,
   });
 
   return okPaginated(

@@ -100,9 +100,20 @@ export default function ScrollRestoration() {
 
   useEffect(() => {
     const peta = bacaPeta();
+    const scrollRestorationAsal = window.history.scrollRestoration;
     let memulihkan = false;
     let frame = 0;
     let timers: number[] = [];
+    let markerTimer = 0;
+
+    // Kita punya pemulihan sendiri; matikan pemulihan browser agar keduanya
+    // tidak menggeser halaman ke posisi berbeda pada entri yang sama.
+    window.history.scrollRestoration = "manual";
+
+    const hapusPenandaPemulihan = () => {
+      delete document.documentElement.dataset.historyRestoring;
+      delete document.documentElement.dataset.historyHideHero;
+    };
 
     const simpan = () => {
       // Selama pemulihan, geseran yang tercatat adalah geseran kita sendiri.
@@ -124,8 +135,20 @@ export default function ScrollRestoration() {
     };
 
     const pulihkan = () => {
+      memulihkan = false;
+      timers.forEach(window.clearTimeout);
+      timers = [];
+      if (markerTimer) window.clearTimeout(markerTimer);
+      document.documentElement.dataset.historyRestoring = "true";
+
       const tujuan = peta[kunciHalaman()];
-      if (typeof tujuan !== "number") return;
+      if (typeof tujuan !== "number") {
+        markerTimer = window.setTimeout(
+          hapusPenandaPemulihan,
+          DURASI_PEMULIHAN_MS
+        );
+        return;
+      }
 
       memulihkan = true;
       const batas = window.performance.now() + DURASI_PEMULIHAN_MS;
@@ -136,6 +159,8 @@ export default function ScrollRestoration() {
           timers.push(window.setTimeout(coba, JEDA_PERCOBAAN_MS));
         } else {
           memulihkan = false;
+          markerTimer = 0;
+          hapusPenandaPemulihan();
         }
       };
       coba();
@@ -146,6 +171,9 @@ export default function ScrollRestoration() {
       memulihkan = false;
       timers.forEach(window.clearTimeout);
       timers = [];
+      if (markerTimer) window.clearTimeout(markerTimer);
+      markerTimer = 0;
+      hapusPenandaPemulihan();
     };
 
     window.addEventListener("scroll", jadwalkanSimpan, { passive: true });
@@ -170,6 +198,9 @@ export default function ScrollRestoration() {
       window.removeEventListener("keydown", batal);
       if (frame) window.cancelAnimationFrame(frame);
       timers.forEach(window.clearTimeout);
+      if (markerTimer) window.clearTimeout(markerTimer);
+      hapusPenandaPemulihan();
+      window.history.scrollRestoration = scrollRestorationAsal;
     };
   }, []);
 

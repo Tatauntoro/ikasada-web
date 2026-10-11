@@ -11,6 +11,96 @@ import {
   kerjasamaAwal,
   pengurusAwal,
 } from "./data-awal";
+import { MODUL, MODUL_INBOX, MODUL_SLUGS, type Izin } from "../src/lib/permission";
+import { SECTION_DEFAULT } from "../src/lib/beranda";
+import benuaData from "../src/data/benua.json";
+
+/**
+ * Semua modul dengan aksi `lihat` — dipakai template divisi "lintas".
+ *
+ * Modul Inbox diberi tambahan `tindak-lanjut` supaya pemegangnya boleh membuka
+ * halaman tujuan dari notifikasi (mis. Verifikasi Konten).
+ */
+const semuaLihat = Object.fromEntries(
+  MODUL_SLUGS.map((m) => [m, MODUL_INBOX.includes(m) ? ["lihat", "tindak-lanjut"] : ["lihat"]])
+) as Izin;
+
+/**
+ * Divisi awal + template izinnya.
+ *
+ * `permissions` hanya template: saat admin ditempatkan di divisi ini, matriks
+ * izinnya diisi dari sini (tetap bisa diubah per-admin di Kelola Admin).
+ * `lintasDivisi` = boleh melihat konten semua divisi (Ketua Umum).
+ */
+const divisiAwal: {
+  nama: string;
+  urutan: number;
+  lintasDivisi: boolean;
+  permissions: Izin;
+}[] = [
+  {
+    nama: "Ketua Umum",
+    urutan: 1,
+    lintasDivisi: true,
+    // Lihat semua modul + boleh memverifikasi konten divisi lain.
+    permissions: {
+      ...semuaLihat,
+      [MODUL.VERIFIKASI_KONTEN]: ["lihat", "ubah"],
+      [MODUL.DASHBOARD]: ["lihat", "lihat-detail"],
+    },
+  },
+  {
+    nama: "Sekretariat",
+    urutan: 2,
+    lintasDivisi: false,
+    permissions: {
+      [MODUL.DASHBOARD]: ["lihat", "lihat-detail"],
+      [MODUL.ALUMNI]: ["lihat", "tambah", "ubah"],
+      [MODUL.VERIFIKASI_AKUN]: ["lihat", "ubah"],
+      [MODUL.PENGURUS]: ["lihat", "tambah", "ubah"],
+      [MODUL.KERJASAMA]: ["lihat", "tambah", "ubah"],
+      [MODUL.ARSIP]: ["lihat", "tambah", "ubah"],
+      [MODUL.BERITA]: ["lihat", "tambah", "ubah"],
+      [MODUL.KEGIATAN]: ["lihat", "tambah", "ubah"],
+      [MODUL.JENIS_ARSIP]: ["lihat"],
+      [MODUL.JENIS_BERITA]: ["lihat"],
+      [MODUL.KATEGORI_KEGIATAN]: ["lihat"],
+      [MODUL.SEKTOR_INDUSTRI]: ["lihat"],
+      [MODUL.INBOX_PENDAFTARAN]: ["lihat", "tindak-lanjut"],
+      [MODUL.INBOX_PERMINTAAN]: ["lihat", "tindak-lanjut"],
+    },
+  },
+  {
+    nama: "Humas",
+    urutan: 3,
+    lintasDivisi: false,
+    permissions: {
+      [MODUL.DASHBOARD]: ["lihat", "lihat-detail"],
+      [MODUL.BERITA]: ["lihat", "tambah", "ubah"],
+      [MODUL.KEGIATAN]: ["lihat", "tambah", "ubah"],
+      [MODUL.KERJASAMA]: ["lihat", "tambah", "ubah"],
+      [MODUL.ARSIP]: ["lihat", "tambah", "ubah"],
+      [MODUL.JENIS_BERITA]: ["lihat"],
+      [MODUL.KATEGORI_KEGIATAN]: ["lihat"],
+      [MODUL.SEKTOR_INDUSTRI]: ["lihat"],
+      [MODUL.INBOX_KONTEN]: ["lihat", "tindak-lanjut"],
+    },
+  },
+  {
+    nama: "Litbang",
+    urutan: 4,
+    lintasDivisi: false,
+    permissions: {
+      [MODUL.DASHBOARD]: ["lihat", "lihat-detail"],
+      [MODUL.ARSIP]: ["lihat", "tambah", "ubah"],
+      [MODUL.KEGIATAN]: ["lihat", "tambah", "ubah"],
+      [MODUL.BERITA]: ["lihat", "tambah", "ubah"],
+      [MODUL.JENIS_ARSIP]: ["lihat"],
+      [MODUL.KATEGORI_KEGIATAN]: ["lihat"],
+      [MODUL.INBOX_KONTEN]: ["lihat", "tindak-lanjut"],
+    },
+  },
+];
 
 const sektorIndustriList = [
   "Pemerintahan",
@@ -78,6 +168,63 @@ async function main() {
     });
     kategoriMap.set(nama, kategori.id);
     console.log(`✅ Kategori kegiatan: ${kategori.namaKategori}`);
+  }
+
+  // 3b. Seed divisi (master data) + template izinnya
+  for (const d of divisiAwal) {
+    const slug = d.nama
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+    await prisma.divisi.upsert({
+      where: { nama: d.nama },
+      // Jangan timpa konfigurasi divisi yang sudah disesuaikan manual.
+      update: {},
+      create: {
+        nama: d.nama,
+        slug,
+        urutan: d.urutan,
+        lintasDivisi: d.lintasDivisi,
+        permissions: d.permissions,
+      },
+    });
+    console.log(`✅ Divisi: ${d.nama}`);
+  }
+
+  // 3c. Seed section beranda + titik sebaran default (tidak menimpa yang sudah diatur)
+  for (const s of SECTION_DEFAULT) {
+    await prisma.sectionBeranda.upsert({
+      where: { kunci: s.kunci },
+      update: {},
+      create: {
+        kunci: s.kunci,
+        urutan: s.urutan,
+        eyebrow: s.eyebrow ?? null,
+        judul: s.judul ?? null,
+        deskripsi: s.deskripsi ?? null,
+      },
+    });
+  }
+  console.log(`✅ ${SECTION_DEFAULT.length} section beranda`);
+
+  const titikCount = await prisma.titikSebaran.count({
+    where: { deletedAt: null },
+  });
+  if (titikCount === 0) {
+    const benua = (benuaData as {
+      benua: { nama: string; lat: number; lng: number }[];
+    }).benua;
+    await prisma.titikSebaran.createMany({
+      data: benua.map((b, i) => ({
+        nama: b.nama,
+        lat: b.lat,
+        lng: b.lng,
+        urutan: i,
+      })),
+    });
+    console.log(`✅ ${benua.length} titik sebaran geografis`);
+  } else {
+    console.log("ℹ️ Titik sebaran sudah ada, skip seed titik");
   }
 
   // 4. Seed alumni awal (hanya jika belum ada data alumni)

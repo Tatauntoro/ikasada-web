@@ -15,7 +15,7 @@ export const kerjasamaBaseSchema = z.object({
   programUtama: z
     .string({ message: "Program utama wajib diisi" })
     .min(2, "Program utama minimal 2 karakter")
-    .max(100, "Program utama maksimal 100 karakter"),
+    .max(200, "Program utama maksimal 200 karakter"),
   profil: z
     .string({ message: "Profil wajib diisi" })
     .min(10, "Profil minimal 10 karakter")
@@ -42,10 +42,15 @@ export const kerjasamaBaseSchema = z.object({
     )
     .optional()
     .nullable(),
+  /*
+   * Teks alternatif opsional: gambar sendiri opsional, jadi entri tanpa gambar
+   * tetap harus bisa disimpan. Panjang tetap dibatasi.
+   */
   alt: z
-    .string({ message: "Teks alternatif gambar wajib diisi" })
-    .min(3, "Teks alternatif minimal 3 karakter")
-    .max(200, "Teks alternatif maksimal 200 karakter"),
+    .string()
+    .max(200, "Teks alternatif maksimal 200 karakter")
+    .optional()
+    .nullable(),
   linkInstagram: z
     .string()
     .refine((val) => !val || normalisasiInstagram(val) !== null, {
@@ -60,11 +65,17 @@ export const kerjasamaBaseSchema = z.object({
     })
     .optional()
     .nullable(),
+  /*
+   * Opsional; `.email()` tidak dipakai langsung karena menolak string kosong
+   * yang dikirim form saat dibiarkan kosong.
+   */
   email: z
     .string()
-    .email("Format email tidak valid")
     .optional()
-    .nullable(),
+    .nullable()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Format email tidak valid",
+    }),
   urutan: z.coerce
     .number({ message: "Urutan wajib diisi" })
     .int("Urutan harus bilangan bulat")
@@ -73,17 +84,7 @@ export const kerjasamaBaseSchema = z.object({
   status: z.enum(statusValues, { message: "Status tidak valid" }),
 });
 
-export const kerjasamaCreateSchema = kerjasamaBaseSchema.superRefine(
-  (data, ctx) => {
-    if (data.status === "PUBLISHED" && !data.imageUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["imageUrl"],
-        message: "Gambar wajib diisi untuk status Published",
-      });
-    }
-  }
-);
+export const kerjasamaCreateSchema = kerjasamaBaseSchema;
 
 export const kerjasamaUpdateSchema = kerjasamaCreateSchema;
 

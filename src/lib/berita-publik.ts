@@ -46,3 +46,27 @@ export async function ambilBeritaPublik(
 
   return berita ? toPublicBerita(berita) : null;
 }
+
+/** Media galeri satu berita terbit (urut sesuai form). */
+export type MediaBeritaPublik = {
+  id: string;
+  jenis: "FOTO" | "VIDEO";
+  caption: string | null;
+};
+
+export async function ambilMediaBeritaPublik(
+  slug: string
+): Promise<MediaBeritaPublik[]> {
+  const berita = await prisma.berita.findFirst({
+    where: { slug, status: "PUBLISHED", deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!berita) return [];
+
+  return prisma.beritaMedia.findMany({
+    where: { beritaId: berita.id },
+    orderBy: { urutan: "asc" },
+    select: { id: true, jenis: true, caption: true },
+  });
+}

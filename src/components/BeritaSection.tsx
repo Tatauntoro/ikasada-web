@@ -8,6 +8,11 @@ import type { PublicBerita } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
 import { reportAssetError } from "@/lib/asset-error";
 import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -77,6 +82,7 @@ export function BeritaRow({
 }
 
 export default function BeritaSection() {
+  const beranda = useBerandaConfig();
   const [berita, setBerita] = useState<PublicBerita[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -102,7 +108,11 @@ export default function BeritaSection() {
     fetchData();
   }, [fetchData]);
 
-  // Tidak ada berita terbit: section tidak perlu tampil kosong.
+  const eyebrowBerita = teksSection(beranda, "berita", "eyebrow", "Berita");
+  const judulBerita = teksSection(beranda, "berita", "judul", "Berita Terkini.");
+
+  // Tidak ada berita terbit atau section dimatikan: jangan tampil kosong.
+  if (!sectionAktif(beranda, "berita")) return null;
   if (!isLoading && berita.length === 0) {
     return null;
   }
@@ -115,8 +125,10 @@ export default function BeritaSection() {
       <div className="relative z-10 mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-10">
         <div className="mb-16">
           <div className="max-w-3xl">
-            <span className="reveal-item block section-label">Berita</span>
-            <h2 className="reveal-item mt-4 section-title">Berita Terkini.</h2>
+            <span className="reveal-item block section-label">
+              {eyebrowBerita}
+            </span>
+            <h2 className="reveal-item mt-4 section-title">{judulBerita}</h2>
           </div>
         </div>
 

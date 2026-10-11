@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   FloppyDisk,
   PaperPlaneRight,
+  ShieldCheck,
   Warning,
 } from "@phosphor-icons/react";
 import { StatusArsip } from "@/generated/prisma/enums";
@@ -12,11 +13,21 @@ import type { AksesArsip } from "@/generated/prisma/enums";
 import type { ArsipModel as Arsip } from "@/generated/prisma/models/Arsip";
 import type { ArsipMediaModel as ArsipMedia } from "@/generated/prisma/models/ArsipMedia";
 import { arsipCreateSchema } from "@/lib/validations/arsip";
+import { labelPerubahan } from "@/lib/verifikasi-diff";
 import { PILIHAN_AKSES } from "@/lib/akses-arsip";
 import { FormField } from "./FormField";
 import { ImageUpload } from "./ImageUpload";
 import { BerkasUpload, type BerkasTerunggah } from "./BerkasUpload";
 import { MediaUpload, type MediaGaleri } from "./MediaUpload";
+import RichTextEditor from "./RichTextEditor";
+import { ConfirmDialog } from "./ConfirmDialog";
+import {
+  AksiTinjau,
+  ajukanVerifikasi,
+  BadgeVerifikasi,
+  useVerifikatorKonten,
+  type StatusVerifikasiUI,
+} from "./VerifikasiKonten";
 
 type JenisArsip = { id: string; nama: string };
 
@@ -119,6 +130,12 @@ export type ArsipFormProps = {
   /** Baris galeri dari server; ikut payload saat menyimpan. */
   initialMedia?: ArsipMedia[];
   id?: string;
+  /** Dibuka dari antrean verifikasi ("Tinjau") — aktifkan pengaman publish. */
+  tinjau?: boolean;
+  /** Konten sudah pernah diverifikasi/ditolak (ada snapshot) — ini revisi. */
+  revisi?: boolean;
+  /** Kunci field yang berbeda dari versi terverifikasi. */
+  perubahan?: string[];
 };
 
 export function ArsipForm({
@@ -126,6 +143,9 @@ export function ArsipForm({
   initialData,
   initialMedia,
   id,
+  tinjau = false,
+  revisi = false,
+  perubahan = [],
 }: ArsipFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ArsipFormData>(
@@ -137,9 +157,20 @@ export function ArsipForm({
   const [media, setMedia] = useState<MediaGaleri[]>(
     initialMedia ? mediaDari(initialMedia) : []
   );
+  const verifikator = useVerifikatorKonten();
+  const [verifikasi, setVerifikasi] = useState<StatusVerifikasiUI>(
+    (initialData?.verifikasi as StatusVerifikasiUI | undefined) ?? "BELUM"
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  /** Ada perubahan isi sejak halaman dibuka (membatalkan verifikasi lama). */
+  const [berubah, setBerubah] = useState(false);
+  const [konfirmasiPublish, setKonfirmasiPublish] = useState(false);
+
+  /** Penanda "Diubah" per field (mode tinjau). */
+  const ubah = (kunci: string) => perubahan.includes(kunci);
+  const labelBerubah = labelPerubahan(perubahan);
 
   const [daftarJenis, setDaftarJenis] = useState<JenisArsip[]>([]);
   const [isLoadingJenis, setIsLoadingJenis] = useState(true);
@@ -175,10 +206,12 @@ export function ArsipForm({
       return next;
     });
     setServerError(null);
+    setBerubah(true);
   }
 
   function ubahBerkas(baru: BerkasTerunggah | null) {
     setBerkas(baru);
+    setBerubah(true);
     setErrors((prev) => {
       const next = { ...prev };
       delete next.berkasFormat;
@@ -191,7 +224,10 @@ export function ArsipForm({
     }
   }
 
-  async function handleSubmit(status: StatusArsip) {
+  async function handleSubmit(
+    status: StatusArsip,
+    opsi?: { ajukan?: boolean }
+  ) {
     setServerError(null);
 
     const parseResult = arsipCreateSchema.safeParse({
@@ -257,6 +293,16 @@ export function ArsipForm({
         return;
       }
 
+      const idTersimpan = (result?.data?.id as string | undefined) ?? id;
+      if (opsi?.ajukan && idTersimpan) {
+        const aj = await ajukanVerifikasi("arsip", idTersimpan);
+        if (!aj.ok) {
+          setServerError(aj.pesan ?? "Gagal mengajukan verifikasi.");
+          return;
+        }
+        setVerifikasi("MENUNGGU");
+      }
+
       router.replace("/admin/arsip");
     } catch {
       setServerError("Terjadi kesalahan jaringan. Silakan coba lagi.");
@@ -274,11 +320,51 @@ export function ArsipForm({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {tinjau && (
+        <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <div className="flex items-start gap-2">
+            <Warning weight="bold" className="mt-0.5 shrink-0" />
+            <span>
+              <strong>Mode Tinjau.</strong> Form dikunci — perubahan tidak
+              tersimpan.
+              {verifikator
+                ? " Gunakan tombol Verifikasi atau Tolak di bagian bawah untuk memutuskan."
+                : ""}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pl-6">
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] ${
+                revisi
+                  ? "bg-amber-200 text-amber-900"
+                  : "bg-[#0071e3]/15 text-[#005bbb]"
+              }`}
+            >
+              {revisi ? "Konten revisi" : "Konten baru"}
+            </span>
+            {revisi &&
+              (labelBerubah.length > 0 ? (
+                <span className="text-xs">
+                  Bagian yang berubah: {labelBerubah.join(", ")}.
+                </span>
+              ) : (
+                <span className="text-xs">
+                  Tidak ada perubahan isi dibanding versi terverifikasi.
+                </span>
+              ))}
+          </div>
+        </div>
+      )}
+
+      <fieldset
+        disabled={tinjau}
+        className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-2"
+      >
         <div className="space-y-5">
           <FormField
             label="Judul"
             htmlFor="judul"
+            berubah={ubah("judul")}
             error={errors.judul}
             hint="Dipakai juga sebagai slug halaman detail."
             required
@@ -296,6 +382,7 @@ export function ArsipForm({
           <FormField
             label="Jenis"
             htmlFor="jenisArsipId"
+            berubah={ubah("jenisArsipId")}
             error={errors.jenisArsipId}
             required
           >
@@ -318,6 +405,7 @@ export function ArsipForm({
           <FormField
             label="Akses"
             htmlFor="akses"
+            berubah={ubah("akses")}
             error={errors.akses}
             hint={PILIHAN_AKSES.find((p) => p.value === form.akses)?.hint}
             required
@@ -339,6 +427,7 @@ export function ArsipForm({
           <FormField
             label="Tanggal Upload"
             htmlFor="tanggalUpload"
+            berubah={ubah("tanggalUpload")}
             error={errors.tanggalUpload}
             hint="Kapan entri ini diisi — terisi otomatis dengan tanggal hari ini."
             required
@@ -356,6 +445,7 @@ export function ArsipForm({
             <FormField
               label="Tanggal Kegiatan (mulai)"
               htmlFor="tanggalKegiatanMulai"
+              berubah={ubah("tanggalKegiatanMulai")}
               error={errors.tanggalKegiatanMulai}
               hint="Kapan kegiatannya berlangsung."
               required
@@ -374,6 +464,7 @@ export function ArsipForm({
             <FormField
               label="Tanggal Kegiatan (sampai)"
               htmlFor="tanggalKegiatanSelesai"
+              berubah={ubah("tanggalKegiatanSelesai")}
               error={errors.tanggalKegiatanSelesai}
               hint="Kosongkan bila hanya sehari."
             >
@@ -392,31 +483,33 @@ export function ArsipForm({
           <FormField
             label="Deskripsi Singkat"
             htmlFor="deskripsiSingkat"
+            berubah={ubah("deskripsiSingkat")}
             error={errors.deskripsiSingkat}
             required
           >
-            <textarea
+            <RichTextEditor
               id="deskripsiSingkat"
+              tipe="arsip"
               value={form.deskripsiSingkat}
-              onChange={(e) => updateField("deskripsiSingkat", e.target.value)}
-              placeholder="Ringkasan satu-dua kalimat untuk daftar arsip"
+              onChange={(value) => updateField("deskripsiSingkat", value)}
               rows={3}
-              className="w-full resize-none rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-4 py-3 text-[#0f1012] transition-all focus:outline-none focus:ring-2 focus:ring-[#0071e3]"
+              placeholder="Ringkasan satu-dua kalimat untuk daftar arsip"
             />
           </FormField>
 
           <FormField
             label="Deskripsi Lengkap"
             htmlFor="deskripsiLengkap"
+            berubah={ubah("deskripsiLengkap")}
             error={errors.deskripsiLengkap}
             hint="Opsional. Pisahkan paragraf dengan baris kosong."
           >
-            <textarea
+            <RichTextEditor
               id="deskripsiLengkap"
+              tipe="arsip"
               value={form.deskripsiLengkap}
-              onChange={(e) => updateField("deskripsiLengkap", e.target.value)}
+              onChange={(value) => updateField("deskripsiLengkap", value)}
               rows={6}
-              className="w-full resize-none rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-4 py-3 text-[#0f1012] transition-all focus:outline-none focus:ring-2 focus:ring-[#0071e3]"
             />
           </FormField>
         </div>
@@ -424,21 +517,28 @@ export function ArsipForm({
         <div className="space-y-5">
           <MediaUpload
             value={media}
-            onChange={setMedia}
+            onChange={(m) => {
+              setMedia(m);
+              setBerubah(true);
+            }}
             slug={initialData?.slug}
             error={errors.media}
+            berubah={ubah("media")}
+            catatan="Galeri mengikuti tingkat akses arsip ini — kalau arsipnya khusus alumni, foto/videonya juga hanya bisa dibuka alumni yang sudah masuk. Batas ukuran karena unggahan lewat server."
           />
 
           <BerkasUpload
             value={berkas}
             onChange={ubahBerkas}
             error={errors.berkasId ?? errors.berkasPenyimpanan}
+            berubah={ubah("berkasId")}
             hint="Opsional: berkas dokumen (PDF/DOCX/XLSX). Hanya alumni yang sudah masuk yang bisa membuka berkas ini."
           />
 
           <FormField
             label="Format Dokumen"
             htmlFor="berkasFormat"
+            berubah={ubah("berkasFormat")}
             error={errors.berkasFormat}
             hint="Terisi otomatis dari berkas yang diunggah. Bisa diisi manual untuk arsip yang berkasnya belum ada."
           >
@@ -458,12 +558,14 @@ export function ArsipForm({
             value={form.gambarSampulUrl}
             onChange={(url) => updateField("gambarSampulUrl", url ?? "")}
             error={errors.gambarSampulUrl}
+            berubah={ubah("gambarSampulUrl")}
             hint="Opsional. Tampil di halaman detail arsip."
           />
 
           <FormField
             label="Teks Alternatif Gambar"
             htmlFor="alt"
+            berubah={ubah("alt")}
             error={errors.alt}
             hint="Wajib bila ada gambar sampul."
           >
@@ -477,28 +579,113 @@ export function ArsipForm({
             />
           </FormField>
         </div>
-      </div>
+      </fieldset>
 
-      <div className="flex flex-col items-center justify-end gap-3 border-t border-black/[0.08] pt-4 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => handleSubmit("DRAFT")}
-          disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/[0.08] px-6 py-3 text-sm font-bold text-[#0f1012] transition-colors hover:bg-black/[0.06] disabled:opacity-70 sm:w-auto"
-        >
-          <FloppyDisk weight="bold" />
-          {isLoading ? "Menyimpan..." : "Simpan sebagai Draft"}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSubmit("PUBLISHED")}
-          disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#005fc1] disabled:opacity-70 sm:w-auto"
-        >
-          <PaperPlaneRight weight="bold" />
-          {isLoading ? "Menyimpan..." : "Publish"}
-        </button>
-      </div>
+      {tinjau ? (
+        <div className="space-y-3 border-t border-black/[0.08] pt-4">
+          <AksiTinjau
+            entitas="arsip"
+            id={id ?? ""}
+            nama={form.judul}
+            bolehUbah={verifikator}
+            onBerhasil={() => router.replace("/admin/verifikasi")}
+          />
+        </div>
+      ) : (
+        <div className="space-y-3 border-t border-black/[0.08] pt-4">
+        {!verifikator && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[#5e5e5e]">
+            <BadgeVerifikasi verifikasi={verifikasi} />
+            <span>
+              {verifikasi === "DISETUJUI"
+                ? berubah
+                  ? "Sudah diverifikasi, tetapi isinya berubah — ajukan verifikasi ulang sebelum menerbitkan."
+                  : "Sudah diverifikasi — Anda bisa menerbitkan."
+                : "Konten harus diverifikasi Ketua Umum sebelum bisa diterbitkan."}
+            </span>
+          </div>
+        )}
+
+        {!verifikator && verifikasi === "DITOLAK" && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <p className="font-semibold">Verifikasi ditolak verifikator.</p>
+            <p className="mt-1 whitespace-pre-wrap">
+              {initialData?.catatanVerifikasi
+                ? `Alasan: ${initialData.catatanVerifikasi}`
+                : "Tidak ada catatan alasan dari verifikator."}
+            </p>
+          </div>
+        )}
+
+        <div className="flex flex-col items-center justify-end gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => handleSubmit("DRAFT")}
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/[0.08] px-6 py-3 text-sm font-bold text-[#0f1012] transition-colors hover:bg-black/[0.06] disabled:opacity-70 sm:w-auto"
+          >
+            <FloppyDisk weight="bold" />
+            {isLoading ? "Menyimpan..." : "Simpan sebagai Draft"}
+          </button>
+          {!verifikator &&
+            (verifikasi === "BELUM" ||
+              verifikasi === "DITOLAK" ||
+              (verifikasi === "DISETUJUI" && berubah)) && (
+              <button
+                type="button"
+                onClick={() => handleSubmit("DRAFT", { ajukan: true })}
+                disabled={isLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#0071e3] px-6 py-3 text-sm font-bold text-[#0071e3] transition-colors hover:bg-[#0071e3]/[0.08] disabled:opacity-70 sm:w-auto"
+              >
+                <ShieldCheck weight="bold" />
+                {isLoading
+                  ? "Memproses..."
+                  : verifikasi === "DISETUJUI" || verifikasi === "DITOLAK"
+                    ? "Ajukan Verifikasi Ulang"
+                    : "Ajukan Verifikasi"}
+              </button>
+            )}
+          <button
+            type="button"
+            onClick={() =>
+              verifikator && tinjau
+                ? setKonfirmasiPublish(true)
+                : handleSubmit("PUBLISHED")
+            }
+            disabled={
+              isLoading ||
+              (!verifikator && (verifikasi !== "DISETUJUI" || berubah))
+            }
+            title={
+              !verifikator
+                ? verifikasi !== "DISETUJUI"
+                  ? "Menunggu verifikasi Ketua Umum"
+                  : berubah
+                    ? "Konten diubah — ajukan verifikasi ulang"
+                    : undefined
+                : undefined
+            }
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#005fc1] disabled:opacity-70 sm:w-auto"
+          >
+            <PaperPlaneRight weight="bold" />
+            {isLoading ? "Menyimpan..." : "Publish"}
+          </button>
+        </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={konfirmasiPublish}
+        title="Terbitkan konten ini?"
+        message="Konten akan langsung tayang di halaman publik. Pastikan sudah selesai ditinjau sebelum menerbitkan."
+        confirmLabel="Ya, Terbitkan"
+        onConfirm={() => {
+          setKonfirmasiPublish(false);
+          handleSubmit("PUBLISHED");
+        }}
+        onCancel={() => setKonfirmasiPublish(false)}
+        isLoading={isLoading}
+      />
     </form>
   );
 }

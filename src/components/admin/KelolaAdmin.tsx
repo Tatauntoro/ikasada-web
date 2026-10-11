@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowsClockwise,
+  Buildings,
   Check,
   EnvelopeSimple,
   Key,
@@ -10,11 +12,13 @@ import {
   Prohibit,
   SealCheck,
   ShieldCheck,
+  Trash,
   WarningCircle,
 } from "@phosphor-icons/react";
 import { DataTable } from "./DataTable";
 import { EmptyState } from "./EmptyState";
 import { TableSkeleton } from "./TableSkeleton";
+import { AdminPagination } from "./AdminPagination";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { panggilApi, type ApiError } from "@/lib/api-client";
 import { formatTanggalWIB } from "@/lib/format";
@@ -44,11 +48,59 @@ type AdminItem = {
   role: "SUPERADMIN" | "ADMIN";
   isAktif: boolean;
   permissions: Izin | null;
+  /** true = izin khusus; tidak ikut template divisi. */
+  izinKhusus: boolean;
   createdAt: string;
   lastLoginAt: string | null;
+  divisi: { id: string; nama: string } | null;
   /** Aktivitas terbaru admin ini (kalimat siap tampil), dipisah dari login. */
   aktivitasTerakhir?: { kalimat: string; waktu: string } | null;
 };
+
+type DivisiItem = {
+  id: string;
+  nama: string;
+  slug: string;
+  urutan: number;
+  lintasDivisi: boolean;
+  permissions: Izin | null;
+  _count?: { admin: number };
+};
+
+/** Matriks izin modul × aksi — dipakai untuk admin maupun template divisi. */
+function MatriksIzin({
+  izin,
+  onToggle,
+}: {
+  izin: Izin;
+  onToggle: (modul: ModulSlug, aksi: AksiSlug) => void;
+}) {
+  return (
+    <div className="max-h-[45vh] space-y-3 overflow-y-auto pr-1">
+      {MODUL_INFO.map((info) => (
+        <div key={info.slug} className="rounded-xl border border-black/[0.08] p-3">
+          <p className="text-sm font-semibold">{info.label}</p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {info.aksi.map((aksi) => (
+              <label
+                key={aksi}
+                className="inline-flex items-center gap-1.5 text-xs text-[#0f1012]"
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-[#0071e3]"
+                  checked={(izin[info.slug] ?? []).includes(aksi)}
+                  onChange={() => onToggle(info.slug, aksi)}
+                />
+                {LABEL_AKSI[aksi]}
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const PASSWORD_MIN = 8;
 
@@ -107,16 +159,23 @@ const inputClass =
 const tombolKecil =
   "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-60";
 
+/** Jumlah akun admin per halaman di tabel Kelola Admin. */
+const PER_PAGE = 6;
+
 export function KelolaAdmin() {
   const [data, setData] = useState<AdminItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sukses, setSukses] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [buatBuka, setBuatBuka] = useState(false);
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [divisiAdminBaru, setDivisiAdminBaru] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [errorForm, setErrorForm] = useState<string | null>(null);
 
@@ -145,18 +204,42 @@ export function KelolaAdmin() {
 
   const [pesanError, setPesanError] = useState<Record<string, string>>({});
 
+  // Master data divisi.
+  const [divisiList, setDivisiList] = useState<DivisiItem[]>([]);
+  const [divisiBuka, setDivisiBuka] = useState(false);
+  const [divisiEdit, setDivisiEdit] = useState<DivisiItem | null>(null);
+  const [divisiNama, setDivisiNama] = useState("");
+  const [divisiUrutan, setDivisiUrutan] = useState("0");
+  const [divisiLintas, setDivisiLintas] = useState(false);
+  const [divisiIzin, setDivisiIzin] = useState<Izin>({});
+  const [isSimpanDivisi, setIsSimpanDivisi] = useState(false);
+  const [errorDivisi, setErrorDivisi] = useState<string | null>(null);
+  const [divisiHapus, setDivisiHapus] = useState<DivisiItem | null>(null);
+
+  const muatDivisi = useCallback(async () => {
+    const hasil = await panggilApi<DivisiItem[]>("/api/admin/divisi");
+    if (hasil.ok) setDivisiList(hasil.data);
+  }, []);
+
   const muat = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const hasil = await panggilApi<AdminItem[]>("/api/admin/admin-users");
+    const [hasil] = await Promise.all([
+      panggilApi<AdminItem[]>(
+        `/api/admin/admin-users?page=${page}&limit=${PER_PAGE}`
+      ),
+      muatDivisi(),
+    ]);
     if (!hasil.ok) {
       setError(hasil.error.message);
       setIsLoading(false);
       return;
     }
     setData(hasil.data);
+    setTotal(hasil.meta?.total ?? hasil.data.length);
+    setTotalPages(hasil.meta?.totalPages ?? 1);
     setIsLoading(false);
-  }, []);
+  }, [muatDivisi, page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -174,18 +257,26 @@ export function KelolaAdmin() {
     setIsSaving(true);
     const hasil = await panggilApi<AdminItem>("/api/admin/admin-users", {
       method: "POST",
-      body: { nama: nama.trim(), email: email.trim(), password },
+      body: {
+        nama: nama.trim(),
+        email: email.trim(),
+        password,
+        divisiId: divisiAdminBaru || null,
+      },
     });
     setIsSaving(false);
     if (!hasil.ok) {
       setErrorForm(terapkanError(hasil.error, "Gagal membuat admin."));
       return;
     }
-    setSukses(`Admin ${email.trim()} dibuat dengan izin kosong. Atur izinnya di daftar.`);
+    setSukses(
+      `Admin ${email.trim()} dibuat. Izin awal diambil dari template divisi (bila dipilih) — bisa disesuaikan di daftar.`
+    );
     setBuatBuka(false);
     setNama("");
     setEmail("");
     setPassword("");
+    setDivisiAdminBaru("");
     muat();
   }
 
@@ -317,6 +408,95 @@ export function KelolaAdmin() {
     });
   }
 
+  function toggleAksiDivisi(modul: ModulSlug, aksi: AksiSlug) {
+    setDivisiIzin((prev) => {
+      const daftar = new Set(prev[modul] ?? []);
+      if (daftar.has(aksi)) daftar.delete(aksi);
+      else daftar.add(aksi);
+      const berikut = { ...prev };
+      if (daftar.size === 0) delete berikut[modul];
+      else berikut[modul] = [...daftar];
+      return berikut;
+    });
+  }
+
+  function bukaDivisiBaru() {
+    setSukses(null);
+    setError(null);
+    setDivisiEdit(null);
+    setDivisiNama("");
+    setDivisiUrutan(String(divisiList.length + 1));
+    setDivisiLintas(false);
+    setDivisiIzin({});
+    setErrorDivisi(null);
+    setDivisiBuka(true);
+  }
+
+  function bukaDivisiUbah(d: DivisiItem) {
+    setSukses(null);
+    setError(null);
+    setDivisiEdit(d);
+    setDivisiNama(d.nama);
+    setDivisiUrutan(String(d.urutan));
+    setDivisiLintas(d.lintasDivisi);
+    setDivisiIzin(d.permissions ?? {});
+    setErrorDivisi(null);
+    setDivisiBuka(true);
+  }
+
+  async function simpanDivisi() {
+    const namaDivisi = divisiNama.trim();
+    if (namaDivisi.length < 2) {
+      setErrorDivisi("Nama divisi minimal 2 karakter.");
+      return;
+    }
+    setIsSimpanDivisi(true);
+    setErrorDivisi(null);
+
+    const body = {
+      nama: namaDivisi,
+      urutan: Number(divisiUrutan) || 0,
+      lintasDivisi: divisiLintas,
+      permissions: divisiIzin,
+    };
+
+    const hasil = divisiEdit
+      ? await panggilApi<DivisiItem>(`/api/admin/divisi/${divisiEdit.id}`, {
+          method: "PATCH",
+          body,
+        })
+      : await panggilApi<DivisiItem>("/api/admin/divisi", {
+          method: "POST",
+          body,
+        });
+
+    setIsSimpanDivisi(false);
+    if (!hasil.ok) {
+      setErrorDivisi(hasil.error.message || "Gagal menyimpan divisi.");
+      return;
+    }
+
+    setSukses(`Divisi ${namaDivisi} ${divisiEdit ? "diperbarui" : "dibuat"}.`);
+    setDivisiBuka(false);
+    muat();
+  }
+
+  async function hapusDivisi() {
+    if (!divisiHapus) return;
+    const target = divisiHapus;
+    setDivisiHapus(null);
+    const hasil = await panggilApi<{ message: string }>(
+      `/api/admin/divisi/${target.id}`,
+      { method: "DELETE" }
+    );
+    if (!hasil.ok) {
+      setError(hasil.error.message);
+      return;
+    }
+    setSukses(`Divisi ${target.nama} dihapus.`);
+    muat();
+  }
+
   const columns = [
     {
       key: "admin",
@@ -344,6 +524,38 @@ export function KelolaAdmin() {
       ),
     },
     {
+      key: "divisi",
+      header: "Divisi",
+      className: "hidden sm:table-cell",
+      cell: (row: AdminItem) => (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#5e5e5e]">
+            {row.divisi?.nama ?? "—"}
+          </span>
+          <select
+            aria-label={`Divisi ${row.nama}`}
+            value={row.divisi?.id ?? ""}
+            disabled={isProses}
+            onChange={(e) =>
+              patch(
+                row.id,
+                { divisiId: e.target.value || null },
+                `Divisi ${row.email} diubah.`
+              )
+            }
+            className="rounded-lg border border-black/[0.08] bg-[#fdfdfd] px-2 py-1.5 text-xs"
+          >
+            <option value="">— Tanpa divisi</option>
+            {divisiList.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.nama}
+              </option>
+            ))}
+          </select>
+        </div>
+      ),
+    },
+    {
       key: "status",
       header: "Status",
       cell: (row: AdminItem) => (
@@ -364,9 +576,20 @@ export function KelolaAdmin() {
         row.role === "SUPERADMIN" ? (
           <span className="text-xs text-[#5e5e5e]">Penuh</span>
         ) : (
-          <span className="text-xs text-[#5e5e5e]">
-            {ringkasIzin(row.permissions)}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#5e5e5e]">
+              {ringkasIzin(row.permissions)}
+            </span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                row.izinKhusus
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-black/[0.05] text-[#5e5e5e]"
+              }`}
+            >
+              {row.izinKhusus ? "Khusus" : "Divisi"}
+            </span>
+          </div>
         ),
     },
     {
@@ -401,6 +624,23 @@ export function KelolaAdmin() {
       header: "Aksi",
       cell: (row: AdminItem) => (
         <div className="flex flex-wrap items-center gap-2">
+          {row.izinKhusus && row.divisi && (
+            <button
+              type="button"
+              disabled={isProses}
+              onClick={() =>
+                patch(
+                  row.id,
+                  { izinKhusus: false },
+                  `Izin ${row.email} kembali mengikuti template ${row.divisi?.nama}.`
+                )
+              }
+              className={`${tombolKecil} bg-amber-50 text-amber-700 hover:bg-amber-100`}
+            >
+              <ArrowsClockwise weight="bold" />
+              Ikuti template
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -514,8 +754,8 @@ export function KelolaAdmin() {
             Kelola Admin
           </h1>
           <p className="mt-1 text-sm text-[#5e5e5e]">
-            Tambah akun admin, atur role, aktif/nonaktif, dan izin akses per
-            modul. Hanya superadmin.
+            Tambah akun admin, atur divisi &amp; izin akses per modul,
+            aktif/nonaktif, dan kelola master data divisi. Hanya superadmin.
           </p>
         </div>
         <button
@@ -569,11 +809,170 @@ export function KelolaAdmin() {
         />
       )}
 
+      {!isLoading && !error && (
+        <AdminPagination
+          page={page}
+          limit={PER_PAGE}
+          total={total}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      )}
+
+      {/* Kelola Divisi */}
+      <div className="space-y-4 rounded-2xl border border-black/[0.08] bg-[#fdfdfd] p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Buildings weight="bold" /> Kelola Divisi
+            </h2>
+            <p className="mt-1 text-sm text-[#5e5e5e]">
+              Divisi memisahkan data per bagian. Template izin mengisi awal
+              matriks admin yang ditempatkan di divisi itu.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={bukaDivisiBaru}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005fc1]"
+          >
+            <Plus weight="bold" />
+            Tambah divisi
+          </button>
+        </div>
+
+        {divisiList.length === 0 ? (
+          <p className="text-sm text-[#5e5e5e]">Belum ada divisi.</p>
+        ) : (
+          <ul className="divide-y divide-black/[0.06]">
+            {divisiList.map((d) => (
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    {d.nama}
+                    {d.lintasDivisi && (
+                      <span className="rounded-full bg-[#0071e3]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#0071e3]">
+                        Lintas divisi
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-[#5e5e5e]">
+                    {ringkasIzin(d.permissions)} · {d._count?.admin ?? 0} anggota
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => bukaDivisiUbah(d)}
+                    className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
+                  >
+                    <Pencil weight="bold" />
+                    Ubah
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDivisiHapus(d)}
+                    className={`${tombolKecil} bg-red-50 text-red-600 hover:bg-red-100`}
+                  >
+                    <Trash weight="bold" />
+                    Hapus
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Tambah/ubah divisi */}
+      <Dialog
+        terbuka={divisiBuka}
+        judul={divisiEdit ? "Ubah divisi" : "Tambah divisi"}
+        deskripsi="Nama, urutan tampil, penanda lintas divisi, dan template izin."
+        onTutup={() => setDivisiBuka(false)}
+      >
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="divisi-nama" className="mb-1 block text-sm font-semibold">
+              Nama divisi
+            </label>
+            <input
+              id="divisi-nama"
+              value={divisiNama}
+              onChange={(e) => setDivisiNama(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="divisi-urutan" className="mb-1 block text-sm font-semibold">
+              Urutan tampil
+            </label>
+            <input
+              id="divisi-urutan"
+              type="number"
+              value={divisiUrutan}
+              onChange={(e) => setDivisiUrutan(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-[#0071e3]"
+              checked={divisiLintas}
+              onChange={(e) => setDivisiLintas(e.target.checked)}
+            />
+            Lintas divisi (boleh melihat konten semua divisi)
+          </label>
+          <div>
+            <p className="mb-2 text-sm font-semibold">Template izin</p>
+            <MatriksIzin izin={divisiIzin} onToggle={toggleAksiDivisi} />
+          </div>
+          {errorDivisi && (
+            <p role="alert" className="text-sm text-red-600">
+              {errorDivisi}
+            </p>
+          )}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setDivisiBuka(false)}
+              className="rounded-xl border border-black/[0.08] px-5 py-2.5 text-sm font-semibold hover:bg-black/[0.06]"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={simpanDivisi}
+              disabled={isSimpanDivisi}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0071e3] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#005fc1] disabled:opacity-60"
+            >
+              <Check weight="bold" />
+              {isSimpanDivisi ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      <ConfirmDialog
+        isOpen={Boolean(divisiHapus)}
+        title="Hapus divisi ini?"
+        message="Divisi dihapus (soft). Admin anggotanya tidak dihapus, hanya dilepas dari divisi. Konten lama tetap menyimpan jejak divisinya."
+        confirmLabel="Ya, Hapus"
+        cancelLabel="Batal"
+        isLoading={false}
+        onConfirm={hapusDivisi}
+        onCancel={() => setDivisiHapus(null)}
+      />
+
       {/* Tambah admin */}
       <Dialog
         terbuka={buatBuka}
         judul="Tambah admin"
-        deskripsi="Akun baru dibuat dengan role Admin dan izin kosong."
+        deskripsi="Akun dibuat dengan role Admin. Izin awal mengikuti template divisi yang dipilih."
         onTutup={() => setBuatBuka(false)}
       >
         <div className="space-y-4">
@@ -624,6 +1023,27 @@ export function KelolaAdmin() {
             {pesanError.password && (
               <p className="mt-1 text-xs text-red-600">{pesanError.password}</p>
             )}
+          </div>
+          <div>
+            <label htmlFor="admin-divisi" className="mb-1 block text-sm font-semibold">
+              Divisi
+            </label>
+            <select
+              id="admin-divisi"
+              value={divisiAdminBaru}
+              onChange={(e) => setDivisiAdminBaru(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">— Tanpa divisi (admin teknis)</option>
+              {divisiList.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.nama}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-[#5e5e5e]">
+              Izin awal diisi dari template divisi ini (bisa diubah setelahnya).
+            </p>
           </div>
 
           {errorForm && (
@@ -685,6 +1105,12 @@ export function KelolaAdmin() {
               </div>
             </div>
           ))}
+          <p className="text-xs text-[#5e5e5e]">
+            Menyimpan izin di sini menandai akun ini ber-izin <strong>khusus</strong>{" "}
+            — tidak ikut berubah saat template divisi diubah atau admin dipindah
+            divisi. Pakai tombol &ldquo;Ikuti template&rdquo; untuk
+            mengembalikannya.
+          </p>
           <p className="text-xs text-[#5e5e5e]">
             Catatan: tanpa centang “Lihat”, menu modul itu tidak muncul dan
             halamannya dialihkan.

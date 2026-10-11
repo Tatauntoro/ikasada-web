@@ -22,6 +22,7 @@ type ItemAktivitas = {
   waktu: string;
   aktorNama: string;
   aktorJenis: "admin" | "alumni";
+  aktorDivisi: string | null;
   kalimat: string;
   modul: string;
   entitas: string;
@@ -130,7 +131,9 @@ export function AktivitasLog() {
                 : "bg-black/[0.05] text-[#5e5e5e]"
             }`}
           >
-            {row.aktorJenis === "admin" ? "Pengurus" : "Alumni"}
+            {row.aktorJenis === "admin"
+              ? row.aktorDivisi ?? "Tanpa Divisi"
+              : "Alumni"}
           </span>
         </div>
       ),
@@ -160,7 +163,8 @@ export function AktivitasLog() {
           Aktivitas
         </h1>
         <p className="mt-1 text-sm text-[#5e5e5e]">
-          Riwayat tindakan pengurus dan alumni, dengan bahasa yang mudah dibaca.
+          Riwayat tindakan admin (beserta divisinya) dan alumni, dengan bahasa
+          yang mudah dibaca.
         </p>
       </div>
 
@@ -181,7 +185,7 @@ export function AktivitasLog() {
             className={selectClass}
           >
             <option value="semua">Semua</option>
-            <option value="admin">Pengurus</option>
+            <option value="admin">Admin</option>
             <option value="alumni">Alumni</option>
           </select>
         </div>
@@ -189,7 +193,7 @@ export function AktivitasLog() {
         {aktor === "admin" && (
           <div className="flex flex-col gap-1">
             <label htmlFor="filter-admin" className="text-xs font-semibold text-[#5e5e5e]">
-              Pengurus
+              Admin
             </label>
             <select
               id="filter-admin"
@@ -200,7 +204,7 @@ export function AktivitasLog() {
               }}
               className={selectClass}
             >
-              <option value="">Semua pengurus</option>
+              <option value="">Semua admin</option>
               {pengurus.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nama}
@@ -311,7 +315,7 @@ export function AktivitasLog() {
           emptyState={
             <EmptyState
               title="Belum ada aktivitas"
-              description="Aktivitas pengurus dan alumni akan muncul di sini."
+              description="Aktivitas admin dan alumni akan muncul di sini."
               showAction={false}
             />
           }

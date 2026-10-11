@@ -2,6 +2,7 @@ import { Prisma, StatusAlumniAccount } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { alumniAktif } from "@/lib/sesi-alumni";
 import { toPublicAlumni } from "@/lib/mapper-public";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import type {
   PublicAlumniDirektoriAktif,
   PublicAlumniDirektoriAnonim,
@@ -53,7 +54,7 @@ export function keDirektoriAktif(
   const akun = alumni.account;
   const akunAktif = akun?.status === StatusAlumniAccount.ACTIVE;
 
-  return {
+  const kartu: AlumniDirektoriAktif = {
     ...toPublicAlumni(alumni),
     // Keterbukaan hanya ditampilkan untuk akun yang benar-benar aktif;
     // akun pending/suspend tidak boleh "mengiklankan" statusnya.
@@ -67,6 +68,18 @@ export function keDirektoriAktif(
      */
     bisaDihubungi: akunAktif,
   };
+
+  /*
+   * Saat mode jejaring dimatikan, kontak yang boleh tampil di direktori hanya
+   * email — dan hanya untuk pengunjung yang sudah login sebagai akun `ACTIVE`
+   * (fungsi ini memang hanya dipanggil untuk mereka). Key sengaja tidak
+   * ditambahkan saat jejaring aktif, supaya perilaku lama persis kembali.
+   */
+  if (!FITUR_JEJARING_ALUMNI) {
+    kartu.emailKontak = alumni.email;
+  }
+
+  return kartu;
 }
 
 /** Pengunjung yang boleh melihat nilai keterbukaan: session valid + akun `ACTIVE`. */

@@ -14,6 +14,10 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import {
+  BadgeVerifikasi,
+  type StatusVerifikasiUI,
+} from "@/components/admin/VerifikasiKonten";
 import { formatTanggalWIB } from "@/lib/format";
 
 type Berita = BeritaModel & { jenisBerita: JenisBerita };
@@ -197,6 +201,14 @@ export default function BeritaListPage() {
       key: "status",
       header: "Status",
       cell: (row: Berita) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "verifikasi",
+      header: "Verifikasi",
+      className: "hidden lg:table-cell",
+      cell: (row: Berita) => (
+        <BadgeVerifikasi verifikasi={row.verifikasi as StatusVerifikasiUI} />
+      ),
     },
     {
       key: "aksi",

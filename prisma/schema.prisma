@@ -56,6 +56,16 @@ enum AksiAudit {
   // Arsip dokumen: satu baris per unduhan berkas oleh alumni (actor
   // `alumniAccountId`). Nilai tambahan ini tidak mengubah baris audit lama.
   ARSIP_UNDUH
+  // Verifikasi konten: divisi mengajukan, verifikator (Ketua Umum) memutuskan.
+  KONTEN_AJUKAN
+  KONTEN_VERIFIKASI
+  KONTEN_TOLAK
+  // Administrasi: perubahan master data divisi & akun admin.
+  DIVISI_CREATE
+  DIVISI_UPDATE
+  DIVISI_DELETE
+  ADMIN_CREATE
+  ADMIN_UPDATE
 }
 
 enum StatusKerjasama {
@@ -116,6 +126,20 @@ enum RoleAdmin {
   ADMIN
 }
 
+/*
+ * Status verifikasi konten oleh verifikator (mis. Ketua Umum).
+ *
+ * Terpisah dari `status` (DRAFT/PUBLISHED): `status` mengatur terbit/tidak,
+ * sedangkan enum ini mengatur apakah konten sudah diverifikasi. Publish hanya
+ * diizinkan bila `DISETUJUI` (kecuali akun pemegang izin `verifikasi-konten`).
+ */
+enum StatusVerifikasiKonten {
+  BELUM
+  MENUNGGU
+  DISETUJUI
+  DITOLAK
+}
+
 enum StatusConnection {
   PENDING
   ACCEPTED
@@ -125,6 +149,35 @@ enum StatusConnection {
   // tetap ada (bukan hard delete); pasangan ini boleh mencoba lagi nanti, sama
   // seperti DECLINED/CANCELED.
   REVOKED
+}
+
+/*
+ * Divisi pengurus (Humas, Litbang, Sekretariat, Ketua Umum, ...).
+ *
+ * Divisi adalah dimensi organisasi, BUKAN role: hak akses tetap ditentukan
+ * matriks `AdminUser.permissions`. `permissions` di sini hanya **template**
+ * yang mengisi awal matriks saat admin ditempatkan di divisi ini.
+ *
+ * `lintasDivisi` menandai divisi yang boleh melihat konten semua divisi
+ * (mis. Ketua Umum) — staf divisi lain hanya melihat konten divisinya sendiri
+ * (plus konten lama yang belum berdivisi).
+ */
+model Divisi {
+  id           String     @id @default(uuid())
+  nama         String     @unique
+  slug         String     @unique
+  urutan       Int        @default(0)
+  lintasDivisi Boolean    @default(false) @map("lintas_divisi")
+  permissions  Json       @default("{}")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  deletedAt    DateTime?  @map("deleted_at")
+  admin        AdminUser[]
+  kegiatan     Kegiatan[]
+  berita       Berita[]
+  arsip        Arsip[]
+  kerjasama    Kerjasama[]
+  @@map("divisi")
 }
 
 model AdminUser {
@@ -140,6 +193,18 @@ model AdminUser {
   role         RoleAdmin  @default(ADMIN)
   isAktif      Boolean    @default(true) @map("is_aktif")
   permissions  Json       @default("{}")
+  /*
+   * Penanda izin khusus: bila `true`, `permissions` dianggap disesuaikan
+   * per-admin dan **tidak ditimpa** template divisi (saat template berubah atau
+   * admin dipindah divisi). `false` = izin mengikuti template divisi.
+   */
+  izinKhusus   Boolean    @default(false) @map("izin_khusus")
+  /*
+   * Divisi tempat admin ini bertugas. Nullable: admin teknis/superadmin tidak
+   * harus punya divisi. Dipakai untuk memisahkan konten per divisi.
+   */
+  divisiId     String?    @map("divisi_id")
+  divisi       Divisi?    @relation(fields: [divisiId], references: [id], onDelete: SetNull)
   createdAt    DateTime   @default(now()) @map("created_at")
   lastLoginAt  DateTime?  @map("last_login_at")
   /*
@@ -180,7 +245,21 @@ model Kegiatan {
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
   deletedAt          DateTime?        @map("deleted_at")
+  media              KegiatanMedia[]
+  divisiId           String?          @map("divisi_id")
+  divisi             Divisi?          @relation(fields: [divisiId], references: [id], onDelete: SetNull)
+  verifikasi         StatusVerifikasiKonten @default(BELUM)
+  diverifikasiOleh   String?          @map("diverifikasi_oleh_id")
+  diverifikasiAt     DateTime?        @map("diverifikasi_at")
+  catatanVerifikasi  String?          @map("catatan_verifikasi")
+  /*
+   * Snapshot isi konten saat keputusan verifikasi terakhir (disetujui/ditolak).
+   * Dipakai verifikator untuk melihat bagian mana yang berubah saat meninjau
+   * ulang: konten tanpa snapshot = baru, dengan snapshot = revisi.
+   */
+  snapshotVerifikasi Json?            @map("snapshot_verifikasi")
   @@index([status, tanggalMulai])
+  @@index([verifikasi])
   @@map("kegiatan")
 }
 
@@ -216,8 +295,18 @@ model Berita {
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
   deletedAt        DateTime?    @map("deleted_at")
+  media            BeritaMedia[]
+  divisiId         String?      @map("divisi_id")
+  divisi           Divisi?      @relation(fields: [divisiId], references: [id], onDelete: SetNull)
+  verifikasi       StatusVerifikasiKonten @default(BELUM)
+  diverifikasiOleh String?      @map("diverifikasi_oleh_id")
+  diverifikasiAt   DateTime?    @map("diverifikasi_at")
+  catatanVerifikasi String?     @map("catatan_verifikasi")
+  /** Snapshot isi saat keputusan verifikasi terakhir (lihat `Kegiatan`). */
+  snapshotVerifikasi Json?      @map("snapshot_verifikasi")
   @@index([status, tanggal])
   @@index([jenisBeritaId])
+  @@index([verifikasi])
   @@map("berita")
 }
 
@@ -266,7 +355,16 @@ model Kerjasama {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   deletedAt      DateTime?       @map("deleted_at")
+  divisiId       String?         @map("divisi_id")
+  divisi         Divisi?         @relation(fields: [divisiId], references: [id], onDelete: SetNull)
+  verifikasi     StatusVerifikasiKonten @default(BELUM)
+  diverifikasiOleh String?       @map("diverifikasi_oleh_id")
+  diverifikasiAt DateTime?       @map("diverifikasi_at")
+  catatanVerifikasi String?      @map("catatan_verifikasi")
+  /** Snapshot isi saat keputusan verifikasi terakhir (lihat `Kegiatan`). */
+  snapshotVerifikasi Json?       @map("snapshot_verifikasi")
   @@index([status, urutan])
+  @@index([verifikasi])
   @@map("kerjasama")
 }
 
@@ -329,9 +427,18 @@ model Arsip {
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
   deletedAt         DateTime?           @map("deleted_at")
+  divisiId          String?             @map("divisi_id")
+  divisi            Divisi?             @relation(fields: [divisiId], references: [id], onDelete: SetNull)
+  verifikasi        StatusVerifikasiKonten @default(BELUM)
+  diverifikasiOleh  String?             @map("diverifikasi_oleh_id")
+  diverifikasiAt    DateTime?           @map("diverifikasi_at")
+  catatanVerifikasi String?             @map("catatan_verifikasi")
+  /** Snapshot isi saat keputusan verifikasi terakhir (lihat `Kegiatan`). */
+  snapshotVerifikasi Json?              @map("snapshot_verifikasi")
   @@index([status, tanggalUpload])
   @@index([status, tanggalKegiatanMulai])
   @@index([jenisArsipId])
+  @@index([verifikasi])
   @@map("arsip")
 }
 
@@ -363,6 +470,54 @@ model ArsipMedia {
   createdAt   DateTime          @default(now()) @map("created_at")
   @@index([arsipId, urutan])
   @@map("arsip_media")
+}
+
+/*
+ * Galeri foto/video satu berita.
+ *
+ * Berita bersifat publik (tidak punya tingkatan akses seperti arsip), jadi
+ * media dilayani `GET /api/berita/[slug]/media/[id]` untuk entri terbit —
+ * admin tetap boleh membukanya saat statusnya masih draft. Baris-barisnya
+ * ditulis ulang saat berita diperbarui (delete-then-create).
+ */
+model BeritaMedia {
+  id          String            @id @default(uuid())
+  beritaId    String            @map("berita_id")
+  berita      Berita            @relation(fields: [beritaId], references: [id], onDelete: Cascade)
+  jenis       JenisMedia
+  berkasId    String            @map("berkas_id")
+  penyimpanan PenyimpananBerkas @map("berkas_penyimpanan")
+  namaAsli    String?           @map("nama_asli")
+  format      String?
+  ukuran      Int?
+  caption     String?
+  urutan      Int               @default(0)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  @@index([beritaId, urutan])
+  @@map("berita_media")
+}
+
+/*
+ * Galeri foto/video satu kegiatan.
+ *
+ * Mendukung foto maupun video; disajikan `GET /api/kegiatan/[slug]/media/[id]`
+ * (publik untuk entri terbit, admin untuk pratinjau draft).
+ */
+model KegiatanMedia {
+  id          String            @id @default(uuid())
+  kegiatanId  String            @map("kegiatan_id")
+  kegiatan    Kegiatan          @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+  jenis       JenisMedia
+  berkasId    String            @map("berkas_id")
+  penyimpanan PenyimpananBerkas @map("berkas_penyimpanan")
+  namaAsli    String?           @map("nama_asli")
+  format      String?
+  ukuran      Int?
+  caption     String?
+  urutan      Int               @default(0)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  @@index([kegiatanId, urutan])
+  @@map("kegiatan_media")
 }
 
 model Alumni {
@@ -551,4 +706,49 @@ model AuthRateLimit {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   @@unique([scope, keyHash])
   @@map("auth_rate_limit")
+}
+
+/*
+ * Section beranda yang bisa diatur dari Portal Admin (Kelola Beranda).
+ *
+ * Satu baris per bagian (`kunci`): "statistik", "sebaran-geografis",
+ * "sebaran-angkatan", "agenda". Isinya mengatur tampil/tidaknya section,
+ * urutannya, dan teks judul/subjudul/deskripsi. Nilai angka (statistik/sebaran
+ * angkatan) tetap dihitung dari data aslinya — `konfigurasi` disiapkan untuk
+ * penyesuaian tambahan nanti.
+ */
+model SectionBeranda {
+  id          String    @id @default(uuid())
+  kunci       String    @unique
+  aktif       Boolean   @default(true)
+  urutan      Int       @default(0)
+  judul       String?
+  eyebrow     String?
+  deskripsi   String?
+  konfigurasi Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  @@map("section_beranda")
+}
+
+/*
+ * Titik tujuan busur pada peta "Sebaran geografis" beranda.
+ *
+ * Dipakai `WorldSebaranMap`: tiap titik digambar sebagai busur dari titik asal
+ * (almamater) ke koordinat titik ini. Sebelumnya daftar ini hardcoded di
+ * `data/benua.json`; sekarang bisa diatur dari Portal Admin.
+ */
+model TitikSebaran {
+  id         String    @id @default(uuid())
+  nama       String
+  lat        Float
+  lng        Float
+  keterangan String?
+  urutan     Int       @default(0)
+  aktif      Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+  @@map("titik_sebaran")
 }

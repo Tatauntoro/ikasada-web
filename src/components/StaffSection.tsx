@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { reportAssetError } from "@/lib/asset-error";
 import { PengurusCarousel, type PengurusItem } from "./PengurusWall";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -12,6 +17,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export default function StaffSection() {
+  const beranda = useBerandaConfig();
   const [data, setData] = useState<PengurusItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,6 +39,22 @@ export default function StaffSection() {
     fetchPengurus();
   }, []);
 
+  const judulPengurus = teksSection(
+    beranda,
+    "pengurus",
+    "judul",
+    "Dewan Pengurus Inti"
+  );
+  const deskripsiPengurus = teksSection(
+    beranda,
+    "pengurus",
+    "deskripsi",
+    "Nakhoda organisasi yang berdedikasi menjaga sinergi antar-alumni dan kejayaan tradisi Sastra Daerah FIB UI."
+  );
+
+  // Section bisa disembunyikan dari Kelola Beranda.
+  if (!sectionAktif(beranda, "pengurus")) return null;
+
   return (
     <section
       id="staf"
@@ -42,11 +64,10 @@ export default function StaffSection() {
         {/* Header rata kiri (sama seperti Direktori Alumni) */}
         <div className="mb-16 max-w-3xl">
           <h2 className="reveal-item section-title section-title--terang">
-            Dewan Pengurus Inti
+            {judulPengurus}
           </h2>
           <p className="reveal-item mt-5 max-w-2xl text-[15px] leading-relaxed text-white/65 text-pretty sm:text-base">
-            Nakhoda organisasi yang berdedikasi menjaga sinergi antar-alumni dan
-            kejayaan tradisi Sastra Daerah FIB UI.
+            {deskripsiPengurus}
           </p>
         </div>
 

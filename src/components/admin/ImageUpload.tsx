@@ -3,6 +3,7 @@
 import { useState, useRef, useId, ChangeEvent } from "react";
 import Image from "next/image";
 import { UploadSimple, Trash, Spinner } from "@phosphor-icons/react";
+import { ChipBerubah, KELAS_FIELD_BERUBAH } from "./ChipBerubah";
 
 export type ImageUploadProps = {
   label?: string;
@@ -11,6 +12,8 @@ export type ImageUploadProps = {
   onChange: (url: string | null) => void;
   error?: string;
   hint?: string;
+  /** Nilainya berbeda dari versi terverifikasi (mode tinjau). */
+  berubah?: boolean;
 };
 
 export function ImageUpload({
@@ -20,6 +23,7 @@ export function ImageUpload({
   onChange,
   error,
   hint,
+  berubah = false,
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -71,12 +75,15 @@ export function ImageUpload({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${berubah ? KELAS_FIELD_BERUBAH : ""}`}>
       <label
         htmlFor={inputId}
-        className="block text-sm font-semibold text-[#0f1012]"
+        className={`flex items-center gap-2 text-sm font-semibold ${
+          berubah ? "text-red-700" : "text-[#0f1012]"
+        }`}
       >
         {label}
+        {berubah && <ChipBerubah />}
       </label>
 
       {value ? (
