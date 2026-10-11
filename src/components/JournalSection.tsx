@@ -4,12 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import type { PublicKerjasama } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
+import { keTeksBiasa } from "@/lib/rich-text";
 import { reportAssetError } from "@/lib/asset-error";
 import {
   CoverflowCarousel,
   type CoverflowSlide,
 } from "./ui/coverflow-carousel";
 import styles from "./JournalSection.module.css";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 
 const GAMBAR_CADANGAN = "/images/placeholder-event.jpg";
 
@@ -36,12 +42,13 @@ function toSlides(daftar: PublicKerjasama[]): CoverflowSlide[] {
     src: item.imageUrl ?? GAMBAR_CADANGAN,
     alt: item.alt,
     title: item.organisasi,
-    subtitle: item.programUtama,
+    subtitle: keTeksBiasa(item.programUtama),
     href: `/kerjasama/${item.slug}`,
   }));
 }
 
 export default function JournalSection() {
+  const beranda = useBerandaConfig();
   const [slides, setSlides] = useState<CoverflowSlide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +75,15 @@ export default function JournalSection() {
     fetchData();
   }, [fetchData]);
 
-  // Tidak ada yang dipublikasikan: section tidak perlu tampil kosong.
+  const judulKerjasama = teksSection(
+    beranda,
+    "kerjasama",
+    "judul",
+    "Kerjasama Kami"
+  );
+
+  // Section dimatikan atau tidak ada yang dipublikasikan: jangan tampil kosong.
+  if (!sectionAktif(beranda, "kerjasama")) return null;
   if (!isLoading && !error && slides.length === 0) {
     return null;
   }
@@ -84,7 +99,7 @@ export default function JournalSection() {
           id="journal-title"
           className={`${styles.title} section-title section-title--terang`}
         >
-          Kerjasama Kami
+          {judulKerjasama}
         </h2>
       </div>
 

@@ -22,18 +22,39 @@
 
 .hero {
   position: relative;
-  background: #ffffff;
+  background: #f5f9fc;
 }
 
 /* Cadangan sebelum font siap / sebelum mount: tinggi hero supaya tidak ada
    pergeseran tata letak di balik veil. */
 .placeholder {
   min-height: 100svh;
-  background: #ffffff;
+  background: #f5f9fc;
 }
 
 .portal {
   font-family: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* Motif di belakang tinta huruf. --gp-caption mengikuti progres portal,
+   sehingga ornamen ikut menghilang ketika kamera masuk ke dalam huruf. */
+.portal [data-gp-pin]::before,
+.portal [data-gp-pin]::after {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+/* Opsi D: satu lengkung biru dan aksen sage pada bidang cool-white. */
+.portal [data-gp-pin]::before {
+  inset: 0;
+  background: url("/decoration/hero-arc-blue-green.webp") center / cover no-repeat;
+  opacity: var(--gp-caption, 1);
+}
+
+.portal [data-gp-pin]::after {
+  content: none;
 }
 
 /* ---- Markah bawaan GlyphPortal yang tidak dipakai ---- */
@@ -122,7 +143,8 @@
   display: block;
   width: clamp(44px, 5vw, 64px);
   overflow: hidden;
-  background: #ffffff;
+  background: transparent;
+  mix-blend-mode: multiply;
 }
 
 .brand {
@@ -300,6 +322,25 @@
 @media (max-width: 900px) {
   .front {
     padding: 0 clamp(20px, 6vw, 40px);
+  }
+}
+
+@media (max-width: 600px) {
+  /* Bangun crop lengkung khusus potret agar motif tetap berada di tepi kanan
+     dan sudut kiri-bawah tanpa menutupi tipografi atau tombol. */
+  .portal [data-gp-pin]::before {
+    background-color: #f2f6f8;
+    background-image:
+      radial-gradient(circle 430px at 205cqw 50%, transparent 0 397px, #d7e9f2 398px 430px, transparent 431px),
+      radial-gradient(circle 525px at 220cqw 50%, transparent 0 505px, #dceae2 506px 525px, transparent 526px),
+      radial-gradient(circle 220px at -25cqw 104cqh, transparent 0 180px, #abcadd 181px 210px, transparent 211px);
+    background-size: auto;
+    background-repeat: no-repeat;
+    mask-image: none;
+  }
+
+  .portal [data-gp-pin]::after {
+    content: none;
   }
 }
 

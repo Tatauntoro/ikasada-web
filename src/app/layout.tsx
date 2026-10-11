@@ -52,6 +52,17 @@ export const metadata: Metadata = {
   title: "IKASADA FIB UI - Ikatan Alumni Sastra Daerah Universitas Indonesia",
   description:
     "Wadah silaturahmi, jejaring profesional, dan dedikasi kolektif alumni Sastra Daerah Fakultas Ilmu Pengetahuan Budaya Universitas Indonesia.",
+  /*
+   * Situs sengaja tidak diindeks mesin pencari. Google baru membuang halaman
+   * dari indeks setelah crawl ulang dan melihat `noindex`, jadi crawl dibiarkan
+   * terbuka (lihat catatan di next.config.ts) supaya penanda ini terbaca.
+   */
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
 };
 
 export default function RootLayout({

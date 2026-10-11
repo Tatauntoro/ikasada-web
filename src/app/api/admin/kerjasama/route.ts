@@ -4,12 +4,12 @@ import { prisma } from "@/lib/db";
 import {
   created,
   validationError,
+  conflict,
   okPaginated,
   badRequest,
 } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
-import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul, whereDivisi } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { parsePagination } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
@@ -17,6 +17,7 @@ import { catatAudit } from "@/lib/audit";
 import { generateUniqueSlug } from "@/lib/slug";
 import { normalizeKerjasamaInput } from "@/lib/normalize-input";
 import { kerjasamaCreateSchema } from "@/lib/validations/kerjasama";
+import { gateSimpan } from "@/lib/verifikasi-konten";
 
 const SORTABLE_FIELDS = [
   "organisasi",
@@ -26,7 +27,7 @@ const SORTABLE_FIELDS = [
 ] as const;
 
 async function handleList(req: NextRequest): Promise<Response> {
-  await requireAdmin();
+  const sesi = await requireAdminAktif();
 
   const { searchParams } = req.nextUrl;
   const pagination = parsePagination(searchParams);
@@ -55,6 +56,10 @@ async function handleList(req: NextRequest): Promise<Response> {
     where.status = status as StatusKerjasama;
   }
 
+  // Pemisahan per divisi: staf hanya melihat konten divisinya (+ konten lama).
+  const scope = whereDivisi(sesi);
+  if (scope) where.OR = scope.OR;
+
   const [data, total] = await prisma.$transaction([
     prisma.kerjasama.findMany({
       where,
@@ -73,7 +78,7 @@ async function handleList(req: NextRequest): Promise<Response> {
 }
 
 async function handleCreate(req: NextRequest): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const body = await readJsonBody(req);
 
   const parsed = kerjasamaCreateSchema.safeParse(body);
@@ -82,6 +87,9 @@ async function handleCreate(req: NextRequest): Promise<Response> {
   }
 
   const data = normalizeKerjasamaInput(parsed.data);
+
+  const gate = gateSimpan(session, { statusBaru: data.status });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const kerjasama = await prisma.$transaction(async (tx) => {
     const slug = await generateUniqueSlug(data.organisasi, tx, {
@@ -93,6 +101,7 @@ async function handleCreate(req: NextRequest): Promise<Response> {
         ...data,
         slug,
         createdById: session.sub,
+        divisiId: session.divisi?.id ?? null,
       },
     });
 

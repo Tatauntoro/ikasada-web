@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import RuangAlumni from "@/components/alumni/RuangAlumni";
 import AlumniNetworkPage, {
   type TabJejaring,
 } from "@/components/alumni/AlumniNetworkPage";
 import { akunAlumniAktifHalaman } from "@/lib/halaman-alumni";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 
 export const metadata: Metadata = {
   title: "Jejaring Alumni - IKASADA FIB UI",
@@ -37,6 +39,13 @@ export default async function JejaringPage({
 }) {
   const params = await searchParams;
   const tab = TAB.find((nilai) => nilai === params.tab) ?? "incoming";
+
+  /*
+   * Mode jejaring dimatikan (`@/lib/fitur`): halaman ini termasuk fitur yang
+   * disembunyikan, jadi pengunjung dialihkan sebelum satu pun data dirender.
+   * Komponennya sengaja tidak dihapus agar bisa diaktifkan kembali.
+   */
+  if (!FITUR_JEJARING_ALUMNI) redirect("/alumni/status");
 
   await akunAlumniAktifHalaman("/alumni/jejaring");
 

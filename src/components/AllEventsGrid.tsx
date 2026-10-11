@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarBlank, MapPin } from "@phosphor-icons/react";
 import type { PublicKegiatan } from "@/lib/types";
 import { formatTanggalWIB } from "@/lib/format";
+import { keTeksBiasa } from "@/lib/rich-text";
 import { StateCrossfade } from "./motion/StateCrossfade";
 import { rekamAsalMorphDari } from "./motion/ImageMorph";
 import Pagination from "./Pagination";
@@ -177,7 +178,7 @@ export default function AllEventsGrid({
                         </span>
                       </div>
                       <p className="mb-4 text-sm leading-relaxed text-white/75 line-clamp-3 sm:text-base">
-                        {item.deskripsiSingkat}
+                        {keTeksBiasa(item.deskripsiSingkat)}
                       </p>
                       <Link
                         href={`/kegiatan/${item.slug}`}

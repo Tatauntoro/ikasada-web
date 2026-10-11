@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 /*
  * Modul ini juga mencatat pintu masuk dokumen saat ia dievaluasi, dan di sini
@@ -9,6 +9,8 @@ import { usePathname, useSearchParams } from "next/navigation";
  * route — bukan hanya saat chunk beranda kebetulan baru dimuat.
  */
 import { catatRouteAktif } from "@/lib/preloader-gate";
+
+const KUNCI_TUJUAN_GULIR = "ikasada:tujuan-gulir";
 
 /*
  * Satu `scrollIntoView` saja tidak cukup: section di beranda memuat datanya
@@ -24,6 +26,19 @@ const TOLERANSI_PX = 12;
 export function ScrollToHash() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const tujuanPopstate = useRef<string | null>(null);
+
+  useEffect(() => {
+    const catatTujuanPopstate = () => {
+      tujuanPopstate.current =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+    };
+
+    window.addEventListener("popstate", catatTujuanPopstate);
+    return () => window.removeEventListener("popstate", catatTujuanPopstate);
+  }, []);
 
   useEffect(() => {
     // Beri tahu gerbang preloader bahwa route aktif sudah berpindah.
@@ -40,13 +55,39 @@ export function ScrollToHash() {
      * Back/forward yang mendarat di hash ditangani di sini juga — selama itu
      * bukan pemulihan posisi yang sudah diurus `ScrollRestoration`.
      */
-    const hash = window.location.hash.replace("#", "");
+    const urlAktif =
+      pathname + window.location.search + window.location.hash;
+    if (tujuanPopstate.current) {
+      const kembaliKeUrl = tujuanPopstate.current === urlAktif;
+      tujuanPopstate.current = null;
+      // Posisi saat back/forward ditangani ScrollRestoration; jangan mulai
+      // gulir hash kedua yang akan bertabrakan dengan pemulihan tersebut.
+      if (kembaliKeUrl) return;
+    }
+
+    let hash = window.location.hash.replace("#", "");
+    let navigasiSectionInternal = false;
+    if (!hash && pathname === "/") {
+      try {
+        hash = window.sessionStorage.getItem(KUNCI_TUJUAN_GULIR) ?? "";
+        window.sessionStorage.removeItem(KUNCI_TUJUAN_GULIR);
+        navigasiSectionInternal = Boolean(hash);
+      } catch {
+        // Tanpa storage, navigasi beranda tetap berjalan tanpa target section.
+        delete document.documentElement.dataset.sectionNavigation;
+      }
+    }
     if (!hash) return;
 
     const mulai = performance.now();
     let frame = 0;
     let timer = 0;
     let dibatalkan = false;
+    const hapusPenandaNavigasiSection = () => {
+      if (navigasiSectionInternal) {
+        delete document.documentElement.dataset.sectionNavigation;
+      }
+    };
 
     const lepas = () => {
       window.removeEventListener("wheel", batalkan);
@@ -60,6 +101,7 @@ export function ScrollToHash() {
       if (frame) cancelAnimationFrame(frame);
       if (timer) window.clearTimeout(timer);
       lepas();
+      hapusPenandaNavigasiSection();
     };
 
     window.addEventListener("wheel", batalkan, { passive: true });
@@ -69,8 +111,11 @@ export function ScrollToHash() {
     frame = window.requestAnimationFrame(() => {
       if (dibatalkan) return;
 
-      // Guliran pertama: halus, supaya terasa seperti animasi.
-      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      // Tujuan section internal dipasang instan supaya hero tidak terlihat
+      // sebentar saat kembali dari halaman lain. Tautan hash biasa tetap halus.
+      document
+        .getElementById(hash)
+        ?.scrollIntoView({ behavior: navigasiSectionInternal ? "auto" : "smooth" });
 
       // Koreksi berikutnya instan, supaya pergeseran tata letak langsung
       // ditutup alih-alih memulai ulang animasi.
@@ -86,6 +131,7 @@ export function ScrollToHash() {
           timer = window.setTimeout(koreksi, JEDA_PENYESUAIAN_MS);
         } else {
           lepas();
+          hapusPenandaNavigasiSection();
         }
       };
 
@@ -97,6 +143,7 @@ export function ScrollToHash() {
       if (frame) cancelAnimationFrame(frame);
       if (timer) window.clearTimeout(timer);
       lepas();
+      hapusPenandaNavigasiSection();
     };
   }, [pathname, searchParams]);
 

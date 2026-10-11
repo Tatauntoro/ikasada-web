@@ -8,10 +8,12 @@ import {
   EnvelopeSimple,
   Eye,
   EyeSlash,
+  FileText,
   GraduationCap,
   Info,
   LockKey,
   ShareNetwork,
+  ShieldCheck,
   UserCircle,
   UsersThree,
   WarningCircle,
@@ -22,6 +24,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { panggilApi, type ApiError } from "@/lib/api-client";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import styles from "./alumni-auth.module.css";
 
 type AuthMode = "login" | "register";
@@ -98,7 +101,8 @@ function petakanError(error: ApiError): {
 function safeRedirect(target: string | null): string {
   if (!target || !target.startsWith("/") || target.startsWith("//")) {
     // Jaring pengaman klien; server sudah mengirim `redirectTo` sendiri.
-    return "/alumni/profil";
+    // Saat mode jejaring dimatikan, halaman profil dialihkan → pakai status.
+    return FITUR_JEJARING_ALUMNI ? "/alumni/profil" : "/alumni/status";
   }
 
   return target;
@@ -137,10 +141,13 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
     () =>
       isLogin
         ? {
-            eyebrow: "Ruang jejaring alumni",
+            eyebrow: FITUR_JEJARING_ALUMNI
+              ? "Ruang jejaring alumni"
+              : "Ruang alumni",
             title: "Selamat datang kembali.",
-            description:
-              "Masuk untuk melihat status keterbukaan, mengelola profil, dan terhubung dengan alumni.",
+            description: FITUR_JEJARING_ALUMNI
+              ? "Masuk untuk melihat status keterbukaan, mengelola profil, dan terhubung dengan alumni."
+              : "Masuk untuk menjelajahi direktori alumni dan melihat email sesama alumni.",
             formTitle: "Masuk ke akun alumni",
             formDescription: "Gunakan email dan kata sandi yang Anda daftarkan.",
             submit: "Masuk ke akun",
@@ -149,10 +156,13 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
             alternateHref: "/alumni/register",
           }
         : {
-            eyebrow: "Bergabung dengan jejaring",
+            eyebrow: FITUR_JEJARING_ALUMNI
+              ? "Bergabung dengan jejaring"
+              : "Bergabung sebagai alumni",
             title: "Satu akar, lebih banyak peluang.",
-            description:
-              "Temukan alumni, buka peluang kolaborasi, dan bangun koneksi yang relevan.",
+            description: FITUR_JEJARING_ALUMNI
+              ? "Temukan alumni, buka peluang kolaborasi, dan bangun koneksi yang relevan."
+              : "Temukan alumni dan lihat email sesama alumni di direktori.",
             formTitle: "Daftar sebagai alumni",
             formDescription: "Gunakan data yang sesuai dengan direktori alumni.",
             submit: "Kirim pendaftaran",
@@ -285,29 +295,18 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
     ? "Satu akar, lebih banyak peluang."
     : copy.title;
   const deskripsiIntro = tampilkanPanelDaftar
-    ? "Pendaftaran Anda adalah langkah pertama untuk terhubung dengan sesama alumni."
+    ? FITUR_JEJARING_ALUMNI
+      ? "Pendaftaran Anda adalah langkah pertama untuk terhubung dengan sesama alumni."
+      : "Pendaftaran Anda adalah langkah pertama untuk menjelajahi direktori alumni."
     : copy.description;
 
   return (
-    <main className={`${styles.shell} ${plusJakartaSans.className} public-page min-h-[100dvh]`}>
-      <header className={styles.topbar}>
-        <Link href="/" className={styles.brand} aria-label="IKASADA FIB UI — Beranda">
-          <Image
-            src="/logo/ikasada-logo.jpeg"
-            alt=""
-            width={1279}
-            height={1600}
-            priority
-            className={styles.brandLogo}
-          />
-        </Link>
-        <nav className={styles.topActions} aria-label="Navigasi autentikasi">
-          {!tampilkanPanelDaftar && (
-            <Link href={copy.alternateHref} className={styles.alternateTopLink}>
-              {isLogin ? "Daftar" : "Masuk"}
-            </Link>
-          )}
-        </nav>
+    <main
+      className={`${styles.shell} ${styles.shellRegister} ${plusJakartaSans.className} public-page min-h-[100dvh]`}
+    >
+      <div className={styles.registerBackdrop} aria-hidden="true" />
+      <header className={`${styles.topbar} ${styles.topbarRegister}`}>
+        <Link href="/" className={styles.registerHome}>Beranda</Link>
       </header>
 
       <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
@@ -316,8 +315,16 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
         <span aria-current="page">{tampilkanPanelDaftar ? "Pendaftaran" : isLogin ? "Masuk" : "Daftar"}</span>
       </nav>
 
-      <div className={`${styles.layout} ${tampilkanPanelDaftar ? styles.layoutSuccess : ""}`}>
-        <section className={styles.intro} aria-labelledby="auth-title">
+      <div
+        className={`${styles.layout} ${styles.layoutRegister} ${tampilkanPanelDaftar ? styles.layoutSuccess : ""}`}
+      >
+        <section
+          className={`${styles.intro} ${styles.introRegister}`}
+          aria-labelledby="auth-title"
+        >
+          <Link href="/" className={styles.registerIntroBrand} aria-label="IKASADA FIB UI — Beranda">
+            <Image src="/logo/ikasada-logo.jpeg" alt="" width={1279} height={1600} priority />
+          </Link>
           <p className={styles.eyebrow}>
             {tampilkanPanelDaftar ? "Pendaftaran alumni" : copy.eyebrow}
           </p>
@@ -332,15 +339,25 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
             <ul className={styles.benefits}>
               <li>
                 <UsersThree weight="regular" aria-hidden="true" />
-                <span>Lihat status alumni</span>
+                <span>
+                  {FITUR_JEJARING_ALUMNI ? "Lihat status alumni" : "Lihat direktori alumni"}
+                </span>
               </li>
               <li>
                 <UserCircle weight="regular" aria-hidden="true" />
-                <span>Atur profil Anda</span>
+                <span>
+                  {FITUR_JEJARING_ALUMNI ? "Atur profil Anda" : "Lihat email alumni"}
+                </span>
               </li>
               <li>
                 <ShareNetwork weight="regular" aria-hidden="true" />
-                <span>Kelola koneksi</span>
+                <span>
+                  {FITUR_JEJARING_ALUMNI ? "Kelola koneksi" : "Jelajahi data alumni"}
+                </span>
+              </li>
+              <li>
+                <FileText weight="regular" aria-hidden="true" />
+                <span>Lihat dan unduh arsip</span>
               </li>
             </ul>
           ) : (
@@ -348,7 +365,10 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
           )}
         </section>
 
-        <section className={`${styles.formPanel} augen-hairline`} aria-labelledby="form-title">
+        <section
+          className={`${styles.formPanel} ${styles.formPanelRegister} augen-hairline`}
+          aria-labelledby="form-title"
+        >
           {tampilkanPanelDaftar ? (
             <PendaftaranBerhasil email={email.trim()} />
           ) : (
@@ -498,7 +518,9 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
                   aria-invalid={Boolean(fieldErrors.consentData)}
                 />
                 <span>
-                  Saya menyetujui penggunaan data untuk proses verifikasi dan jejaring alumni IKASADA.
+                  {FITUR_JEJARING_ALUMNI
+                    ? "Saya menyetujui penggunaan data untuk proses verifikasi dan jejaring alumni IKASADA."
+                    : "Saya menyetujui penggunaan data untuk proses verifikasi akun alumni IKASADA."}
                 </span>
               </label>
             )}
@@ -522,7 +544,11 @@ export default function AlumniAuthPage({ mode }: AlumniAuthPageProps) {
               </div>
             )}
 
-            <button type="submit" className={styles.submit} disabled={submitState === "loading" || submitState === "success"}>
+            <button
+              type="submit"
+              className={`${styles.submit} ${styles.submitRegister}`}
+              disabled={submitState === "loading" || submitState === "success"}
+            >
               <span>
                 {submitState === "loading" ? "Memproses..." : copy.submit}
               </span>
@@ -653,7 +679,9 @@ function AlurPendaftaran({ selesai }: { selesai: boolean }) {
         return (
           <li key={langkahItem.judul} className={styles.step} data-state={status}>
             <span className={styles.stepMarker} aria-hidden="true">
-              {status === "complete" ? <Check weight="bold" /> : index + 1}
+              {selesai ? (status === "complete" ? <Check weight="bold" /> : index + 1) :
+                index === 0 ? <FileText weight="regular" /> :
+                index === 1 ? <ShieldCheck weight="regular" /> : <Check weight="bold" />}
             </span>
             <div>
               <h2>{langkahItem.judul}</h2>
@@ -695,19 +723,22 @@ function PendaftaranBerhasil({ email }: { email: string }) {
               <span>Lihat Direktori Alumni, kegiatan, dokumen, dan informasi lain yang tersedia.</span>
             </div>
           </li>
-          <li>
-            <div>
-              <strong>Belum bisa mengajukan koneksi</strong>
-              <span>Permintaan hubungan dengan alumni lain tersedia setelah akun disetujui.</span>
-            </div>
-          </li>
+          {FITUR_JEJARING_ALUMNI && (
+            <li>
+              <div>
+                <strong>Belum bisa mengajukan koneksi</strong>
+                <span>Permintaan hubungan dengan alumni lain tersedia setelah akun disetujui.</span>
+              </div>
+            </li>
+          )}
         </ol>
       </div>
       <div className={styles.pendingCallout}>
         <Info weight="regular" aria-hidden="true" />
         <p>
-          Selama menunggu, Anda bisa menjelajahi website IKASADA. Pengaturan
-          profil dan permintaan koneksi aktif setelah akun diverifikasi.
+          {FITUR_JEJARING_ALUMNI
+            ? "Selama menunggu, Anda bisa menjelajahi website IKASADA. Pengaturan profil dan permintaan koneksi aktif setelah akun diverifikasi."
+            : "Selama menunggu, Anda bisa menjelajahi website IKASADA. Akses melihat email alumni lain di direktori aktif setelah akun diverifikasi."}
         </p>
       </div>
       <div className={styles.successActions}>

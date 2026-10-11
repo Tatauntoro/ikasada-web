@@ -145,6 +145,13 @@ export type PublicAlumniDirektoriAktif = PublicAlumni & {
    * menawarkan tombol Hubungkan.
    */
   bisaDihubungi: boolean;
+  /**
+   * Email direktori. Hanya diisi saat mode jejaring dimatikan
+   * (`@/lib/fitur` → `FITUR_JEJARING_ALUMNI === false`): dalam mode itu kontak
+   * yang ditampilkan di direktori memang hanya email. Saat jejaring aktif, key
+   * ini tidak ada sama sekali.
+   */
+  emailKontak?: string | null;
 };
 
 export type PublicAlumniDirektori =

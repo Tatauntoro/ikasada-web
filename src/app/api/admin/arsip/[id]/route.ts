@@ -1,14 +1,20 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { ok, badRequest, notFound, validationError } from "@/lib/response";
+import { ok, badRequest, conflict, notFound, validationError } from "@/lib/response";
 import { apiHandler, readJsonBody } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { catatAudit, diffPerubahan } from "@/lib/audit";
 import { generateUniqueSlug, generateSlug } from "@/lib/slug";
 import { normalizeArsipInput, normalizeMediaArsip } from "@/lib/normalize-input";
 import { arsipUpdateSchema } from "@/lib/validations/arsip";
+import {
+  gateSimpan,
+  kontenBerubah,
+  mediaBerubah,
+  RESET_VERIFIKASI,
+} from "@/lib/verifikasi-konten";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -43,7 +49,7 @@ async function handleUpdate(
   req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const { id } = await params;
 
   const existing = await getArsipOr404(id);
@@ -59,6 +65,15 @@ async function handleUpdate(
 
   const data = normalizeArsipInput(parsed.data);
   const media = normalizeMediaArsip(parsed.data.media);
+
+  const gate = gateSimpan(session, {
+    statusBaru: data.status,
+    verifikasiLama: existing.verifikasi,
+    kontenBerubah:
+      kontenBerubah(existing, data) ||
+      mediaBerubah(existing.media ?? [], media),
+  });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const jenis = await prisma.jenisArsip.findFirst({
     where: { id: data.jenisArsipId, deletedAt: null },
@@ -83,7 +98,7 @@ async function handleUpdate(
 
     const result = await tx.arsip.update({
       where: { id },
-      data: { ...data, slug },
+      data: { ...data, slug, ...(gate.reset ? RESET_VERIFIKASI : {}) },
     });
 
     /*

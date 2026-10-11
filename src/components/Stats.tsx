@@ -8,6 +8,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import type { PublicStatistik } from "@/lib/types";
 import { reportAssetError } from "@/lib/asset-error";
 import WorldSebaranMap from "./WorldSebaranMap";
+import { useBerandaConfig } from "@/lib/beranda-client";
 import styles from "./Stats.module.css";
 
 const EASE = [0.22, 0.61, 0.36, 1] as const;
@@ -87,6 +88,7 @@ function formatTanggalMono(iso: string): string {
  */
 export default function Stats() {
   const [statistik, setStatistik] = useState<PublicStatistik | null>(null);
+  const beranda = useBerandaConfig();
   const [isLoading, setIsLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const barisAngkaRef = useRef<HTMLDivElement>(null);
@@ -120,12 +122,12 @@ export default function Stats() {
   }, [isLoading]);
 
   useEffect(() => {
-    async function fetchStatistik() {
+    async function ambil() {
       try {
-        const response = await fetch("/api/public/statistik");
-        const result = await response.json();
-        if (response.ok) {
-          setStatistik(result.data);
+        const res = await fetch("/api/public/statistik");
+        const hasil = await res.json();
+        if (res.ok) {
+          setStatistik(hasil.data);
         } else {
           setFailed(true);
         }
@@ -136,7 +138,7 @@ export default function Stats() {
         setIsLoading(false);
       }
     }
-    fetchStatistik();
+    ambil();
   }, []);
 
   if (isLoading) {
@@ -186,147 +188,212 @@ export default function Stats() {
     { label: "Rentang angkatan", value: decadeRange, animated: false },
   ];
 
+  const sek = (kunci: string) =>
+    beranda?.sections.find((s) => s.kunci === kunci);
+  const aktif = (kunci: string) => sek(kunci)?.aktif ?? true;
+  const teks = (nilai: string | null | undefined, fallback: string) =>
+    nilai && nilai.trim() ? nilai : fallback;
+
+  // Titik asal busur (almamater) dari Kelola Beranda.
+  const asalSebaran = (() => {
+    const konfig = sek("sebaran-geografis")?.konfigurasi as
+      | { asal?: { nama?: unknown; lat?: unknown; lng?: unknown } }
+      | null
+      | undefined;
+    const a = konfig?.asal;
+    if (
+      a &&
+      typeof a.nama === "string" &&
+      a.nama.trim() &&
+      typeof a.lat === "number" &&
+      typeof a.lng === "number"
+    ) {
+      return { nama: a.nama.trim(), lat: a.lat, lng: a.lng };
+    }
+    return undefined;
+  })();
+
   return (
     <section id="statistik" className={sectionClassName}>
       <div className={styles.shell}>
-        {/* Header */}
-        <m.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className={styles.intro}
-        >
-          <div>
-            <span className={`${styles.eyebrow} section-label`}>Statistik</span>
-            <h2 className={`${styles.heading} section-title`}>Sejauh ini</h2>
-          </div>
-          <p className={styles.introCopy}>
-            Jejak alumni kami yang terus bertambah, dan apa yang sedang kami
-            siapkan.
-          </p>
-        </m.div>
-
-        {/* Angka ringkas — satu baris, bukan kartu setinggi layar */}
-        <m.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-          ref={barisAngkaRef}
-          className={styles.figureGrid}
-        >
-          {figures.map((figure) => (
-            <div key={figure.label} className={styles.figureCard}>
-              <div className={styles.figureValue}>
-                {figure.animated ? (
-                  <AnimatedNumber
-                    value={figure.value as number}
-                    aktif={angkaTerlihat}
-                  />
-                ) : (
-                  figure.value
-                )}
+        {aktif("statistik") && (
+          <>
+            {/* Header */}
+            <m.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              className={styles.intro}
+            >
+              <div>
+                <span className={`${styles.eyebrow} section-label`}>
+                  {teks(sek("statistik")?.eyebrow, "Statistik")}
+                </span>
+                <h2 className={`${styles.heading} section-title`}>
+                  {teks(sek("statistik")?.judul, "Sejauh ini")}
+                </h2>
               </div>
-              <div className={styles.figureLabel}>{figure.label}</div>
-            </div>
-          ))}
-        </m.div>
+              <p className={styles.introCopy}>
+                {teks(
+                  sek("statistik")?.deskripsi,
+                  "Jejak alumni kami yang terus bertambah, dan apa yang sedang kami siapkan."
+                )}
+              </p>
+            </m.div>
+
+            {/* Angka ringkas — satu baris, bukan kartu setinggi layar */}
+            <m.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
+              ref={barisAngkaRef}
+              className={styles.figureGrid}
+            >
+              {figures.map((figure) => (
+                <div key={figure.label} className={styles.figureCard}>
+                  <div className={styles.figureValue}>
+                    {figure.animated ? (
+                      <AnimatedNumber
+                        value={figure.value as number}
+                        aktif={angkaTerlihat}
+                      />
+                    ) : (
+                      figure.value
+                    )}
+                  </div>
+                  <div className={styles.figureLabel}>{figure.label}</div>
+                </div>
+              ))}
+            </m.div>
+          </>
+        )}
       </div>
 
-      <m.div
-        className={styles.geoSection}
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
-      >
-        <div className={styles.shell}>
-          {/* Peta sebaran */}
-          <WorldSebaranMap />
-        </div>
-      </m.div>
+      {aktif("sebaran-geografis") && (
+        <m.div
+          className={styles.geoSection}
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+        >
+          <div className={styles.shell}>
+            {/* Peta sebaran */}
+            <WorldSebaranMap
+              titik={beranda?.sebaran}
+              asal={asalSebaran}
+              eyebrow={sek("sebaran-geografis")?.eyebrow}
+              judul={sek("sebaran-geografis")?.judul}
+              deskripsi={sek("sebaran-geografis")?.deskripsi}
+            />
+          </div>
+        </m.div>
+      )}
 
-      <m.div
-        className={styles.detailsSection}
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-      >
-        <div className={styles.shell}>
-          <div className={styles.details}>
-            {/* Sebaran angkatan */}
-            <div>
-              <h3 className={styles.detailTitle}>Sebaran angkatan</h3>
-              {angkatanPerDekade.length === 0 ? (
-                <p className={styles.detailEmpty}>Data angkatan belum tersedia.</p>
-              ) : (
-                <table className={styles.tabel}>
-                  <caption className="sr-only">
-                    Sebaran alumni per dekade angkatan
-                  </caption>
-                  <tbody>
-                    {angkatanPerDekade.map((d) => (
-                      <tr key={d.dekade}>
-                        <th scope="row">{d.dekade}-an</th>
-                        <td>{d.jumlah}</td>
-                      </tr>
-                    ))}
-                    <tr className={styles.tabelTotal}>
-                      <th scope="row">Total</th>
-                      <td>{statistik.totalAlumni}</td>
-                    </tr>
-                  </tbody>
-                </table>
+      {(aktif("sebaran-angkatan") || aktif("agenda")) && (
+        <m.div
+          className={styles.detailsSection}
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
+        >
+          <div className={styles.shell}>
+            <div className={styles.details}>
+              {/* Sebaran angkatan */}
+              {aktif("sebaran-angkatan") && (
+                <div>
+                  <h3 className={styles.detailTitle}>
+                    {teks(sek("sebaran-angkatan")?.judul, "Sebaran angkatan")}
+                  </h3>
+                  {angkatanPerDekade.length === 0 ? (
+                    <p className={styles.detailEmpty}>
+                      Data angkatan belum tersedia.
+                    </p>
+                  ) : (
+                    <table className={styles.tabel}>
+                      <caption className="sr-only">
+                        Sebaran alumni per dekade angkatan
+                      </caption>
+                      <tbody>
+                        {angkatanPerDekade.map((d) => (
+                          <tr key={d.dekade}>
+                            <th scope="row">{d.dekade}-an</th>
+                            <td>{d.jumlah}</td>
+                          </tr>
+                        ))}
+                        <tr className={styles.tabelTotal}>
+                          <th scope="row">Total</th>
+                          <td>{statistik.totalAlumni}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {/* Agenda */}
+              {aktif("agenda") && (
+                <div className={styles.agenda}>
+                  <div>
+                    <h3 className={styles.detailTitle}>Terakhir</h3>
+                    {statistik.kegiatanTerakhir ? (
+                      <Link
+                        href={`/kegiatan/${statistik.kegiatanTerakhir.slug}`}
+                        className={styles.agendaLink}
+                      >
+                        <div className={styles.agendaDate}>
+                          {formatTanggalMono(
+                            statistik.kegiatanTerakhir.tanggalMulai
+                          )}
+                        </div>
+                        <div className={styles.agendaJudul}>
+                          {statistik.kegiatanTerakhir.judul}
+                        </div>
+                      </Link>
+                    ) : (
+                      <p className={styles.detailEmpty}>Belum ada kegiatan.</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className={styles.detailTitle}>Akan datang</h3>
+                    {statistik.kegiatanMendatang.length === 0 ? (
+                      <p className={styles.detailEmpty}>
+                        Belum ada agenda terjadwal.
+                      </p>
+                    ) : (
+                      <ul className={styles.agendaList}>
+                        {statistik.kegiatanMendatang.map((k) => (
+                          <li key={k.id}>
+                            <Link
+                              href={`/kegiatan/${k.slug}`}
+                              className={styles.agendaItem}
+                            >
+                              <span className={styles.agendaDate}>
+                                {formatTanggalMono(k.tanggalMulai)}
+                              </span>
+                              <span className={styles.agendaJudul}>
+                                {k.judul}
+                              </span>
+                              <ArrowRight
+                                weight="bold"
+                                className={styles.agendaArrow}
+                              />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-
-            {/* Agenda */}
-            <div className={styles.agenda}>
-              <div>
-                <h3 className={styles.detailTitle}>Terakhir</h3>
-                {statistik.kegiatanTerakhir ? (
-                  <Link
-                    href={`/kegiatan/${statistik.kegiatanTerakhir.slug}`}
-                    className={styles.agendaLink}
-                  >
-                    <div className={styles.agendaDate}>
-                      {formatTanggalMono(statistik.kegiatanTerakhir.tanggalMulai)}
-                    </div>
-                    <div className={styles.agendaJudul}>
-                      {statistik.kegiatanTerakhir.judul}
-                    </div>
-                  </Link>
-                ) : (
-                  <p className={styles.detailEmpty}>Belum ada kegiatan.</p>
-                )}
-              </div>
-
-              <div>
-                <h3 className={styles.detailTitle}>Akan datang</h3>
-                {statistik.kegiatanMendatang.length === 0 ? (
-                  <p className={styles.detailEmpty}>Belum ada agenda terjadwal.</p>
-                ) : (
-                  <ul className={styles.agendaList}>
-                    {statistik.kegiatanMendatang.map((k) => (
-                      <li key={k.id}>
-                        <Link href={`/kegiatan/${k.slug}`} className={styles.agendaItem}>
-                          <span className={styles.agendaDate}>
-                            {formatTanggalMono(k.tanggalMulai)}
-                          </span>
-                          <span className={styles.agendaJudul}>{k.judul}</span>
-                          <ArrowRight weight="bold" className={styles.agendaArrow} />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
           </div>
-        </div>
-      </m.div>
+        </m.div>
+      )}
     </section>
   );
 }

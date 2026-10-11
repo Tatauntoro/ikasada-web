@@ -10,6 +10,7 @@ import {
   UploadSimple,
 } from "@phosphor-icons/react";
 import { formatUkuranBerkas } from "@/lib/format";
+import { ChipBerubah, KELAS_FIELD_BERUBAH } from "./ChipBerubah";
 
 /**
  * Metadata berkas yang disimpan di form. Sengaja **tanpa URL**: berkas arsip
@@ -42,6 +43,8 @@ export type BerkasUploadProps = {
   onChange: (berkas: BerkasTerunggah | null) => void;
   error?: string;
   hint?: string;
+  /** Nilainya berbeda dari versi terverifikasi (mode tinjau). */
+  berubah?: boolean;
 };
 
 export function BerkasUpload({
@@ -50,6 +53,7 @@ export function BerkasUpload({
   onChange,
   error,
   hint,
+  berubah = false,
 }: BerkasUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -111,12 +115,15 @@ export function BerkasUpload({
       : FileDoc;
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${berubah ? KELAS_FIELD_BERUBAH : ""}`}>
       <label
         htmlFor={inputId}
-        className="block text-sm font-semibold text-[#0f1012]"
+        className={`flex items-center gap-2 text-sm font-semibold ${
+          berubah ? "text-red-700" : "text-[#0f1012]"
+        }`}
       >
         {label}
+        {berubah && <ChipBerubah />}
       </label>
 
       {value ? (

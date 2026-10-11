@@ -8,6 +8,11 @@ import type { PublicArsip } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
 import { reportAssetError } from "@/lib/asset-error";
 import { ArsipRow } from "./ArsipDirectory";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 
 /** Berapa dokumen terbaru yang dipratinjau di beranda. */
 const TAMPIL = 4;
@@ -31,6 +36,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
  * dokumen baru tidak muncul sampai build berikutnya.
  */
 export default function ArsipSection() {
+  const beranda = useBerandaConfig();
   const [dokumen, setDokumen] = useState<PublicArsip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,7 +62,16 @@ export default function ArsipSection() {
     fetchData();
   }, [fetchData]);
 
-  // Tidak ada dokumen terbit: section tidak perlu tampil kosong.
+  const eyebrowArsip = teksSection(beranda, "arsip", "eyebrow", "Arsip");
+  const judulArsip = teksSection(
+    beranda,
+    "arsip",
+    "judul",
+    "Dokumen & Laporan."
+  );
+
+  // Section dimatikan atau tidak ada dokumen terbit: jangan tampil kosong.
+  if (!sectionAktif(beranda, "arsip")) return null;
   if (!isLoading && dokumen.length === 0) {
     return null;
   }
@@ -69,10 +84,10 @@ export default function ArsipSection() {
       <div className="relative z-10 mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-10">
         <div className="mb-16">
           <div className="max-w-3xl">
-            <span className="reveal-item block section-label">Arsip</span>
-            <h2 className="reveal-item mt-4 section-title">
-              Dokumen &amp; Laporan.
-            </h2>
+            <span className="reveal-item block section-label">
+              {eyebrowArsip}
+            </span>
+            <h2 className="reveal-item mt-4 section-title">{judulArsip}</h2>
           </div>
         </div>
 

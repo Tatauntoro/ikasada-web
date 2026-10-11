@@ -1,6 +1,10 @@
 import { AksiAudit, Prisma } from "@/generated/prisma/client";
+import { RoleAdmin } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import { INCLUDE_KONEKSI } from "@/lib/connection";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+import { boleh, MODUL_INBOX_PER_TIPE } from "@/lib/permission";
+import { bolehLihatSemuaDivisi, type AdminSesi } from "@/lib/sesi-admin";
 
 /**
  * Notifikasi admin (inbox) — sumber tunggal feed.
@@ -36,11 +40,31 @@ export const AKSI_NOTIFIKASI = [
   "CONNECTION_DECLINE",
   "CONNECTION_CANCEL",
   "CONNECTION_REVOKE",
+  "KONTEN_AJUKAN",
+  "KONTEN_VERIFIKASI",
+  "KONTEN_TOLAK",
+  "DIVISI_CREATE",
+  "DIVISI_UPDATE",
+  "DIVISI_DELETE",
+  "ADMIN_CREATE",
+  "ADMIN_UPDATE",
 ] as const satisfies readonly AksiAudit[];
 
 export type AksiNotifikasi = (typeof AKSI_NOTIFIKASI)[number];
 
-export type TipeNotifikasi = "PENDAFTARAN" | "KONEKSI" | "AKUN";
+/**
+ * Aksi yang benar-benar dimunculkan di feed Inbox.
+ *
+ * Saat mode jejaring dimatikan (`@/lib/fitur`), seluruh `CONNECTION_*` disaring
+ * keluar: feed, badge belum-dibaca, dan filter "Aktivitas koneksi" tidak lagi
+ * memuat aktivitas koneksi. Daftar aslinya (`AKSI_NOTIFIKASI`) tetap utuh
+ * supaya bisa diaktifkan kembali tanpa menyunting kode.
+ */
+const AKSI_AKTIF: readonly AksiNotifikasi[] = FITUR_JEJARING_ALUMNI
+  ? AKSI_NOTIFIKASI
+  : AKSI_NOTIFIKASI.filter((aksi) => !aksi.startsWith("CONNECTION_"));
+
+export type TipeNotifikasi = "PENDAFTARAN" | "KONEKSI" | "AKUN" | "KONTEN" | "ADMIN";
 
 export type ItemNotifikasi = {
   /** id baris `AuditLog`. */
@@ -63,13 +87,23 @@ const JUDUL: Record<AksiNotifikasi, string> = {
   CONNECTION_DECLINE: "Permintaan koneksi ditolak",
   CONNECTION_CANCEL: "Permintaan koneksi dibatalkan",
   CONNECTION_REVOKE: "Koneksi diputus",
+  KONTEN_AJUKAN: "Konten menunggu verifikasi",
+  KONTEN_VERIFIKASI: "Konten diverifikasi",
+  KONTEN_TOLAK: "Verifikasi konten ditolak",
+  DIVISI_CREATE: "Divisi baru",
+  DIVISI_UPDATE: "Divisi diubah",
+  DIVISI_DELETE: "Divisi dihapus",
+  ADMIN_CREATE: "Akun admin baru",
+  ADMIN_UPDATE: "Akun admin diubah",
 };
 
 const AUDIT_SELECT = {
   id: true,
   aksi: true,
+  entitas: true,
   entitasId: true,
   createdAt: true,
+  admin: { select: { nama: true } },
   alumniAccount: {
     select: {
       namaLengkapSaatDaftar: true,
@@ -88,6 +122,56 @@ function namaAkunAudit(baris: BarisAudit): string {
   return akun.alumni?.namaLengkap ?? akun.namaLengkapSaatDaftar;
 }
 
+/** Catatan penolakan per konten (dipakai notifikasi `KONTEN_TOLAK`). */
+async function ambilCatatanTolak(
+  rows: BarisAudit[]
+): Promise<Map<string, string>> {
+  const per: Record<string, string[]> = {
+    Kegiatan: [],
+    Berita: [],
+    Arsip: [],
+    Kerjasama: [],
+  };
+  for (const r of rows) {
+    if (r.aksi === "KONTEN_TOLAK" && per[r.entitas]) {
+      per[r.entitas].push(r.entitasId);
+    }
+  }
+
+  const map = new Map<string, string>();
+  const [kegiatan, berita, arsip, kerjasama] = await Promise.all([
+    per.Kegiatan.length > 0
+      ? prisma.kegiatan.findMany({
+          where: { id: { in: per.Kegiatan } },
+          select: { id: true, catatanVerifikasi: true },
+        })
+      : [],
+    per.Berita.length > 0
+      ? prisma.berita.findMany({
+          where: { id: { in: per.Berita } },
+          select: { id: true, catatanVerifikasi: true },
+        })
+      : [],
+    per.Arsip.length > 0
+      ? prisma.arsip.findMany({
+          where: { id: { in: per.Arsip } },
+          select: { id: true, catatanVerifikasi: true },
+        })
+      : [],
+    per.Kerjasama.length > 0
+      ? prisma.kerjasama.findMany({
+          where: { id: { in: per.Kerjasama } },
+          select: { id: true, catatanVerifikasi: true },
+        })
+      : [],
+  ]);
+
+  for (const x of [...kegiatan, ...berita, ...arsip, ...kerjasama]) {
+    if (x.catatanVerifikasi) map.set(x.id, x.catatanVerifikasi);
+  }
+  return map;
+}
+
 /**
  * Susun teks tiap jenis notifikasi. Untuk koneksi, nama pengirim/penerima
  * diambil dari record `Connection` (sumber kebenaran siapa berperan apa),
@@ -96,8 +180,10 @@ function namaAkunAudit(baris: BarisAudit): string {
 function keItem(
   baris: BarisAudit,
   koneksi: KoneksiRingkas | null,
+  namaTarget: string | null,
   batas: Date | null,
-  dibacaIndividu: Set<string>
+  dibacaIndividu: Set<string>,
+  catatanTolak: string | null
 ): ItemNotifikasi {
   const baru = !dibacaIndividu.has(baris.id) && (batas === null || baris.createdAt > batas);
 
@@ -130,6 +216,67 @@ function keItem(
         ? `${nama} (${email}) meminta reset kata sandi. Buka verifikasi akun, reset, lalu sampaikan kata sandi baru lewat kanal resmi.`
         : `${nama} meminta reset kata sandi.`,
       href: "/admin/alumni-accounts",
+      createdAt: baris.createdAt.toISOString(),
+      baru,
+    };
+  }
+
+  if (
+    baris.aksi === "KONTEN_AJUKAN" ||
+    baris.aksi === "KONTEN_VERIFIKASI" ||
+    baris.aksi === "KONTEN_TOLAK"
+  ) {
+    const namaAdmin = baris.admin?.nama ?? "Pengurus";
+    const labelEntitas = baris.entitas.toLowerCase();
+    const pesan =
+      baris.aksi === "KONTEN_AJUKAN"
+        ? `${namaAdmin} mengajukan ${labelEntitas} untuk diverifikasi.`
+        : baris.aksi === "KONTEN_VERIFIKASI"
+          ? `${namaAdmin} memverifikasi ${labelEntitas}.`
+          : `${namaAdmin} menolak verifikasi ${labelEntitas}.${
+              catatanTolak ? ` Alasan: ${catatanTolak}` : ""
+            }`;
+
+    return {
+      id: baris.id,
+      tipe: "KONTEN",
+      aksi: baris.aksi,
+      judul: JUDUL[baris.aksi],
+      pesan,
+      // Hanya "menunggu verifikasi" yang butuh tindak lanjut.
+      href: baris.aksi === "KONTEN_AJUKAN" ? "/admin/verifikasi" : null,
+      createdAt: baris.createdAt.toISOString(),
+      baru,
+    };
+  }
+
+  if (
+    baris.aksi === "DIVISI_CREATE" ||
+    baris.aksi === "DIVISI_UPDATE" ||
+    baris.aksi === "DIVISI_DELETE" ||
+    baris.aksi === "ADMIN_CREATE" ||
+    baris.aksi === "ADMIN_UPDATE"
+  ) {
+    const namaAdmin = baris.admin?.nama ?? "Pengurus";
+    const target = namaTarget ?? baris.entitas;
+    const pesan =
+      baris.aksi === "DIVISI_CREATE"
+        ? `${namaAdmin} menambahkan divisi ${target}.`
+        : baris.aksi === "DIVISI_UPDATE"
+          ? `${namaAdmin} mengubah divisi ${target}.`
+          : baris.aksi === "DIVISI_DELETE"
+            ? `${namaAdmin} menghapus divisi ${target}.`
+            : baris.aksi === "ADMIN_CREATE"
+              ? `${namaAdmin} membuat akun admin ${target}.`
+              : `${namaAdmin} mengubah akun admin ${target}.`;
+
+    return {
+      id: baris.id,
+      tipe: "ADMIN",
+      aksi: baris.aksi,
+      judul: JUDUL[baris.aksi],
+      pesan,
+      href: "/admin/admin-users",
       createdAt: baris.createdAt.toISOString(),
       baru,
     };
@@ -195,14 +342,146 @@ type KoneksiRingkas = {
 function aksiUntukTipe(tipe?: TipeNotifikasi): AksiAudit[] {
   if (tipe === "PENDAFTARAN") return ["ALUMNI_REGISTER"];
   if (tipe === "AKUN") return ["ALUMNI_RESET_PASSWORD_REQUEST"];
-  if (tipe === "KONEKSI") {
-    return AKSI_NOTIFIKASI.filter((aksi) => aksi.startsWith("CONNECTION_"));
+  if (tipe === "KONTEN") {
+    return ["KONTEN_AJUKAN", "KONTEN_VERIFIKASI", "KONTEN_TOLAK"];
   }
-  return [...AKSI_NOTIFIKASI];
+  if (tipe === "ADMIN") {
+    return [
+      "DIVISI_CREATE",
+      "DIVISI_UPDATE",
+      "DIVISI_DELETE",
+      "ADMIN_CREATE",
+      "ADMIN_UPDATE",
+    ];
+  }
+  if (tipe === "KONEKSI") {
+    /*
+     * Saat mode jejaring mati, `AKSI_AKTIF` tidak memuat `CONNECTION_*`,
+     * sehingga filter ini mengembalikan daftar kosong — dan `in: []` tidak
+     * mencocokkan baris apa pun.
+     */
+    return AKSI_AKTIF.filter((aksi) => aksi.startsWith("CONNECTION_"));
+  }
+  return [...AKSI_AKTIF];
 }
 
-function whereNotifikasi(tipe?: TipeNotifikasi): Prisma.AuditLogWhereInput {
-  return { aksi: { in: aksiUntukTipe(tipe) } };
+/** Tipe notifikasi dari satu aksi audit. */
+function tipeDariAksi(aksi: string): TipeNotifikasi {
+  if (aksi === "ALUMNI_REGISTER") return "PENDAFTARAN";
+  if (aksi === "ALUMNI_RESET_PASSWORD_REQUEST") return "AKUN";
+  if (aksi.startsWith("CONNECTION_")) return "KONEKSI";
+  if (aksi.startsWith("KONTEN_")) return "KONTEN";
+  return "ADMIN";
+}
+
+/**
+ * Tipe notifikasi yang boleh dilihat admin ini, dari izin modul Inbox
+ * (dipecah per kategori). Superadmin melihat semuanya.
+ */
+export function tipeNotifikasiDiizinkan(sesi: AdminSesi): TipeNotifikasi[] {
+  const semua: TipeNotifikasi[] = ["PENDAFTARAN", "AKUN", "KONTEN", "ADMIN"];
+  if (sesi.role === RoleAdmin.SUPERADMIN) return semua;
+  return semua.filter((t) =>
+    boleh(sesi.permissions, MODUL_INBOX_PER_TIPE[t], "lihat")
+  );
+}
+
+/** Aksi audit untuk sekumpulan tipe yang diizinkan. */
+function aksiDariTipe(tipeList: TipeNotifikasi[]): AksiAudit[] {
+  return AKSI_AKTIF.filter((aksi) => tipeList.includes(tipeDariAksi(aksi)));
+}
+
+/**
+ * Fragmen `where` untuk notifikasi verifikasi konten, dibatasi ke divisi admin.
+ *
+ * `null` berarti tidak dibatasi (superadmin / lintas divisi / tanpa divisi).
+ * Selain itu, hanya konten yang **diajukan divisi ini** atau **dimiliki divisi
+ * ini** yang terlihat — jadi divisi A tidak melihat riwayat verifikasi divisi B.
+ * Konten dikenali lewat `entitasId` baris audit (id konten unik lintas entitas).
+ */
+async function kontenTerlihatWhere(
+  sesi: AdminSesi
+): Promise<Prisma.AuditLogWhereInput | null> {
+  if (bolehLihatSemuaDivisi(sesi)) return null;
+  const divisiId = sesi.divisi?.id;
+  if (!divisiId) return null;
+
+  const ids = new Set<string>();
+
+  // Konten yang diajukan oleh admin divisi ini (termasuk konten lama tanpa
+  // pemilik) — ini yang membuat "divisi A melihat notif dirinya sendiri".
+  const diajukan = await prisma.auditLog.findMany({
+    where: { aksi: "KONTEN_AJUKAN", admin: { divisiId } },
+    select: { entitasId: true },
+  });
+  for (const a of diajukan) ids.add(a.entitasId);
+
+  // Konten yang pemiliknya divisi ini.
+  const [kegiatan, berita, arsip, kerjasama] = await Promise.all([
+    prisma.kegiatan.findMany({ where: { divisiId }, select: { id: true } }),
+    prisma.berita.findMany({ where: { divisiId }, select: { id: true } }),
+    prisma.arsip.findMany({ where: { divisiId }, select: { id: true } }),
+    prisma.kerjasama.findMany({ where: { divisiId }, select: { id: true } }),
+  ]);
+  for (const r of [...kegiatan, ...berita, ...arsip, ...kerjasama]) {
+    ids.add(r.id);
+  }
+
+  return { entitasId: { in: [...ids] } };
+}
+
+async function whereNotifikasi(
+  sesi: AdminSesi,
+  tipe?: TipeNotifikasi,
+  tipeDiizinkan?: TipeNotifikasi[]
+): Promise<Prisma.AuditLogWhereInput> {
+  const aksi = tipe
+    ? aksiUntukTipe(tipe)
+    : tipeDiizinkan
+      ? aksiDariTipe(tipeDiizinkan)
+      : aksiUntukTipe();
+
+  const konten = aksi.filter((a) => a.startsWith("KONTEN_"));
+  const lain = aksi.filter((a) => !a.startsWith("KONTEN_"));
+
+  const klausa: Prisma.AuditLogWhereInput[] = [];
+  if (lain.length > 0) {
+    klausa.push({ aksi: { in: lain } });
+  }
+  if (konten.length > 0) {
+    const scopeKonten = await kontenTerlihatWhere(sesi);
+    const divisiId = sesi.divisi?.id;
+
+    if (!scopeKonten) {
+      klausa.push({ aksi: { in: konten } });
+    } else {
+      /*
+       * Notifikasi konten dipecah:
+       * - **Ajuan** hanya yang diajukan divisi ini — supaya divisi A tidak
+       *   melihat ajuan divisi B, termasuk saat keduanya pernah mengajukan
+       *   konten yang sama.
+       * - **Keputusan verifikator** (verifikasi/tolak) tetap terlihat selama
+       *   kontennya milik/diajukan divisi ini.
+       */
+      const ajukan = konten.filter((a) => a === "KONTEN_AJUKAN");
+      const keputusan = konten.filter((a) => a !== "KONTEN_AJUKAN");
+      const sub: Prisma.AuditLogWhereInput[] = [];
+
+      if (ajukan.length > 0 && divisiId) {
+        sub.push({ aksi: { in: ajukan }, admin: { divisiId } });
+      }
+      if (keputusan.length > 0) {
+        sub.push({ aksi: { in: keputusan }, ...scopeKonten });
+      }
+
+      if (sub.length === 1) klausa.push(sub[0]);
+      else if (sub.length > 1) klausa.push({ OR: sub });
+    }
+  }
+
+  if (klausa.length === 1) return klausa[0];
+  // Tidak ada aksi yang cocok (mis. tipe tanpa izin) → cocokkan nol baris.
+  return klausa.length === 0 ? { aksi: { in: [] } } : { OR: klausa };
 }
 
 async function batasDibaca(adminId: string): Promise<Date | null> {
@@ -213,12 +492,15 @@ async function batasDibaca(adminId: string): Promise<Date | null> {
   return admin?.notifikasiDibacaAt ?? null;
 }
 
-/** Badge selalu menghitung **semua** tipe, bukan hasil filter halaman. */
-export async function hitungBelumDibaca(adminId: string): Promise<number> {
+/** Badge menghitung tipe yang boleh dilihat admin, bukan hasil filter halaman. */
+export async function hitungBelumDibaca(sesi: AdminSesi): Promise<number> {
+  const adminId = sesi.sub;
+  const diizinkan = tipeNotifikasiDiizinkan(sesi);
+  const where = await whereNotifikasi(sesi, undefined, diizinkan);
   const batas = await batasDibaca(adminId);
   return prisma.auditLog.count({
     where: {
-      ...whereNotifikasi(),
+      ...where,
       createdAt: { gt: batas ?? new Date(0) },
       // Yang sudah ditandai dibaca satu per satu tidak ikut dihitung.
       dibacaOleh: { none: { adminId } },
@@ -234,11 +516,14 @@ export async function hitungBelumDibaca(adminId: string): Promise<number> {
  * membedakan "berhasil" dari "tidak ada yang perlu diubah".
  */
 export async function tandaiSatuNotifikasiDibaca(
-  adminId: string,
+  sesi: AdminSesi,
   auditLogId: string
 ): Promise<{ ada: boolean; berubah: number }> {
+  const adminId = sesi.sub;
+  // Batas divisi juga berlaku di sini: admin tidak bisa menandai notifikasi
+  // yang bukan miliknya (mis. riwayat verifikasi divisi lain).
   const baris = await prisma.auditLog.findFirst({
-    where: { id: auditLogId, ...whereNotifikasi() },
+    where: { id: auditLogId, ...(await whereNotifikasi(sesi)) },
     select: { id: true, createdAt: true },
   });
 
@@ -288,11 +573,22 @@ export async function tandaiSemuaNotifikasiDibaca(
 }
 
 export async function ambilNotifikasiAdmin(
-  adminId: string,
-  opsi: { skip: number; take: number; tipe?: TipeNotifikasi }
+  sesi: AdminSesi,
+  opsi: {
+    skip: number;
+    take: number;
+    tipe?: TipeNotifikasi;
+    tipeDiizinkan?: TipeNotifikasi[];
+  }
 ): Promise<{ items: ItemNotifikasi[]; total: number; belumDibaca: number }> {
+  const adminId = sesi.sub;
   const batas = await batasDibaca(adminId);
-  const where = whereNotifikasi(opsi.tipe);
+  const where = await whereNotifikasi(sesi, opsi.tipe, opsi.tipeDiizinkan);
+  const whereDiizinkan = await whereNotifikasi(
+    sesi,
+    undefined,
+    opsi.tipeDiizinkan
+  );
 
   const [rows, total, belumDibaca] = await prisma.$transaction([
     prisma.auditLog.findMany({
@@ -305,7 +601,7 @@ export async function ambilNotifikasiAdmin(
     prisma.auditLog.count({ where }),
     prisma.auditLog.count({
       where: {
-        ...whereNotifikasi(),
+        ...whereDiizinkan,
         createdAt: { gt: batas ?? new Date(0) },
         dibacaOleh: { none: { adminId } },
       },
@@ -355,8 +651,47 @@ export async function ambilNotifikasiAdmin(
 
   const dibacaIndividu = new Set(barisDibaca.map((b) => b.auditLogId));
 
+  /*
+   * Nama objek untuk notifikasi administrasi (divisi / akun admin), diambil
+   * dengan kueri `id IN (...)` seperti koneksi — bukan `include`.
+   */
+  const idDivisi = rows
+    .filter((row) => row.aksi.startsWith("DIVISI_"))
+    .map((row) => row.entitasId);
+  const idAdminTarget = rows
+    .filter((row) => row.aksi.startsWith("ADMIN_"))
+    .map((row) => row.entitasId);
+
+  const [divisiTarget, adminTarget] = await Promise.all([
+    idDivisi.length > 0
+      ? prisma.divisi.findMany({
+          where: { id: { in: idDivisi } },
+          select: { id: true, nama: true },
+        })
+      : [],
+    idAdminTarget.length > 0
+      ? prisma.adminUser.findMany({
+          where: { id: { in: idAdminTarget } },
+          select: { id: true, nama: true },
+        })
+      : [],
+  ]);
+
+  const petaTarget = new Map<string, string>();
+  for (const d of divisiTarget) petaTarget.set(`Divisi:${d.id}`, d.nama);
+  for (const a of adminTarget) petaTarget.set(`AdminUser:${a.id}`, a.nama);
+
+  const petaCatatanTolak = await ambilCatatanTolak(rows);
+
   const items = rows.map((row) =>
-    keItem(row, petaKoneksi.get(row.entitasId) ?? null, batas, dibacaIndividu)
+    keItem(
+      row,
+      petaKoneksi.get(row.entitasId) ?? null,
+      petaTarget.get(`${row.entitas}:${row.entitasId}`) ?? null,
+      batas,
+      dibacaIndividu,
+      petaCatatanTolak.get(row.entitasId) ?? null
+    )
   );
 
   return { items, total, belumDibaca };

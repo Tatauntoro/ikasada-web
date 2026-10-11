@@ -4,6 +4,7 @@ import type { ArsipInput } from "@/lib/validations/arsip";
 import type { BeritaInput } from "@/lib/validations/berita";
 import type { KegiatanInput } from "@/lib/validations/kegiatan";
 import type { KerjasamaInput } from "@/lib/validations/kerjasama";
+import type { MediaInput } from "@/lib/validations/media";
 import type { PengurusInput } from "@/lib/validations/pengurus";
 import { ekstrakVideoId } from "@/lib/youtube";
 import {
@@ -14,7 +15,7 @@ import {
 
 export function normalizeKegiatanInput(
   input: KegiatanInput
-): Omit<Prisma.KegiatanUncheckedCreateInput, "createdById" | "slug"> {
+): Omit<Prisma.KegiatanUncheckedCreateInput, "createdById" | "slug" | "media"> {
   return {
     judul: input.judul,
     deskripsiSingkat: input.deskripsiSingkat,
@@ -84,11 +85,9 @@ export function normalizeArsipInput(
   };
 }
 
-/** Baris galeri yang siap ditulis, urut sesuai urutan di form. */
-export function normalizeMediaArsip(
-  media: ArsipInput["media"]
-): Omit<Prisma.ArsipMediaUncheckedCreateInput, "arsipId">[] {
-  return (media ?? []).map((item, index) => ({
+/** Satu baris media yang siap ditulis, urut sesuai urutan di form. */
+function keBarisMedia(item: MediaInput, index: number) {
+  return {
     jenis: item.jenis,
     berkasId: item.berkasId.trim(),
     penyimpanan: item.penyimpanan,
@@ -97,7 +96,28 @@ export function normalizeMediaArsip(
     ukuran: item.ukuran ?? null,
     caption: item.caption?.trim() || null,
     urutan: index,
-  }));
+  };
+}
+
+/** Baris galeri arsip yang siap ditulis, urut sesuai urutan di form. */
+export function normalizeMediaArsip(
+  media: ArsipInput["media"]
+): Omit<Prisma.ArsipMediaUncheckedCreateInput, "arsipId">[] {
+  return (media ?? []).map(keBarisMedia);
+}
+
+/** Baris galeri berita yang siap ditulis. */
+export function normalizeMediaBerita(
+  media: BeritaInput["media"]
+): Omit<Prisma.BeritaMediaUncheckedCreateInput, "beritaId">[] {
+  return (media ?? []).map(keBarisMedia);
+}
+
+/** Baris galeri kegiatan yang siap ditulis. */
+export function normalizeMediaKegiatan(
+  media: KegiatanInput["media"]
+): Omit<Prisma.KegiatanMediaUncheckedCreateInput, "kegiatanId">[] {
+  return (media ?? []).map(keBarisMedia);
 }
 
 export function normalizeKerjasamaInput(
@@ -109,7 +129,12 @@ export function normalizeKerjasamaInput(
     profil: input.profil.trim(),
     contohKegiatan: input.contohKegiatan.map((s) => s.trim()).filter(Boolean),
     imageUrl: input.imageUrl?.trim() || null,
-    alt: input.alt.trim(),
+    /*
+     * Kolom `alt` di DB masih NOT NULL, jadi teks alternatif kosong disimpan
+     * sebagai string kosong (bukan null) supaya entri tanpa gambar tetap bisa
+     * disimpan tanpa migrasi kolom.
+     */
+    alt: input.alt?.trim() || "",
     linkInstagram: normalisasiInstagram(input.linkInstagram),
     linkTiktok: normalisasiTiktok(input.linkTiktok),
     email: input.email?.trim() || null,
@@ -120,7 +145,7 @@ export function normalizeKerjasamaInput(
 
 export function normalizeBeritaInput(
   input: BeritaInput
-): Omit<Prisma.BeritaUncheckedCreateInput, "createdById" | "slug"> {
+): Omit<Prisma.BeritaUncheckedCreateInput, "createdById" | "slug" | "media"> {
   return {
     judul: input.judul.trim(),
     jenisBeritaId: input.jenisBeritaId,

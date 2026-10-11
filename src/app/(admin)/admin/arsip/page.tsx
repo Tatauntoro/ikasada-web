@@ -20,6 +20,10 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { AdminPagination } from "@/components/admin/AdminPagination";
+import {
+  BadgeVerifikasi,
+  type StatusVerifikasiUI,
+} from "@/components/admin/VerifikasiKonten";
 import { formatPeriodeKegiatan, formatUkuranBerkas } from "@/lib/format";
 import { labelAkses } from "@/lib/akses-arsip";
 
@@ -252,6 +256,14 @@ export default function ArsipListPage() {
       key: "status",
       header: "Status",
       cell: (row: ArsipDenganJenis) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "verifikasi",
+      header: "Verifikasi",
+      className: "hidden lg:table-cell",
+      cell: (row: ArsipDenganJenis) => (
+        <BadgeVerifikasi verifikasi={row.verifikasi as StatusVerifikasiUI} />
+      ),
     },
     {
       key: "aksi",

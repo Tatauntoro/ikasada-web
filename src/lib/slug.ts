@@ -16,7 +16,7 @@ export async function generateUniqueSlug(
   client: PrismaClient | Prisma.TransactionClient,
   options: {
     existingId?: string;
-    table?: "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita";
+    table?: "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita" | "divisi";
   } = {}
 ): Promise<string> {
   const { existingId, table = "kegiatan" } = options;

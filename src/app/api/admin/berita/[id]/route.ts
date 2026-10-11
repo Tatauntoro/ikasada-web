@@ -1,14 +1,20 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { ok, badRequest, notFound, validationError } from "@/lib/response";
+import { ok, badRequest, conflict, notFound, validationError } from "@/lib/response";
 import { apiHandler, readJsonBody } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/auth";
-import { requirePermissionModul } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermissionModul } from "@/lib/sesi-admin";
 import { MODUL } from "@/lib/permission";
 import { catatAudit, diffPerubahan } from "@/lib/audit";
 import { generateSlug, generateUniqueSlug } from "@/lib/slug";
-import { normalizeBeritaInput } from "@/lib/normalize-input";
+import { normalizeBeritaInput, normalizeMediaBerita } from "@/lib/normalize-input";
 import { beritaUpdateSchema } from "@/lib/validations/berita";
+import {
+  gateSimpan,
+  kontenBerubah,
+  mediaBerubah,
+  RESET_VERIFIKASI,
+} from "@/lib/verifikasi-konten";
 
 type RouteParams = {
   params: Promise<{ id: string }>;
@@ -17,7 +23,10 @@ type RouteParams = {
 async function getBeritaOr404(id: string) {
   return prisma.berita.findFirst({
     where: { id, deletedAt: null },
-    include: { jenisBerita: true },
+    include: {
+      jenisBerita: true,
+      media: { orderBy: { urutan: "asc" } },
+    },
   });
 }
 
@@ -40,7 +49,7 @@ async function handleUpdate(
   req: NextRequest,
   { params }: RouteParams
 ): Promise<Response> {
-  const session = await requireAdmin();
+  const session = await requireAdminAktif();
   const { id } = await params;
 
   const existing = await getBeritaOr404(id);
@@ -55,6 +64,16 @@ async function handleUpdate(
   }
 
   const data = normalizeBeritaInput(parsed.data);
+  const media = normalizeMediaBerita(parsed.data.media);
+
+  const gate = gateSimpan(session, {
+    statusBaru: data.status,
+    verifikasiLama: existing.verifikasi,
+    kontenBerubah:
+      kontenBerubah(existing, data) ||
+      mediaBerubah(existing.media ?? [], media),
+  });
+  if (!gate.ok) return conflict(gate.pesan);
 
   const jenis = await prisma.jenisBerita.findFirst({
     where: { id: data.jenisBeritaId, deletedAt: null },
@@ -81,8 +100,16 @@ async function handleUpdate(
 
     const hasil = await tx.berita.update({
       where: { id },
-      data: { ...data, slug },
+      data: { ...data, slug, ...(gate.reset ? RESET_VERIFIKASI : {}) },
     });
+
+    /* Galeri ditulis ulang dari daftar form: hapus lalu buat lagi. */
+    await tx.beritaMedia.deleteMany({ where: { beritaId: id } });
+    if (media.length > 0) {
+      await tx.beritaMedia.createMany({
+        data: media.map((item) => ({ ...item, beritaId: id })),
+      });
+    }
 
     const perubahan = diffPerubahan(
       {

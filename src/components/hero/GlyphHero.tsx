@@ -105,7 +105,7 @@ export default function GlyphHero() {
           fontFamily={FONT}
           fontWeight={500}
           style={{
-            "--gp-paper": "#ffffff",
+            "--gp-paper": "#f2f6f8",
             "--gp-field": "#0f1012",
             "--gp-ink": "#0f1012",
             "--gp-foreground": "#fdfdfd",

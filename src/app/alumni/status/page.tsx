@@ -10,8 +10,10 @@ import {
   HourglassMedium,
 } from "@phosphor-icons/react/dist/ssr";
 import RuangAlumni from "@/components/alumni/RuangAlumni";
+import GantiSandiAlumni from "@/components/alumni/GantiSandiAlumni";
 import { StatusAlumniAccount } from "@/generated/prisma/enums";
 import { formatTanggalWIB, getInitials } from "@/lib/format";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import { akunAlumniHalaman } from "@/lib/halaman-alumni";
 
 export const metadata: Metadata = {
@@ -79,22 +81,40 @@ export default async function StatusAkunAlumniPage() {
 
           <p className="mt-8 max-w-[48ch] text-[16px] leading-[1.5] tracking-[-0.02em] text-[#5e5e5e]">
             {aktif
-              ? "Anda bisa melihat status keterbukaan alumni lain dan mengirim permintaan koneksi dari direktori alumni."
-              : "Pengurus IKASADA mencocokkan data pendaftaran Anda dengan direktori alumni sebelum akun dipakai. Status keterbukaan alumni lain dan permintaan koneksi baru terbuka setelah akun disetujui."}
+              ? FITUR_JEJARING_ALUMNI
+                ? "Anda bisa melihat status keterbukaan alumni lain dan mengirim permintaan koneksi dari direktori alumni."
+                : "Anda bisa melihat email alumni lain di direktori alumni."
+              : FITUR_JEJARING_ALUMNI
+                ? "Pengurus IKASADA mencocokkan data pendaftaran Anda dengan direktori alumni sebelum akun dipakai. Status keterbukaan alumni lain dan permintaan koneksi baru terbuka setelah akun disetujui."
+                : "Pengurus IKASADA mencocokkan data pendaftaran Anda dengan direktori alumni sebelum akun dipakai. Akses melihat email alumni lain di direktori baru terbuka setelah akun disetujui."}
           </p>
 
           <ul className="mt-8 grid gap-3 text-[15px] leading-[23px] tracking-[-0.02em] text-[#1f2937]">
             {(aktif
-              ? [
-                  "Masa berlaku session 8 jam sejak login, lalu Anda diminta masuk lagi.",
-                  "Data kontak hanya terbuka untuk koneksi yang Anda izinkan.",
-                  "Pengurus dapat menangguhkan akun bila data yang dicocokkan tidak sesuai.",
-                ]
-              : [
-                  "Anda masih bisa keluar dari akun ini kapan saja.",
-                  "Pendaftaran tidak perlu diulang; pengurus memakai data yang sudah Anda kirim.",
-                  "Setelah disetujui, Anda bisa mengatur profil, melihat status keterbukaan alumni, dan mulai terhubung dengan alumni lain.",
-                ]
+              ? FITUR_JEJARING_ALUMNI
+                ? [
+                    "Masa berlaku session 8 jam sejak login, lalu Anda diminta masuk lagi.",
+                    "Data kontak hanya terbuka untuk koneksi yang Anda izinkan.",
+                    "Pengurus dapat menangguhkan akun bila data yang dicocokkan tidak sesuai.",
+                  ]
+                : [
+                    "Masa berlaku session 8 jam sejak login, lalu Anda diminta masuk lagi.",
+                    "Data kontak alumni lain hanya berupa email di direktori alumni.",
+                    "Pengurus dapat menangguhkan akun bila data yang dicocokkan tidak sesuai.",
+                  ]
+              : FITUR_JEJARING_ALUMNI
+                ? [
+                    "Anda masih bisa keluar dari akun ini kapan saja.",
+                    "Pendaftaran tidak perlu diulang; pengurus memakai data yang sudah Anda kirim.",
+                    "Setelah disetujui, Anda bisa mengatur profil, melihat status keterbukaan alumni, dan mulai terhubung dengan alumni lain.",
+                    "Setelah akun disetujui, login untuk melihat dan mengunduh arsip alumni.",
+                  ]
+                : [
+                    "Anda masih bisa keluar dari akun ini kapan saja.",
+                    "Pendaftaran tidak perlu diulang; pengurus memakai data yang sudah Anda kirim.",
+                    "Setelah disetujui, Anda bisa melihat email alumni lain di direktori alumni.",
+                    "Setelah akun disetujui, login untuk melihat dan mengunduh arsip alumni.",
+                  ]
             ).map((baris) => (
               <li key={baris} className="flex gap-3">
                 <span
@@ -140,7 +160,9 @@ export default async function StatusAkunAlumniPage() {
         </section>
       </div>
 
-      {aktif && alumni && (
+      <GantiSandiAlumni />
+
+      {FITUR_JEJARING_ALUMNI && aktif && alumni && (
         <section className="mt-10 rounded-[24px] border border-[#0757a6] bg-[#0757a6] px-6 py-8 text-white sm:px-9 sm:py-9">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
             <div className="size-[84px] shrink-0 overflow-hidden rounded-full bg-[#eaf2ff]">

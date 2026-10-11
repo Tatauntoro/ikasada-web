@@ -6,8 +6,14 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ArrowRight, CaretRight, MapPin } from "@phosphor-icons/react";
 import type { PublicKegiatan } from "@/lib/types";
 import { formatTanggalWIB } from "@/lib/format";
+import { keTeksBiasa } from "@/lib/rich-text";
 import Tilt from "./Tilt";
 import { rekamAsalMorphDari } from "./motion/ImageMorph";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 
 const LIMIT = 6;
 
@@ -38,6 +44,7 @@ function parseDate(tgl: string) {
 }
 
 export default function EventsSection() {
+  const beranda = useBerandaConfig();
   const [data, setData] = useState<PublicKegiatan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +76,17 @@ export default function EventsSection() {
   const featured = data[0];
   const agenda = data.slice(1);
 
+  const eyebrowKegiatan = teksSection(beranda, "kegiatan", "eyebrow", "Kegiatan");
+  const judulKegiatan = teksSection(
+    beranda,
+    "kegiatan",
+    "judul",
+    "Hadiri Kegiatan Kami."
+  );
+
+  // Section bisa disembunyikan dari Kelola Beranda.
+  if (!sectionAktif(beranda, "kegiatan")) return null;
+
   return (
     <section
       id="kegiatan"
@@ -78,11 +96,9 @@ export default function EventsSection() {
         <div className="mb-16">
           <div className="max-w-3xl">
             <span className="reveal-item block section-label">
-              Kegiatan
+              {eyebrowKegiatan}
             </span>
-            <h2 className="reveal-item mt-4 section-title">
-              Hadiri Kegiatan Kami.
-            </h2>
+            <h2 className="reveal-item mt-4 section-title">{judulKegiatan}</h2>
           </div>
         </div>
 
@@ -153,7 +169,7 @@ export default function EventsSection() {
                       {featured.judul}
                     </h3>
                     <p className="text-[14.5px] leading-[1.6] text-[#0f1012] text-pretty">
-                      {featured.deskripsiSingkat}
+                      {keTeksBiasa(featured.deskripsiSingkat)}
                     </p>
                     <div className="mt-auto flex items-center justify-between gap-4 border-t border-[rgba(0,0,0,0.14)] pt-[18px]">
                       <span className="flex items-center gap-2 text-[13.5px] font-normal text-[#5e5e5e]">

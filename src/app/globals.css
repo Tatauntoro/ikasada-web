@@ -501,6 +501,29 @@ html.light body {
 .reveal-section.revealed .reveal-item:nth-child(7) { transition-delay: 540ms; }
 .reveal-section.revealed .reveal-item:nth-child(8) { transition-delay: 630ms; }
 
+/* Saat browser mengembalikan halaman dari riwayat, tampilkan isi langsung;
+   animasi masuk yang diputar ulang bersamaan dengan pemulihan scroll terasa
+   seperti halaman bergeser atau bergetar. */
+html[data-history-restoring="true"] .public-page .reveal-section,
+html[data-history-restoring="true"] .public-page .reveal-item,
+html[data-history-restoring="true"] .public-page [data-editorial-heading],
+html[data-section-navigation="true"] .public-page .reveal-section,
+html[data-section-navigation="true"] .public-page .reveal-item,
+html[data-section-navigation="true"] .public-page [data-editorial-heading] {
+  animation: none !important;
+  clip-path: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Pertahankan tinggi hero, tetapi jangan tampilkan frame puncak saat kembali
+   ke posisi Beranda yang jauh di bawahnya. */
+html[data-history-hide-hero="true"] .public-page #hero,
+html[data-section-navigation="true"] .public-page #hero {
+  visibility: hidden !important;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

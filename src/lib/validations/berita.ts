@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { StatusBerita } from "@/generated/prisma/enums";
+import {
+  MAX_MEDIA_PER_ENTRI,
+  mediaSchema,
+} from "@/lib/validations/media";
 
 const statusValues = Object.values(StatusBerita) as [
   StatusBerita,
@@ -17,7 +21,7 @@ export const beritaBaseSchema = z.object({
   tanggal: z.coerce.date({ message: "Tanggal wajib diisi" }),
   deskripsiSingkat: z
     .string({ message: "Deskripsi singkat wajib diisi" })
-    .max(300, "Deskripsi singkat maksimal 300 karakter"),
+    .max(500, "Deskripsi singkat maksimal 500 karakter"),
   deskripsiLengkap: z
     .string()
     .max(20000, "Deskripsi lengkap maksimal 20000 karakter")
@@ -35,18 +39,17 @@ export const beritaBaseSchema = z.object({
     )
     .optional()
     .nullable(),
+  media: z
+    .array(mediaSchema)
+    .max(
+      MAX_MEDIA_PER_ENTRI,
+      `Maksimal ${MAX_MEDIA_PER_ENTRI} media per berita`
+    )
+    .optional(),
   status: z.enum(statusValues, { message: "Status tidak valid" }),
 });
 
-export const beritaCreateSchema = beritaBaseSchema.superRefine((data, ctx) => {
-  if (data.status === "PUBLISHED" && !data.gambarUrl) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["gambarUrl"],
-      message: "Gambar wajib diisi untuk status Published",
-    });
-  }
-});
+export const beritaCreateSchema = beritaBaseSchema;
 
 export const beritaUpdateSchema = beritaCreateSchema;
 

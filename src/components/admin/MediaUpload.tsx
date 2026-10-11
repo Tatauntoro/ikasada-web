@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { formatUkuranBerkas } from "@/lib/format";
 import { MAX_UKURAN_FOTO, MAX_UKURAN_VIDEO } from "@/lib/batas-media";
+import { ChipBerubah, KELAS_FIELD_BERUBAH } from "./ChipBerubah";
 
 /**
  * Satu media galeri seperti yang disimpan di form.
@@ -52,6 +53,18 @@ export type MediaUploadProps = {
   slug?: string;
   maks?: number;
   error?: string;
+  /** Batasi hanya foto (mis. galeri Berita) — video ditolak sebelum diunggah. */
+  hanyaFoto?: boolean;
+  /**
+   * Pembangun URL pratinjau untuk media yang sudah tersimpan. Bawaan: endpoint
+   * arsip (`/api/arsip/{slug}/media/{id}`); berita/kegiatan mengoper fungsinya
+   * sendiri.
+   */
+  urlPratinjau?: (media: MediaGaleri) => string | null;
+  /** Catatan tambahan di bawah pemilih berkas (mis. aturan akses arsip). */
+  catatan?: string;
+  /** Galeri berbeda dari versi terverifikasi (mode tinjau). */
+  berubah?: boolean;
 };
 
 export function MediaUpload({
@@ -60,6 +73,10 @@ export function MediaUpload({
   slug,
   maks = 30,
   error,
+  hanyaFoto = false,
+  urlPratinjau,
+  catatan,
+  berubah = false,
 }: MediaUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -69,6 +86,7 @@ export function MediaUpload({
   /** Pratinjau: object URL (baru diunggah) atau endpoint tergate (sudah tersimpan). */
   function sumberPratinjau(media: MediaGaleri): string | null {
     if (media.pratinjau) return media.pratinjau;
+    if (media.id && urlPratinjau) return urlPratinjau(media);
     if (media.id && slug) return `/api/arsip/${slug}/media/${media.id}`;
     return null;
   }
@@ -84,6 +102,11 @@ export function MediaUpload({
     let pesanGagal: string | null = null;
 
     for (const file of daftar) {
+      if (hanyaFoto && !file.type.startsWith("image/")) {
+        pesanGagal = "Hanya foto yang bisa diunggah di sini.";
+        continue;
+      }
+
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -146,10 +169,15 @@ export function MediaUpload({
   const penuh = value.length >= maks;
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${berubah ? KELAS_FIELD_BERUBAH : ""}`}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-[#0f1012]">
-          Galeri Foto &amp; Video
+        <span
+          className={`flex items-center gap-2 text-sm font-semibold ${
+            berubah ? "text-red-700" : "text-[#0f1012]"
+          }`}
+        >
+          {hanyaFoto ? "Galeri Foto" : "Galeri Foto & Video"}
+          {berubah && <ChipBerubah />}
         </span>
         <span className="text-xs text-[#8f8f8f]">
           {value.length}/{maks} media
@@ -252,12 +280,22 @@ export function MediaUpload({
           <>
             <UploadSimple weight="bold" className="text-2xl text-[#0071e3]" />
             <span className="text-sm font-semibold text-[#0f1012]">
-              {penuh ? `Batas ${maks} media tercapai` : "Klik untuk pilih foto/video"}
+              {penuh
+                ? `Batas ${maks} media tercapai`
+                : hanyaFoto
+                  ? "Klik untuk pilih foto"
+                  : "Klik untuk pilih foto/video"}
             </span>
             <span className="text-xs text-[#8f8f8f]">
               Bisa pilih beberapa berkas sekaligus. Foto: JPG/PNG/WEBP maks{" "}
-              {Math.round(MAX_UKURAN_FOTO / (1024 * 1024))} MB. Video:
-              MP4/WEBM/MOV maks {Math.round(MAX_UKURAN_VIDEO / (1024 * 1024))} MB.
+              {Math.round(MAX_UKURAN_FOTO / (1024 * 1024))} MB.
+              {!hanyaFoto && (
+                <>
+                  {" "}
+                  Video: MP4/WEBM/MOV maks{" "}
+                  {Math.round(MAX_UKURAN_VIDEO / (1024 * 1024))} MB.
+                </>
+              )}
             </span>
           </>
         )}
@@ -268,18 +306,17 @@ export function MediaUpload({
         id={inputId}
         type="file"
         multiple
-        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+        accept={
+          hanyaFoto
+            ? "image/jpeg,image/png,image/webp"
+            : "image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+        }
         onChange={handleFiles}
         aria-label="Pilih foto atau video"
         className="hidden"
       />
 
-      <p className="text-xs text-[#8f8f8f]">
-        Galeri mengikuti tingkat akses arsip ini — kalau arsipnya khusus alumni,
-        foto/videonya juga hanya bisa dibuka alumni yang sudah masuk. Batas
-        ukuran karena unggahan lewat server; bisa dinaikkan setelah penyimpanan
-        pindah ke penyimpanan objek/CDN.
-      </p>
+      {catatan && <p className="text-xs text-[#8f8f8f]">{catatan}</p>}
 
       {(error || galat) && (
         <p className="text-xs font-medium text-red-600">{galat || error}</p>

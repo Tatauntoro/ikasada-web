@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ArrowsCounterClockwise,
   Briefcase,
+  EnvelopeSimple,
   Handshake,
   LockKey,
   MagnifyingGlass,
@@ -24,9 +25,14 @@ import type {
   PublicSektorIndustri,
 } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
-import { getInitials } from "@/lib/format";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import type { StatusKoneksi } from "@/lib/connection";
 import { StateCrossfade } from "./motion/StateCrossfade";
+import {
+  sectionAktif,
+  teksSection,
+  useBerandaConfig,
+} from "@/lib/beranda-client";
 import { reportAssetError } from "@/lib/asset-error";
 import Pagination from "./Pagination";
 import FilterSelect from "./FilterSelect";
@@ -83,8 +89,8 @@ function AvailabilityBadge({
   label: string;
 }) {
   return (
-    <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[#0071e3]/75 bg-black/25 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white/90">
-      <span className="text-[#69adff]" aria-hidden="true">
+    <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[#0071e3]/25 bg-[#eaf4ff] px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-[#005bbb]">
+      <span className="text-[#0071e3]" aria-hidden="true">
         {icon}
       </span>
       {label}
@@ -119,7 +125,7 @@ function AvailabilityBadges({
         />
       )}
       {!openToCollaboration && !openToOpportunity && (
-        <span className="text-[11px] text-white/60">
+        <span className="text-[11px] leading-5 text-[#5e5e5e]">
           Belum mengatur status keterbukaan — permintaan koneksi tetap bisa
           dikirim
         </span>
@@ -140,12 +146,37 @@ function LockedAvailability({ authState }: { authState: AuthState }) {
   return (
     <Link
       href={menungguVerifikasi ? "/alumni/status" : "/alumni/login?next=%2Falumni"}
-      className="inline-flex min-h-11 items-center gap-2 text-[12px] font-normal tracking-[0.01em] text-white/90 underline decoration-white/35 underline-offset-4 transition-colors hover:text-[#69adff] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#69adff]"
+      className="inline-flex min-h-11 max-w-full items-center gap-2 text-[12px] font-normal leading-5 tracking-[0.01em] text-[#005bbb] underline decoration-[#0071e3]/40 underline-offset-4 transition-colors hover:text-[#0071e3] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#0071e3]"
     >
       <LockKey weight="regular" className="text-base" aria-hidden="true" />
       {menungguVerifikasi
         ? "Menunggu verifikasi akun"
         : "Login untuk melihat status keterbukaan"}
+    </Link>
+  );
+}
+
+/**
+ * Info akses saat mode jejaring dimatikan (`@/lib/fitur`).
+ *
+ * Pengunjung anonim diminta masuk untuk melihat email alumni; akun yang belum
+ * disetujui diarahkan ke halaman status verifikasi. Akun `ACTIVE` tidak
+ * menampilkan apa pun di sini — emailnya tampil sebagai CTA di pojok kartu.
+ */
+function InfoAksesDirektori({ authState }: { authState: AuthState }) {
+  if (authState === "aktif" || authState === "memuat") return null;
+
+  const menungguVerifikasi = authState === "pending";
+
+  return (
+    <Link
+      href={menungguVerifikasi ? "/alumni/status" : "/alumni/login?next=%2Falumni"}
+      className="inline-flex min-h-11 max-w-full items-center gap-2 text-[12px] font-normal leading-5 tracking-[0.01em] text-[#005bbb] underline decoration-[#0071e3]/40 underline-offset-4 transition-colors hover:text-[#0071e3] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#0071e3]"
+    >
+      <LockKey weight="regular" className="text-base" aria-hidden="true" />
+      {menungguVerifikasi
+        ? "Menunggu verifikasi akun"
+        : "Login untuk melihat email alumni"}
     </Link>
   );
 }
@@ -185,6 +216,7 @@ export default function AlumniDirectory({
   perPage?: number;
   header?: ReactNode;
 }) {
+  const beranda = useBerandaConfig();
   const [search, setSearch] = useState("");
   /** Nilai yang benar-benar dikirim; `search` mengikuti ketikan. */
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -412,6 +444,22 @@ export default function AlumniDirectory({
   const memuatPertamaKali = isLoading && data.length === 0;
   const sedangMenyaring = isLoading && data.length > 0;
 
+  const eyebrowAlumni = teksSection(
+    beranda,
+    "direktori-alumni",
+    "eyebrow",
+    "Direktori"
+  );
+  const judulAlumni = teksSection(
+    beranda,
+    "direktori-alumni",
+    "judul",
+    "Temukan Rekan Alumni."
+  );
+
+  // Section bisa disembunyikan dari Kelola Beranda.
+  if (!sectionAktif(beranda, "direktori-alumni")) return null;
+
   return (
     <section
       ref={sectionRef}
@@ -433,12 +481,8 @@ export default function AlumniDirectory({
         {/* Header editorial + filter */}
         <div className="mb-16">
           <div className="reveal-item">
-            <span className="section-label mb-4 block">
-              Direktori
-            </span>
-            <h2 className="section-title">
-              Temukan Rekan Alumni.
-            </h2>
+            <span className="section-label mb-4 block">{eyebrowAlumni}</span>
+            <h2 className="section-title">{judulAlumni}</h2>
           </div>
 
           <div className="reveal-item mt-8 grid w-full grid-cols-1 items-center gap-y-4 border-b border-black/[0.06] pb-3 md:grid-cols-[minmax(240px,1fr)_minmax(180px,auto)_minmax(220px,auto)_auto] md:gap-x-8">
@@ -512,8 +556,16 @@ export default function AlumniDirectory({
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-[420px] w-full animate-pulse rounded-[32px] bg-[rgba(0,0,0,0.06)] motion-reduce:animate-none sm:h-[500px]"
-              />
+                className="min-h-[480px] w-full animate-pulse overflow-hidden rounded-[28px] border border-[#d9e8f5] bg-[#fdfdfd] motion-reduce:animate-none sm:min-h-[500px]"
+              >
+                <div className="h-[240px] bg-[#eaf4ff] sm:h-[260px]" />
+                <div className="space-y-4 p-7">
+                  <div className="h-7 w-2/3 rounded bg-[#e7edf2]" />
+                  <div className="h-4 w-1/2 rounded bg-[#eef2f5]" />
+                  <div className="h-4 w-3/4 rounded bg-[#eef2f5]" />
+                  <div className="h-px w-full bg-[#e5ebf0]" />
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -584,58 +636,126 @@ export default function AlumniDirectory({
               return (
                 <article
                   key={item.id}
-                  className="reveal-item group relative flex h-[420px] w-full flex-col justify-between overflow-hidden rounded-[32px] bg-[#0f1012] p-7 transition-transform duration-500 hover:-translate-y-2 sm:h-[500px] sm:p-8"
+                  className="reveal-item group relative flex min-h-[480px] w-full flex-col overflow-hidden rounded-[28px] border border-[#d9e8f5] bg-[#fdfdfd] shadow-[0_8px_24px_rgba(0,71,135,0.06)] transition-transform duration-300 hover:-translate-y-1 sm:min-h-[500px]"
                 >
-                  {/* Foto / fallback */}
-                  <div className="absolute inset-0 h-full w-full">
+                  {/* Foto bersih atau dekorasi Makara UI tanpa inisial */}
+                  <div className="relative isolate h-[240px] shrink-0 overflow-hidden bg-[#eaf4ff] sm:h-[260px]">
                     {item.fotoUrl ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={item.fotoUrl}
                         alt={item.namaLengkap}
-                        className="h-full w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-105"
+                        className="relative z-10 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#1b1b1b] to-[#0f1012]">
-                        <span className="font-display text-[64px] font-normal text-white/40">
-                          {getInitials(item.namaLengkap)}
-                        </span>
-                      </div>
+                      <>
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-gradient-to-br from-[#f5faff] via-[#eaf4ff] to-[#deefff]"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-1/2 top-[44%] z-0 aspect-[382/400] h-[84%] -translate-x-1/2 -translate-y-1/2 bg-[#1599eb] opacity-[0.09]"
+                          style={{
+                            maskImage: "url('/decoration/ui-makara.png')",
+                            maskPosition: "center",
+                            maskRepeat: "no-repeat",
+                            maskSize: "contain",
+                          }}
+                        />
+                        <svg
+                          aria-hidden="true"
+                          focusable="false"
+                          viewBox="0 0 400 110"
+                          preserveAspectRatio="none"
+                          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[82px] w-full sm:h-[90px]"
+                        >
+                          <path
+                            d="M0 0C35 48 66 54 108 66C169 84 209 103 282 110H0Z"
+                            fill="#78ccfa"
+                            fillOpacity="0.42"
+                          />
+                          <path
+                            d="M0 47C69 63 106 41 170 69C215 88 239 103 286 110H254C210 101 185 88 151 77C93 58 45 55 0 72Z"
+                            fill="#40c68c"
+                            fillOpacity="0.56"
+                          />
+                          <path
+                            d="M0 74C61 63 119 75 160 91C189 103 211 108 234 110H0Z"
+                            fill="#9fddff"
+                            fillOpacity="0.36"
+                          />
+                        </svg>
+                      </>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
                   </div>
 
+                  {/*
+                    CTA email di pojok kanan atas kartu (mode jejaring mati).
+                    Server hanya mengirim `emailKontak` ke alumni `ACTIVE`, jadi
+                    CTA ini otomatis tidak muncul untuk pengunjung anonim.
+                  */}
+                  {!FITUR_JEJARING_ALUMNI && "emailKontak" in item && (
+                    item.emailKontak ? (
+                      <a
+                        href={`mailto:${item.emailKontak}`}
+                        title={`Kirim email ke ${item.emailKontak}`}
+                        className="absolute right-4 top-4 z-20 inline-flex max-w-[calc(100%-2rem)] items-center gap-1.5 rounded-full border border-[#c8dcf0] bg-white/90 px-3 py-1.5 text-[11px] font-medium tracking-[-0.01em] text-[#005bbb] shadow-[0_2px_10px_rgba(0,71,135,0.14)] backdrop-blur transition-colors hover:border-[#0071e3] hover:bg-[#0071e3] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0071e3]"
+                      >
+                        <EnvelopeSimple
+                          weight="regular"
+                          className="flex-none text-sm"
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{item.emailKontak}</span>
+                      </a>
+                    ) : (
+                      <span className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-full border border-[#e1e5eb] bg-white/90 px-3 py-1.5 text-[11px] tracking-[-0.01em] text-[#8f8f8f] shadow-[0_2px_10px_rgba(0,71,135,0.08)] backdrop-blur">
+                        <EnvelopeSimple
+                          weight="regular"
+                          className="flex-none text-sm"
+                          aria-hidden="true"
+                        />
+                        Belum ada email
+                      </span>
+                    )
+                  )}
+
                   {/* Konten */}
-                  <div className="relative z-10 mt-auto">
-                    <h3 className="mb-3 font-display text-[26px] font-normal leading-[1.05] tracking-[-0.02em] text-white sm:text-[28px]">
+                  <div className="relative z-10 flex min-h-[240px] flex-1 flex-col p-6 sm:min-h-[240px] sm:p-7">
+                    <h3 className="mb-2 font-display text-[26px] font-normal leading-[1.08] tracking-[-0.02em] text-[#0f1012] sm:text-[28px]">
                       {item.namaLengkap}
                       {item.gelar && (
-                        <span className="font-sans text-[14px] font-normal text-white/65">
+                        <span className="font-sans text-[14px] font-normal text-[#6b7280]">
                           {" "}
                           {item.gelar}
                         </span>
                       )}
                     </h3>
-                    <p className="mb-5 text-[14px] text-white/80">
+                    <p className="mb-4 text-[14px] text-[#5e5e5e]">
                       {item.profesi}
                     </p>
-                    <div className="mb-5 min-h-8">
-                      {terkunci ? (
-                        <LockedAvailability authState={authState} />
-                      ) : item.bisaDihubungi ? (
-                        <AvailabilityBadges
-                          openToCollaboration={item.openToCollaboration}
-                          openToOpportunity={item.openToOpportunity}
-                        />
+                    <div className="mb-4 min-h-8">
+                      {FITUR_JEJARING_ALUMNI ? (
+                        terkunci ? (
+                          <LockedAvailability authState={authState} />
+                        ) : item.bisaDihubungi ? (
+                          <AvailabilityBadges
+                            openToCollaboration={item.openToCollaboration}
+                            openToOpportunity={item.openToOpportunity}
+                          />
+                        ) : (
+                          <span className="text-[11px] leading-5 text-[#5e5e5e]">
+                            Belum bergabung di jejaring alumni — belum bisa
+                            dihubungi
+                          </span>
+                        )
                       ) : (
-                        <span className="text-[11px] text-white/60">
-                          Belum bergabung di jejaring alumni — belum bisa
-                          dihubungi
-                        </span>
+                        <InfoAksesDirektori authState={authState} />
                       )}
                     </div>
-                    {!terkunci && (
-                      <div className="mb-5">
+                    {FITUR_JEJARING_ALUMNI && !terkunci && (
+                      <div className="mb-4">
                         {item.bisaDihubungi ? (
                           <ConnectionButton
                             status={item.connectionStatus}
@@ -651,11 +771,11 @@ export default function AlumniDirectory({
                         )}
                       </div>
                     )}
-                    <div className="flex items-center justify-between border-t border-white/20 pt-4 text-white/90">
-                      <span className="font-serif text-[20px] italic text-white">
+                    <div className="mt-auto flex items-center justify-between border-t border-[#dce6ef] pt-3 text-[#5e5e5e]">
+                      <span className="font-serif text-[20px] italic text-[#0071e3]">
                         {item.angkatan}
                       </span>
-                      <span className="text-[11px] uppercase tracking-[0.18em] text-white/65">
+                      <span className="text-right text-[11px] uppercase tracking-[0.16em] text-[#15803d]">
                         {item.sektorIndustri?.namaSektor || "-"}
                       </span>
                     </div>
@@ -668,14 +788,16 @@ export default function AlumniDirectory({
         )}
         </StateCrossfade>
 
-        <ConnectionRequestDialog
-          recipientName={connectionTarget?.namaLengkap ?? null}
-          penerimaBelumMengaturKeterbukaan={belumMengaturKeterbukaan(
-            connectionTarget
-          )}
-          onClose={() => setConnectionTarget(null)}
-          onSubmit={kirimPermintaanKoneksi}
-        />
+        {FITUR_JEJARING_ALUMNI && (
+          <ConnectionRequestDialog
+            recipientName={connectionTarget?.namaLengkap ?? null}
+            penerimaBelumMengaturKeterbukaan={belumMengaturKeterbukaan(
+              connectionTarget
+            )}
+            onClose={() => setConnectionTarget(null)}
+            onSubmit={kirimPermintaanKoneksi}
+          />
+        )}
 
         {perPage && !isLoading && !error && (
           <Pagination

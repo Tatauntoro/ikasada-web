@@ -20,6 +20,10 @@ const MAKS_LANGKAH = 6;
  */
 export default function ScrollReveal() {
   useEffect(() => {
+    let lewatiAnimasiMasuk =
+      document.documentElement.dataset.historyRestoring === "true" ||
+      document.documentElement.dataset.sectionNavigation === "true" ||
+      window.scrollY > 0;
     const perInduk = new Map<Element, number>();
     /*
      * Penanda "sudah terdaftar" harus hidup per-jalan-efek, bukan di DOM.
@@ -42,6 +46,15 @@ export default function ScrollReveal() {
       { threshold: 0.1, rootMargin: "0px 0px -8% 0px" }
     );
 
+    const tampilkanSemuaSaatKembali = () => {
+      lewatiAnimasiMasuk = true;
+      observer.disconnect();
+      document
+        .querySelectorAll<HTMLElement>(".reveal-section, .reveal-item")
+        .forEach((el) => el.classList.add("revealed"));
+    };
+    window.addEventListener("popstate", tampilkanSemuaSaatKembali);
+
     const daftarkan = (akar: ParentNode) => {
       akar.querySelectorAll<HTMLElement>(".reveal-item").forEach((el) => {
         if (terdaftar.has(el)) return;
@@ -55,14 +68,24 @@ export default function ScrollReveal() {
           `${Math.min(urutan, MAKS_LANGKAH) * LANGKAH_MS}ms`
         );
 
-        observer.observe(el);
+        if (lewatiAnimasiMasuk) {
+          el.classList.add("revealed");
+        } else {
+          observer.observe(el);
+        }
       });
     };
 
     daftarkan(document);
     document
       .querySelectorAll(".reveal-section")
-      .forEach((el) => observer.observe(el));
+      .forEach((el) => {
+        if (lewatiAnimasiMasuk) {
+          el.classList.add("revealed");
+        } else {
+          observer.observe(el);
+        }
+      });
 
     const pengamat = new MutationObserver((mutasi) => {
       mutasi.forEach((catatan) => {
@@ -74,6 +97,7 @@ export default function ScrollReveal() {
     pengamat.observe(document.body, { childList: true, subtree: true });
 
     return () => {
+      window.removeEventListener("popstate", tampilkanSemuaSaatKembali);
       pengamat.disconnect();
       observer.disconnect();
     };

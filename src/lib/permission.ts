@@ -6,7 +6,10 @@
  * disimpan di `AdminUser.permissions` (JSON).
  */
 
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+
 export const MODUL = {
+  DASHBOARD: "dashboard",
   KEGIATAN: "kegiatan",
   ALUMNI: "alumni",
   VERIFIKASI_AKUN: "verifikasi-akun",
@@ -20,14 +23,31 @@ export const MODUL = {
   JENIS_BERITA: "jenis-berita",
   AKTIVITAS: "aktivitas",
   JEJARING: "jejaring",
-  INBOX: "inbox",
+  VERIFIKASI_KONTEN: "verifikasi-konten",
+  /*
+   * Inbox dipecah per kategori supaya aksesnya bisa diatur per topik:
+   * pendaftaran akun, permintaan akun, verifikasi konten, dan administrasi.
+   */
+  INBOX_PENDAFTARAN: "inbox-pendaftaran",
+  INBOX_PERMINTAAN: "inbox-permintaan",
+  INBOX_KONTEN: "inbox-konten",
+  INBOX_ADMIN: "inbox-admin",
+  /** Kelola Beranda: section & titik sebaran di halaman publik. */
+  BERANDA: "beranda",
 } as const;
 
 export const AKSI = {
   LIHAT: "lihat",
+  /** Lihat halaman detail/hasil (mis. kartu Dashboard yang bisa diklik). */
+  LIHAT_DETAIL: "lihat-detail",
   TAMBAH: "tambah",
   UBAH: "ubah",
   HAPUS: "hapus",
+  /**
+   * Buka halaman tujuan dari notifikasi Inbox ("Tindak lanjuti"). Dipisah dari
+   * `lihat` supaya notifikasi boleh dibaca tanpa selalu boleh ditindaklanjuti.
+   */
+  TINDAK_LANJUT: "tindak-lanjut",
 } as const;
 
 export type ModulSlug = (typeof MODUL)[keyof typeof MODUL];
@@ -49,6 +69,12 @@ export const MODUL_INFO: {
   label: string;
   aksi: AksiSlug[];
 }[] = [
+  {
+    slug: MODUL.DASHBOARD,
+    label: "Dashboard",
+    aksi: [AKSI.LIHAT, AKSI.LIHAT_DETAIL],
+  },
+  { slug: MODUL.BERANDA, label: "Kelola Beranda", aksi: SEMUA_AKSI },
   { slug: MODUL.KEGIATAN, label: "Kegiatan", aksi: SEMUA_AKSI },
   { slug: MODUL.ALUMNI, label: "Data Alumni", aksi: SEMUA_AKSI },
   {
@@ -73,27 +99,81 @@ export const MODUL_INFO: {
     label: "Aktivitas",
     aksi: [AKSI.LIHAT],
   },
+  /*
+   * Modul jejaring disembunyikan dari matriks izin saat mode jejaring dimatikan
+   * (`@/lib/fitur`) — halamannya dialihkan, jadi izinnya tidak ada gunanya.
+   * Slug-nya tetap terdaftar di `MODUL`/`MODUL_DARI_SEGMEN` agar guard & restore
+   * tidak perlu diubah.
+   */
+  ...(FITUR_JEJARING_ALUMNI
+    ? [
+        {
+          slug: MODUL.JEJARING,
+          label: "Jejaring Alumni",
+          aksi: [AKSI.LIHAT],
+        },
+      ]
+    : []),
   {
-    slug: MODUL.JEJARING,
-    label: "Jejaring Alumni",
-    aksi: [AKSI.LIHAT],
+    slug: MODUL.VERIFIKASI_KONTEN,
+    label: "Verifikasi Konten",
+    aksi: [AKSI.LIHAT, AKSI.UBAH],
   },
   {
-    slug: MODUL.INBOX,
-    label: "Inbox",
-    aksi: [AKSI.LIHAT],
+    slug: MODUL.INBOX_PENDAFTARAN,
+    label: "Inbox: Pendaftaran Akun",
+    aksi: [AKSI.LIHAT, AKSI.TINDAK_LANJUT],
+  },
+  {
+    slug: MODUL.INBOX_PERMINTAAN,
+    label: "Inbox: Permintaan Akun",
+    aksi: [AKSI.LIHAT, AKSI.TINDAK_LANJUT],
+  },
+  {
+    slug: MODUL.INBOX_KONTEN,
+    label: "Inbox: Verifikasi Konten",
+    aksi: [AKSI.LIHAT, AKSI.TINDAK_LANJUT],
+  },
+  {
+    slug: MODUL.INBOX_ADMIN,
+    label: "Inbox: Admin & Divisi",
+    aksi: [AKSI.LIHAT, AKSI.TINDAK_LANJUT],
   },
 ];
 
 export const LABEL_AKSI: Record<AksiSlug, string> = {
   lihat: "Lihat",
+  "lihat-detail": "Lihat Detail",
   tambah: "Tambah",
   ubah: "Ubah",
   hapus: "Hapus",
+  "tindak-lanjut": "Tindak Lanjut",
+};
+
+/** Modul inbox (dipecah per kategori notifikasi). */
+export const MODUL_INBOX: ModulSlug[] = [
+  MODUL.INBOX_PENDAFTARAN,
+  MODUL.INBOX_PERMINTAAN,
+  MODUL.INBOX_KONTEN,
+  MODUL.INBOX_ADMIN,
+];
+
+/**
+ * Peta tipe notifikasi → modul inbox-nya.
+ *
+ * Kuncinya adalah string `TipeNotifikasi` (hindari import dari `@/lib/notifikasi`
+ * yang memuat Prisma, supaya aman di komponen klien).
+ */
+export const MODUL_INBOX_PER_TIPE: Record<string, ModulSlug> = {
+  PENDAFTARAN: MODUL.INBOX_PENDAFTARAN,
+  AKUN: MODUL.INBOX_PERMINTAAN,
+  KONTEN: MODUL.INBOX_KONTEN,
+  ADMIN: MODUL.INBOX_ADMIN,
 };
 
 /** Segmen URL admin → modul, untuk page guard di `(admin)/layout.tsx`. */
 export const MODUL_DARI_SEGMEN: Record<string, ModulSlug> = {
+  beranda: MODUL.BERANDA,
   kegiatan: MODUL.KEGIATAN,
   alumni: MODUL.ALUMNI,
   "alumni-accounts": MODUL.VERIFIKASI_AKUN,
@@ -107,7 +187,7 @@ export const MODUL_DARI_SEGMEN: Record<string, ModulSlug> = {
   "jenis-berita": MODUL.JENIS_BERITA,
   aktivitas: MODUL.AKTIVITAS,
   jejaring: MODUL.JEJARING,
-  inbox: MODUL.INBOX,
+  verifikasi: MODUL.VERIFIKASI_KONTEN,
 };
 
 /** Modul yang valid, dipakai validator. */

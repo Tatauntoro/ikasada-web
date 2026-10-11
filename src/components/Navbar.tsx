@@ -7,6 +7,7 @@ import { AnimatePresence, m, useMotionValueEvent, useScroll } from "framer-motio
 import { List, UserCircle, X } from "@phosphor-icons/react";
 import { panggilApi } from "@/lib/api-client";
 import { getInitials } from "@/lib/format";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import { scrollToSection } from "@/lib/scroll";
 import { useLoader } from "./LoaderProvider";
 import { useHeroMotionPolicy } from "@/lib/useHeroMotionPolicy";
@@ -26,9 +27,9 @@ export { scrollToSection } from "@/lib/scroll";
 const navItems: { id: string; label: string; href?: string }[] = [
   { id: "hero", label: "Beranda" },
   { id: "alumni", label: "Direktori Alumni" },
-  { id: "arsip", label: "Arsip" },
   { id: "berita", label: "Berita" },
   { id: "kegiatan", label: "Kegiatan" },
+  { id: "arsip", label: "Arsip" },
 ];
 
 /** Jeda masuk pill navbar dan CTA Masuk/Daftar, dalam milidetik. */
@@ -44,6 +45,8 @@ type SesiAlumni = {
 /**
  * Akun yang sedang login. `href` menyesuaikan status: pendaftar `PENDING` belum
  * boleh membuka `/alumni/profil`, jadi ikonnya mengarah ke halaman status.
+ * Saat mode jejaring dimatikan (`@/lib/fitur`), halaman profil dialihkan —
+ * semua akun diarahkan ke halaman status.
  */
 type AkunNavbar = {
   nama: string;
@@ -117,7 +120,10 @@ export default function Navbar() {
       setAkun({
         nama: (alumni?.namaLengkap || namaLengkapSaatDaftar).trim(),
         fotoUrl: alumni?.fotoUrl ?? null,
-        href: status === "ACTIVE" ? "/alumni/profil" : "/alumni/status",
+        href:
+          status === "ACTIVE" && FITUR_JEJARING_ALUMNI
+            ? "/alumni/profil"
+            : "/alumni/status",
         aktif: status === "ACTIVE",
       });
     }
@@ -189,7 +195,7 @@ export default function Navbar() {
     "p-2.5 augen-hairline rounded-[10px] bg-[#fdfdfd] text-[#0f1012] transition-colors duration-200";
 
   return (
-    <PermintaanMasukProvider aktif={akun?.aktif ?? false}>
+    <PermintaanMasukProvider aktif={Boolean(akun?.aktif) && FITUR_JEJARING_ALUMNI}>
       <StatusAkunProvider aktif={Boolean(akun)} />
       {/* Navbar — pill terpusat */}
       {/* 34px dari atas, sesuai posisi pill nav Augen. */}
@@ -240,7 +246,7 @@ export default function Navbar() {
         transition={{ duration: reducedMotion ? 0 : 0.3, ease: [0.22, 0.61, 0.36, 1] }}
         style={{ visibility: authHidden ? "hidden" : "visible" }}
       >
-        {akun && <TombolPermintaanMasuk />}
+        {akun && FITUR_JEJARING_ALUMNI && <TombolPermintaanMasuk />}
         {akun ? (
           <Link
             href={akun.href}
@@ -334,7 +340,7 @@ export default function Navbar() {
                   </Link>
                 </>
               ) : null}
-              {akun && (
+              {akun && FITUR_JEJARING_ALUMNI && (
                 <TombolPermintaanMasuk
                   variant="menu"
                   onKlik={() => setMobileOpen(false)}
@@ -351,7 +357,7 @@ export default function Navbar() {
                 >
                   {item.label}
                 </Link>
-              ) : isHome ? (
+                ) : isHome ? (
                 <button
                   key={item.id}
                   onClick={() => {

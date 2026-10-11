@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatTanggalWIB } from "@/lib/format";
 import Breadcrumb from "@/components/Breadcrumb";
+import RichText from "@/components/RichText";
 import VideoPreviewCard from "@/components/VideoPreviewCard";
 import { MorphHeroImage } from "@/components/motion/ImageMorph";
 
@@ -33,7 +34,10 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
 
   const kegiatan = await prisma.kegiatan.findFirst({
     where: { slug, status: "PUBLISHED", deletedAt: null },
-    include: { kategoriKegiatan: true },
+    include: {
+      kategoriKegiatan: true,
+      media: { orderBy: { urutan: "asc" } },
+    },
   });
 
   if (!kegiatan) {
@@ -64,11 +68,6 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
     (kegiatan.tanggalSelesai
       ? ` – ${formatTanggalWIB(kegiatan.tanggalSelesai)}`
       : "");
-
-  const isiParagraf = (kegiatan.deskripsiLengkap ?? "")
-    .split(/\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
 
   const specs = [
     { label: "Tanggal", value: tanggal },
@@ -119,17 +118,14 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
             <h1 className="mb-6 font-serif text-[length:var(--text-display-page)] font-normal leading-tight tracking-[-0.03em] text-neutral-900">
               {kegiatan.judul}
             </h1>
-            <p className="mb-4 max-w-2xl font-normal leading-relaxed text-black/70">
-              {kegiatan.deskripsiSingkat}
-            </p>
-            {isiParagraf.map((paragraf, i) => (
-              <p
-                key={i}
-                className="mb-4 max-w-2xl font-normal leading-relaxed text-black/70"
-              >
-                {paragraf}
-              </p>
-            ))}
+            <RichText
+              teks={kegiatan.deskripsiSingkat}
+              className="mb-4 max-w-2xl space-y-4 font-normal leading-relaxed text-black/70"
+            />
+            <RichText
+              teks={kegiatan.deskripsiLengkap}
+              className="max-w-2xl space-y-4 font-normal leading-relaxed text-black/70"
+            />
 
             {videoId && (
               <div className="mt-12 max-w-2xl border-t border-black/10 pt-8">
@@ -142,6 +138,46 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
                   durasi={`${durasiHari} Hari`}
                   description="Tonton rekaman dokumentasi kegiatan ini."
                 />
+              </div>
+            )}
+
+            {kegiatan.media.length > 0 && (
+              <div className="mt-12 max-w-2xl border-t border-black/10 pt-8">
+                <h2 className="mb-6 text-xs font-normal uppercase tracking-widest text-black/60">
+                  Galeri Foto &amp; Video ({kegiatan.media.length})
+                </h2>
+                <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {kegiatan.media.map((media) => {
+                    const sumber = `/api/kegiatan/${kegiatan.slug}/media/${media.id}`;
+                    return (
+                      <li key={media.id}>
+                        {media.jenis === "VIDEO" ? (
+                          <video
+                            src={sumber}
+                            controls
+                            preload="metadata"
+                            className="w-full border border-black/10 bg-black"
+                          />
+                        ) : (
+                          <div className="relative aspect-[4/3] w-full overflow-hidden border border-black/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sumber}
+                              alt={media.caption ?? kegiatan.judul}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        {media.caption && (
+                          <p className="mt-2 text-[13px] leading-relaxed text-black/60">
+                            {media.caption}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             )}
           </div>

@@ -24,6 +24,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  /*
+   * Situs tidak untuk diindeks. `noindex` di metadata hanya berlaku untuk HTML,
+   * jadi berkas non-HTML (PDF arsip, gambar `/api/uploads/**`, JSON API) diberi
+   * header ini juga. Selama halaman masih ada di indeks Google, jangan tambahkan
+   * `Disallow: /` di robots.txt — Google harus tetap boleh crawl agar membaca
+   * `noindex` dan membuang halaman.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

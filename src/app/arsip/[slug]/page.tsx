@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DownloadSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
 import Breadcrumb from "@/components/Breadcrumb";
+import RichText from "@/components/RichText";
 import { PratinjauArsip } from "@/components/arsip/PratinjauArsip";
 import { prisma } from "@/lib/db";
 import { getAlumniSession } from "@/lib/auth-alumni";
@@ -14,8 +14,6 @@ import { formatPeriodeKegiatan, formatTanggalWIB } from "@/lib/format";
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
-
-const GAMBAR_CADANGAN = "/images/placeholder-event.jpg";
 
 async function ambilArsip(slug: string) {
   return prisma.arsip.findFirst({
@@ -65,11 +63,6 @@ export default async function ArsipDetailPage({ params }: PageProps) {
 
   if (!dokumen) notFound();
 
-  const paragraf = (dokumen.deskripsiLengkap ?? "")
-    .split(/\n+/)
-    .map((isi) => isi.trim())
-    .filter(Boolean);
-
   const jalurLogin = `/alumni/login?next=/arsip/${dokumen.slug}`;
   const format = dokumen.berkasFormat?.toUpperCase() ?? null;
   const terkunciSekarang = terkunci(dokumen.akses, Boolean(aktif));
@@ -92,16 +85,17 @@ export default async function ArsipDetailPage({ params }: PageProps) {
           ]}
         />
 
-        {/* Sampul dokumen */}
-        <div className="relative mb-10 aspect-[4/3] w-full overflow-hidden border border-black/10 sm:aspect-[16/9]">
-          <Image
-            src={dokumen.gambarSampulUrl ?? GAMBAR_CADANGAN}
-            alt={dokumen.alt ?? dokumen.judul}
-            fill
-            sizes="(max-width: 900px) 100vw, 900px"
-            className="object-cover"
-          />
-        </div>
+        {/* Sampul dokumen — hanya bila ada gambarnya (tanpa placeholder). */}
+        {dokumen.gambarSampulUrl && (
+          <div className="relative mb-10 aspect-[4/3] w-full overflow-hidden border border-black/10 sm:aspect-[16/9]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dokumen.gambarSampulUrl}
+              alt={dokumen.alt ?? dokumen.judul}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="rounded-full border border-black/15 px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-black/60">
@@ -131,9 +125,10 @@ export default async function ArsipDetailPage({ params }: PageProps) {
 
         <h1 className="page-title mt-6">{dokumen.judul}</h1>
 
-        <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-black/70">
-          {dokumen.deskripsiSingkat}
-        </p>
+        <RichText
+          teks={dokumen.deskripsiSingkat}
+          className="mt-6 max-w-2xl space-y-3 text-[16px] leading-relaxed text-black/70"
+        />
 
         {/*
           Mode terkunci: arsip khusus alumni tetap ditampilkan (judul, jenis,
@@ -166,14 +161,10 @@ export default async function ArsipDetailPage({ params }: PageProps) {
         ) : (
           <>
             <div className="mt-12 space-y-4 border-t border-black/10 pt-8">
-              {paragraf.map((isi, i) => (
-                <p
-                  key={i}
-                  className="max-w-2xl text-[15px] leading-relaxed text-black/70"
-                >
-                  {isi}
-                </p>
-              ))}
+              <RichText
+                teks={dokumen.deskripsiLengkap}
+                className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-black/70"
+              />
             </div>
 
             {/*

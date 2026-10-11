@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
+import HomeSectionLink from "./HomeSectionLink";
 
 export type Crumb = {
   label: string;
   href?: string;
+  sectionId?: string;
 };
 
 /**
@@ -45,9 +47,18 @@ export default function Breadcrumb({
             className="inline-flex items-center gap-2"
           >
             {item.href && !last ? (
-              <Link href={item.href} className={linkClass}>
-                {item.label}
-              </Link>
+              item.sectionId ? (
+                <HomeSectionLink
+                  sectionId={item.sectionId}
+                  className={linkClass}
+                >
+                  {item.label}
+                </HomeSectionLink>
+              ) : (
+                <Link href={item.href} className={linkClass}>
+                  {item.label}
+                </Link>
+              )
             ) : (
               <span
                 aria-current={last ? "page" : undefined}

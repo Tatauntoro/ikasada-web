@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import TombolKeluarAlumni from "./TombolKeluarAlumni";
 import { BadgePermintaanMasuk } from "./BadgePermintaanMasuk";
 import { PermintaanMasukProvider } from "./PermintaanMasukProvider";
@@ -35,7 +36,7 @@ export default function RuangAlumni({
     kunci: "status" | "profil" | "jejaring";
   }[] = [{ label: "Status akun", href: "/alumni/status", kunci: "status" }];
 
-  if (aktif) {
+  if (aktif && FITUR_JEJARING_ALUMNI) {
     menu.push(
       { label: "Profil", href: "/alumni/profil", kunci: "profil" },
       { label: "Jejaring", href: "/alumni/jejaring", kunci: "jejaring" }
@@ -87,10 +88,12 @@ export default function RuangAlumni({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-8">
           <aside className="h-fit lg:sticky lg:top-6">
-            <PermintaanMasukProvider aktif={aktif}>
+            <PermintaanMasukProvider aktif={aktif && FITUR_JEJARING_ALUMNI}>
               <nav
                 aria-label="Menu ruang alumni"
-                className="grid grid-cols-3 gap-1 rounded-[16px] border border-[#e1e5eb] bg-white p-1.5 lg:grid-cols-1 lg:gap-2 lg:border-0 lg:bg-transparent lg:p-0"
+                className={`grid gap-1 rounded-[16px] border border-[#e1e5eb] bg-white p-1.5 lg:grid-cols-1 lg:gap-2 lg:border-0 lg:bg-transparent lg:p-0 ${
+                  menu.length > 1 ? "grid-cols-3" : "grid-cols-1"
+                }`}
               >
                 {menu.map((item) => {
                   const iniAktif = item.kunci === navAktif;

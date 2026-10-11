@@ -15,6 +15,7 @@ import {
   signAlumniToken,
 } from "@/lib/auth-alumni";
 import { catatAudit } from "@/lib/audit";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import {
   ambilIpKlien,
   catatPercobaan,
@@ -181,11 +182,16 @@ async function handler(req: NextRequest): Promise<Response> {
     /*
      * Akun pending selalu diarahkan ke halaman status, bukan ke `next`.
      * Akun `ACTIVE` tanpa `next` mendarat di profil — di sanalah ia mengatur
-     * status keterbukaan dan melihat datanya sendiri lebih dulu.
+     * status keterbukaan dan melihat datanya sendiri lebih dulu. Saat mode
+     * jejaring dimatikan (`@/lib/fitur`), halaman profil dialihkan, jadi
+     * default-nya langsung halaman status.
      */
     redirectTo:
       akun.status === StatusAlumniAccount.ACTIVE
-        ? pathInternalAman(next, "/alumni/profil")
+        ? pathInternalAman(
+            next,
+            FITUR_JEJARING_ALUMNI ? "/alumni/profil" : "/alumni/status"
+          )
         : "/alumni/status",
   });
 }

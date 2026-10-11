@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { StatusKegiatan } from "@/generated/prisma/enums";
 import { isValidYoutubeUrl } from "@/lib/youtube";
+import {
+  MAX_MEDIA_PER_ENTRI,
+  mediaSchema,
+} from "@/lib/validations/media";
 
 const statusValues = Object.values(StatusKegiatan) as [
   StatusKegiatan,
@@ -14,7 +18,7 @@ export const kegiatanBaseSchema = z.object({
     .max(150, "Judul maksimal 150 karakter"),
   deskripsiSingkat: z
     .string({ message: "Deskripsi singkat wajib diisi" })
-    .max(300, "Deskripsi singkat maksimal 300 karakter"),
+    .max(500, "Deskripsi singkat maksimal 500 karakter"),
   deskripsiLengkap: z
     .string()
     .max(5000, "Deskripsi lengkap maksimal 5000 karakter")
@@ -28,19 +32,25 @@ export const kegiatanBaseSchema = z.object({
   kategori: z
     .string({ message: "Kategori wajib dipilih" })
     .min(1, "Kategori wajib dipilih"),
+  /*
+   * URL YouTube opsional — string kosong dari form harus lolos. Karena itu
+   * `.url()` tidak dipakai (`.url()` menolak ""); validasinya lewat refine yang
+   * menerima nilai kosong.
+   */
   videoYoutubeUrl: z
     .string()
-    .url("URL tidak valid")
+    .optional()
+    .nullable()
     .refine((val) => !val || isValidYoutubeUrl(val), {
       message: "URL YouTube tidak valid",
-    })
-    .optional()
-    .nullable(),
+    }),
   linkPendaftaran: z
     .string()
-    .url("URL tidak valid")
     .optional()
-    .nullable(),
+    .nullable()
+    .refine((val) => !val || /^https?:\/\//.test(val), {
+      message: "URL tidak valid",
+    }),
   gambarThumbnailUrl: z
     .string()
     .refine(
@@ -53,6 +63,13 @@ export const kegiatanBaseSchema = z.object({
     )
     .optional()
     .nullable(),
+  media: z
+    .array(mediaSchema)
+    .max(
+      MAX_MEDIA_PER_ENTRI,
+      `Maksimal ${MAX_MEDIA_PER_ENTRI} media per kegiatan`
+    )
+    .optional(),
   status: z.enum(statusValues, { message: "Status tidak valid" }),
 });
 
@@ -67,14 +84,6 @@ export const kegiatanCreateSchema = kegiatanBaseSchema.superRefine(
         code: z.ZodIssueCode.custom,
         path: ["tanggalSelesai"],
         message: "Tanggal selesai harus setelah atau sama dengan tanggal mulai",
-      });
-    }
-
-    if (data.status === "PUBLISHED" && !data.gambarThumbnailUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["gambarThumbnailUrl"],
-        message: "Thumbnail wajib diisi untuk status Published",
       });
     }
   }

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import RuangAlumni from "@/components/alumni/RuangAlumni";
 import AlumniProfileSettings from "@/components/alumni/AlumniProfileSettings";
 import { akunAlumniAktifHalaman } from "@/lib/halaman-alumni";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 
 export const metadata: Metadata = {
   title: "Profil Alumni - IKASADA FIB UI",
@@ -26,6 +28,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
  * jalur untuk membuka atau mengubah preferensi akun lain.
  */
 export default async function ProfilAlumniPage() {
+  /*
+   * Isi halaman ini murni preferensi jejaring, yang disembunyikan saat mode
+   * jejaring dimatikan (`@/lib/fitur`). Pengunjung dialihkan ke halaman status;
+   * komponen `AlumniProfileSettings` tetap utuh untuk diaktifkan kembali.
+   */
+  if (!FITUR_JEJARING_ALUMNI) redirect("/alumni/status");
+
   await akunAlumniAktifHalaman("/alumni/profil");
 
   return (

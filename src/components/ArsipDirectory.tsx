@@ -12,6 +12,7 @@ import {
 import type { PublicArsip, PublicJenisArsip } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
 import { formatPeriodeKegiatan } from "@/lib/format";
+import { keTeksBiasa } from "@/lib/rich-text";
 import FilterSelect from "./FilterSelect";
 import Pagination from "./Pagination";
 
@@ -53,7 +54,7 @@ export function ArsipRow({
             {item.judul}
           </Judul>
           <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-black/60">
-            {item.deskripsiSingkat}
+            {keTeksBiasa(item.deskripsiSingkat)}
           </p>
         </div>
 

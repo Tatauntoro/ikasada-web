@@ -21,6 +21,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { getInitials } from "@/lib/format";
+import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 
 /** Akun alumni, diringkas ke bagian yang dipakai daftar (keterbukaan). */
 type AkunRingkas = {
@@ -315,12 +316,17 @@ export default function AlumniListPage() {
       className: "hidden md:table-cell",
       cell: (row: Alumni) => row.sektorIndustri.namaSektor,
     },
-    {
-      key: "keterbukaan",
-      header: "Keterbukaan",
-      className: "hidden lg:table-cell",
-      cell: (row: Alumni) => <BadgeKeterbukaan akun={row.account} />,
-    },
+    /* Kolom keterbukaan disembunyikan saat mode jejaring dimatikan (`@/lib/fitur`). */
+    ...(FITUR_JEJARING_ALUMNI
+      ? [
+          {
+            key: "keterbukaan",
+            header: "Keterbukaan",
+            className: "hidden lg:table-cell",
+            cell: (row: Alumni) => <BadgeKeterbukaan akun={row.account} />,
+          },
+        ]
+      : []),
     {
       key: "status",
       header: "Status",
@@ -449,25 +455,28 @@ export default function AlumniListPage() {
             </select>
           </div>
 
-          <div className="relative">
-            <Faders
-              weight="bold"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8f8f8f]"
-            />
-            <select
-              aria-label="Filter keterbukaan"
-              value={filters.keterbukaan}
-              onChange={(e) => updateFilter("keterbukaan", e.target.value)}
-              className="pl-10 pr-8 py-2.5 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] appearance-none"
-            >
-              <option value="">Semua Keterbukaan</option>
-              {KETERBUKAAN_OPTIONS.map((k) => (
-                <option key={k.value} value={k.value}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Filter keterbukaan disembunyikan saat mode jejaring dimatikan. */}
+          {FITUR_JEJARING_ALUMNI && (
+            <div className="relative">
+              <Faders
+                weight="bold"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8f8f8f]"
+              />
+              <select
+                aria-label="Filter keterbukaan"
+                value={filters.keterbukaan}
+                onChange={(e) => updateFilter("keterbukaan", e.target.value)}
+                className="pl-10 pr-8 py-2.5 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] appearance-none"
+              >
+                <option value="">Semua Keterbukaan</option>
+                {KETERBUKAAN_OPTIONS.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {k.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 

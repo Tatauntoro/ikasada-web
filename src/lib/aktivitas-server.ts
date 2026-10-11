@@ -17,6 +17,8 @@ export type ItemAktivitas = {
   waktu: string;
   aktorNama: string;
   aktorJenis: "admin" | "alumni";
+  /** Nama divisi aktor admin; `null` untuk alumni atau admin tanpa divisi. */
+  aktorDivisi: string | null;
   kalimat: string;
   /** Label modul (mis. "Data Alumni"). */
   modul: string;
@@ -53,9 +55,15 @@ function namaAkun(a: AkunRingkas): string {
   return a.alumni?.namaLengkap ?? a.namaLengkapSaatDaftar;
 }
 
+type AktorInfo = {
+  nama: string;
+  jenis: "admin" | "alumni";
+  divisi: string | null;
+};
+
 async function ambilNamaAktor(
   rows: BarisAudit[]
-): Promise<Map<string, { nama: string; jenis: "admin" | "alumni" }>> {
+): Promise<Map<string, AktorInfo>> {
   const adminIds = [
     ...new Set(rows.map((r) => r.adminId).filter((v): v is string => Boolean(v))),
   ];
@@ -68,7 +76,7 @@ async function ambilNamaAktor(
   const [admins, akuns] = await Promise.all([
     prisma.adminUser.findMany({
       where: { id: { in: adminIds } },
-      select: { id: true, nama: true },
+      select: { id: true, nama: true, divisi: { select: { nama: true } } },
     }),
     prisma.alumniAccount.findMany({
       where: { id: { in: akunIds } },
@@ -80,9 +88,17 @@ async function ambilNamaAktor(
     }),
   ]);
 
-  const map = new Map<string, { nama: string; jenis: "admin" | "alumni" }>();
-  for (const a of admins) map.set(a.id, { nama: a.nama, jenis: "admin" });
-  for (const a of akuns) map.set(a.id, { nama: namaAkun(a), jenis: "alumni" });
+  const map = new Map<string, AktorInfo>();
+  for (const a of admins) {
+    map.set(a.id, {
+      nama: a.nama,
+      jenis: "admin",
+      divisi: a.divisi?.nama ?? null,
+    });
+  }
+  for (const a of akuns) {
+    map.set(a.id, { nama: namaAkun(a), jenis: "alumni", divisi: null });
+  }
   return map;
 }
 
@@ -104,8 +120,17 @@ async function ambilNamaObjek(rows: BarisAudit[]): Promise<{
     ),
   ];
 
-  const [kegiatan, alumni, pengurus, kerjasama, arsip, akun, admin, koneksi] =
-    await Promise.all([
+  const [
+    kegiatan,
+    alumni,
+    pengurus,
+    kerjasama,
+    arsip,
+    akun,
+    admin,
+    divisi,
+    koneksi,
+  ] = await Promise.all([
       prisma.kegiatan.findMany({
         where: { id: { in: ids("Kegiatan") } },
         select: { id: true, judul: true },
@@ -138,6 +163,10 @@ async function ambilNamaObjek(rows: BarisAudit[]): Promise<{
         where: { id: { in: ids("AdminUser") } },
         select: { id: true, nama: true },
       }),
+      prisma.divisi.findMany({
+        where: { id: { in: ids("Divisi") } },
+        select: { id: true, nama: true },
+      }),
       prisma.connection.findMany({
         where: { id: { in: ids("Connection") } },
         select: {
@@ -167,6 +196,7 @@ async function ambilNamaObjek(rows: BarisAudit[]): Promise<{
   for (const a of arsip) objek.set(`Arsip:${a.id}`, a.judul);
   for (const a of akun) objek.set(`AlumniAccount:${a.id}`, namaAkun(a));
   for (const a of admin) objek.set(`AdminUser:${a.id}`, a.nama);
+  for (const d of divisi) objek.set(`Divisi:${d.id}`, d.nama);
 
   const koneksiMap = new Map<string, KoneksiRingkas>(
     koneksi.map((k) => [
@@ -198,7 +228,11 @@ export async function susunAktivitas(
     const key = r.adminId ?? r.alumniAccountId ?? "";
     const aktorInfo =
       aktor.get(key) ??
-      { nama: "Tidak diketahui", jenis: r.adminId ? "admin" : "alumni" };
+      {
+        nama: "Tidak diketahui",
+        jenis: r.adminId ? "admin" : "alumni",
+        divisi: null,
+      };
 
     let namaObjek: string | undefined;
     if (r.entitas === "Connection") {
@@ -216,6 +250,7 @@ export async function susunAktivitas(
       waktu: r.createdAt.toISOString(),
       aktorNama: aktorInfo.nama,
       aktorJenis: aktorInfo.jenis,
+      aktorDivisi: aktorInfo.divisi,
       kalimat: kalimatAktivitas(r.aksi, r.entitas, namaObjek),
       modul: labelEntitas(r.entitas),
       entitas: r.entitas,
