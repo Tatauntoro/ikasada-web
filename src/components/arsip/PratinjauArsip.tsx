@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowClockwise, LockKey, Spinner } from "@phosphor-icons/react";
+import { AKSES_ALUMNI_TERBUKA } from "@/lib/fitur";
+import { TautanEmailPengurus } from "@/components/arsip/TautanEmailPengurus";
 
 /**
  * Pratinjau PDF arsip.
@@ -80,14 +82,20 @@ export function PratinjauArsip({
       <div className="border border-dashed border-black/20 px-6 py-8">
         <p className="flex items-center gap-2 text-[13px] text-black/70">
           <LockKey weight="bold" />
-          Sesi Anda sudah berakhir. Masuk kembali untuk membuka pratinjau.
+          {AKSES_ALUMNI_TERBUKA
+            ? "Sesi Anda sudah berakhir. Masuk kembali untuk membuka pratinjau."
+            : "Sesi Anda sudah berakhir. Hubungi tim pengurus lewat email di bawah ini untuk membuka pratinjau arsip ini."}
         </p>
-        <Link
-          href={jalurLogin}
-          className="mt-4 inline-block border border-black px-4 py-2 text-[13px] font-normal text-[#0f1012] transition-colors hover:bg-black hover:text-white"
-        >
-          Masuk sebagai alumni
-        </Link>
+        {AKSES_ALUMNI_TERBUKA ? (
+          <Link
+            href={jalurLogin}
+            className="mt-4 inline-block border border-black px-4 py-2 text-[13px] font-normal text-[#0f1012] transition-colors hover:bg-black hover:text-white"
+          >
+            Masuk sebagai alumni
+          </Link>
+        ) : (
+          <TautanEmailPengurus className="mt-4" />
+        )}
       </div>
     );
   }

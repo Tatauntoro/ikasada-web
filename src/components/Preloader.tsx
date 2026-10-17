@@ -73,6 +73,8 @@ export default function Preloader({ latar = "#ffffff", tintaTerang = "#0f1012" }
         if (keluar && event.target === event.currentTarget && event.propertyName === "opacity") setSelesai(true);
       }}
     >
+      <div className={`${styles.ornamen} ${styles.ornamenKanan}`} aria-hidden="true" />
+      <div className={`${styles.ornamen} ${styles.ornamenKiri}`} aria-hidden="true" />
       <div className={styles.lockup}>
         <svg className={styles.aksara} viewBox="0 0 260 72" aria-hidden="true">
           {GLIF.map((glif, i) => (
@@ -89,11 +91,11 @@ export default function Preloader({ latar = "#ffffff", tintaTerang = "#0f1012" }
         <p className={styles.status}>Menyiapkan ruang untuk terhubung</p>
         <div className={styles.track} aria-hidden="true"><span ref={barRef} className={styles.fill} /></div>
       </div>
-      <svg className={styles.gelombang} viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 16C220 92 405 105 650 110H0Z" fill="#a7ddfa" />
-        <path d="M0 0C220 82 420 105 700 110H600C375 106 180 76 0 14Z" fill="#39aa56" />
+      <svg className={styles.gelombang} viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 184C240 144 405 143 610 158C970 183 1170 15 1440 12V200H0Z" fill="#5bc342" />
+        <path d="M0 184C240 144 405 143 610 158C970 192 1170 49 1440 40V200H0Z" fill="#0085ed" />
+        <path d="M0 196C260 164 410 167 650 177C1000 201 1200 95 1440 80V200H0Z" fill="#085eb9" />
       </svg>
-      <span className={styles.signature} aria-hidden="true">IKASADA · FIB UI</span>
     </div>
   );
 }

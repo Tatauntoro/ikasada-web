@@ -89,7 +89,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
         />
 
         {/* Hero — gambar kegiatan */}
-        <div className="group relative w-full overflow-hidden border border-black/10">
+        <div className="group relative w-full overflow-hidden border border-[#0B5ED7]/15">
           <div className="aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
             {kegiatan.gambarThumbnailUrl ? (
               <MorphHeroImage
@@ -102,7 +102,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          <div className="absolute bottom-4 left-4 z-10 rounded-[2px] border border-black/10 bg-[#fdfdfd]/90 px-4 py-2">
+          <div className="absolute bottom-4 left-4 z-10 rounded-[2px] border border-[#0B5ED7]/15 bg-[#fdfdfd]/90 px-4 py-2">
             <span className="text-[10px] font-normal uppercase tracking-widest text-black">
               {kegiatan.lokasi}
             </span>
@@ -112,10 +112,10 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
         {/* Konten */}
         <div className="mt-12 grid gap-12 md:grid-cols-12">
           <div className="md:col-span-7">
-            <span className="mb-6 block text-[10px] uppercase tracking-widest text-black/60">
+            <span className="mb-6 block text-[10px] font-semibold uppercase tracking-widest text-[#0B5ED7]">
               Kegiatan — {namaKategori}
             </span>
-            <h1 className="mb-6 font-serif text-[length:var(--text-display-page)] font-normal leading-tight tracking-[-0.03em] text-neutral-900">
+            <h1 className="mb-6 font-sans text-[length:var(--text-display-page)] font-semibold leading-tight tracking-[-0.03em] text-neutral-900">
               {kegiatan.judul}
             </h1>
             <RichText
@@ -128,7 +128,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
             />
 
             {videoId && (
-              <div className="mt-12 max-w-2xl border-t border-black/10 pt-8">
+              <div className="mt-12 max-w-2xl border-t border-[#0B5ED7]/15 pt-8">
                 <h2 className="mb-6 text-xs font-normal uppercase tracking-widest text-black/60">
                   Lihat Video
                 </h2>
@@ -142,7 +142,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
             )}
 
             {kegiatan.media.length > 0 && (
-              <div className="mt-12 max-w-2xl border-t border-black/10 pt-8">
+              <div className="mt-12 max-w-2xl border-t border-[#0B5ED7]/15 pt-8">
                 <h2 className="mb-6 text-xs font-normal uppercase tracking-widest text-black/60">
                   Galeri Foto &amp; Video ({kegiatan.media.length})
                 </h2>
@@ -156,10 +156,10 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
                             src={sumber}
                             controls
                             preload="metadata"
-                            className="w-full border border-black/10 bg-black"
+                            className="w-full border border-[#0B5ED7]/15 bg-black"
                           />
                         ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden border border-black/10">
+                          <div className="relative aspect-[4/3] w-full overflow-hidden border border-[#0B5ED7]/15">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={sumber}
@@ -184,7 +184,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
 
           <div className="md:col-span-5">
             {/* Spesifikasi */}
-            <div className="grid grid-cols-1 gap-x-4 gap-y-5 border-t border-black/10 pt-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-5 border-t border-[#0B5ED7]/15 pt-6 sm:grid-cols-2">
               {specs.map((spec) => (
                 <div key={spec.label} className="flex items-baseline gap-2">
                   <span className="shrink-0 text-[10px] font-normal uppercase tracking-widest text-black/60">
@@ -204,7 +204,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
                   href={kegiatan.linkPendaftaran}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block rounded-[2px] border border-black/40 px-8 py-3 text-[10px] uppercase tracking-widest transition-colors duration-500 hover:bg-black hover:text-white"
+                  className="inline-block rounded-[2px] border border-[#0B5ED7] px-8 py-3 text-[10px] font-semibold uppercase tracking-widest transition-colors duration-300 hover:bg-[#0B5ED7] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]"
                 >
                   Daftar / Ikuti Kegiatan
                 </a>
@@ -218,7 +218,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border-b border-black/30 pb-0.5 text-[10px] uppercase tracking-widest text-black/60 transition-colors hover:border-black hover:text-black"
+                className="border-b border-[#0B5ED7]/35 pb-0.5 text-[10px] uppercase tracking-widest text-[#0B5ED7] transition-colors hover:border-[#0B5ED7] hover:text-[#084BAA] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0B5ED7]"
               >
                 Lihat Lokasi
               </a>

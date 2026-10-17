@@ -6,6 +6,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useLoader } from "../LoaderProvider";
 import MorphText from "../motion/MorphText";
+import { sectionAktif, useBerandaConfig } from "@/lib/beranda-client";
 import { scrollToSection } from "@/lib/scroll";
 import GlyphPortal from "./GlyphPortal";
 import styles from "./glyph-hero.module.css";
@@ -43,6 +44,7 @@ const JEDA = {
 
 export default function GlyphHero() {
   const { ready, introAktif } = useLoader();
+  const beranda = useBerandaConfig();
   const [fontSiap, setFontSiap] = useState(false);
 
   /*
@@ -157,15 +159,21 @@ export default function GlyphHero() {
                 >
                   Dari Akar Yang Sama, Tumbuh Jauh Bersama
                 </MorphText>
-                <button
-                  type="button"
-                  className={styles.cta}
-                  style={{ animationDelay: `${JEDA.cta}ms` }}
-                  onClick={() => scrollToSection("alumni", "alumni-search")}
-                >
-                  Cari alumni
-                  <ArrowRight weight="bold" aria-hidden="true" />
-                </button>
+                {/*
+                 * CTA mengarah ke section Direktori Alumni, jadi ia ikut
+                 * sakelar "Kelola Beranda": hilang saat section itu dimatikan.
+                 */}
+                {sectionAktif(beranda, "direktori-alumni") && (
+                  <button
+                    type="button"
+                    className={styles.cta}
+                    style={{ animationDelay: `${JEDA.cta}ms` }}
+                    onClick={() => scrollToSection("alumni", "alumni-search")}
+                  >
+                    Cari alumni
+                    <ArrowRight weight="bold" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
           }

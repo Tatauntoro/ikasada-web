@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { compare } from "bcryptjs";
 import { StatusAlumniAccount } from "@/generated/prisma/enums";
+import { gerbangApiAlumni } from "@/lib/akses-alumni";
 import { prisma } from "@/lib/db";
 import {
   ok,
@@ -51,6 +52,9 @@ const PESAN_GAGAL = "Email atau kata sandi salah";
 const DUMMY_HASH = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
 async function handler(req: NextRequest): Promise<Response> {
+  const blokir = gerbangApiAlumni();
+  if (blokir) return blokir;
+
   const body = await readJsonBody(req);
 
   const parsed = alumniLoginSchema.safeParse(body);

@@ -71,16 +71,22 @@ export default function WorldSebaranMap({
   return (
     <div className={styles.geo}>
       <div className={styles.geoCopy}>
-        <p className={`${styles.geoKicker} section-label section-label--terang`}>
+        <p className={`${styles.geoKicker} section-label`}>
           {eyebrow}
         </p>
-        <h3 className={`${styles.geoTitle} section-title section-title--terang`}>
+        <h3 className={`${styles.geoTitle} section-title`}>
           {judul}
         </h3>
         <p className={styles.geoDescription}>{deskripsi}</p>
       </div>
 
-      <WorldMap dots={dots} lineColor="#8abaff" />
+      <WorldMap
+        dots={dots}
+        lineColor="#0B5ED7"
+        originColor="#28A745"
+        dotColor="#8bb4e8"
+        backgroundColor="#ffffff"
+      />
     </div>
   );
 }

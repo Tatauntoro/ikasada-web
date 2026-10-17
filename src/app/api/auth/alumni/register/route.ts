@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { hash } from "bcryptjs";
+import { gerbangApiAlumni } from "@/lib/akses-alumni";
 import { prisma } from "@/lib/db";
 import {
   conflict,
@@ -30,6 +31,9 @@ const MAX_PER_EMAIL = 5;
 const BCRYPT_ROUNDS = 10;
 
 async function handler(req: NextRequest): Promise<Response> {
+  const blokir = gerbangApiAlumni();
+  if (blokir) return blokir;
+
   const body = await readJsonBody(req);
 
   const parsed = alumniRegisterSchema.safeParse(body);

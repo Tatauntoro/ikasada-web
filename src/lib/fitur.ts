@@ -15,3 +15,18 @@
  * diuji-tipe dan tidak ditandai sebagai kode yang tak terjangkau.
  */
 export const FITUR_JEJARING_ALUMNI: boolean = false;
+
+/**
+ * Sakelar akses akun alumni (login/register).
+ *
+ * `false` menyembunyikan seluruh titik masuk login di halaman publik dan
+ * memblokir akses langsung ke `/alumni/login`, `/alumni/register`,
+ * `/alumni/lupa-password` beserta endpoint API-nya: halaman dialihkan ke
+ * beranda, endpoint dibalas `403`. Halaman publik lain dan portal admin tidak
+ * terpengaruh. Ubah ke `true` untuk membuka kembali; tidak ada migrasi database.
+ *
+ * Anotasinya `boolean` (bukan literal `false`) untuk alasan yang sama seperti
+ * `FITUR_JEJARING_ALUMNI` di atas: cabang `AKSES_ALUMNI_TERBUKA && (...)` tetap
+ * diuji-tipe dan tidak ditandai sebagai kode yang tak terjangkau.
+ */
+export const AKSES_ALUMNI_TERBUKA: boolean = false;

@@ -1,11 +1,12 @@
 "use client";
 
-import { KONTAK } from "@/data/kontak";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import {
+  emailKontakBeranda,
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 import styles from "./ContactSection.module.css";
 
@@ -22,21 +23,22 @@ export default function ContactSection() {
   if (!sectionAktif(beranda, "kontak")) return null;
 
   // Email dari Kelola Beranda; jatuh ke kanal resmi bila dikosongkan.
-  const konfig = beranda?.sections.find((s) => s.kunci === "kontak")
-    ?.konfigurasi as { email?: unknown } | null | undefined;
-  const emailKonfig =
-    typeof konfig?.email === "string" ? konfig.email.trim() : "";
-  const email = emailKonfig || KONTAK.email;
+  const email = emailKontakBeranda(beranda);
+
+  const gayaJudulKontak = gayaSection(beranda, "kontak", "judul");
 
   return (
     <section
       id="kontak"
       className={`home-jakarta-section ${plusJakartaSans.className} ${styles.contactSection} reveal-section`}
     >
-      <div className={styles.shell}>
+      <div className={`${styles.shell} home-section-container`}>
         <div className={styles.grid}>
           <div className={styles.lead}>
-            <h2 className={`${styles.title} section-title`}>
+            <h2
+              className={`${styles.title} section-title`}
+              style={gayaJudulKontak}
+            >
               {teksSection(
                 beranda,
                 "kontak",

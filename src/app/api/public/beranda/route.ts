@@ -36,6 +36,10 @@ async function handler(req: NextRequest): Promise<Response> {
           judul: s.judul,
           eyebrow: s.eyebrow,
           deskripsi: s.deskripsi,
+          warnaJudul: s.warnaJudul,
+          warnaEyebrow: s.warnaEyebrow,
+          ukuranJudul: s.ukuranJudul,
+          ukuranEyebrow: s.ukuranEyebrow,
           konfigurasi: s.konfigurasi,
         }))
       : SECTION_DEFAULT.map((s) => ({
@@ -45,6 +49,10 @@ async function handler(req: NextRequest): Promise<Response> {
           judul: s.judul ?? null,
           eyebrow: s.eyebrow ?? null,
           deskripsi: s.deskripsi ?? null,
+          warnaJudul: null,
+          warnaEyebrow: null,
+          ukuranJudul: null,
+          ukuranEyebrow: null,
           konfigurasi: s.konfigurasi ?? null,
         }));
 

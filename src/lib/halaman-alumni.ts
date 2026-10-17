@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { StatusAlumniAccount } from "@/generated/prisma/enums";
 import { ALUMNI_SESSION_COOKIE_NAME, getAlumniSession } from "@/lib/auth-alumni";
 import { prisma } from "@/lib/db";
+import { AKSES_ALUMNI_TERBUKA } from "@/lib/fitur";
 import {
   alumniAccountSelect,
   type AkunAlumniUntukResponse,
@@ -32,6 +33,15 @@ export async function akunAlumniHalaman(jalur: string): Promise<HalamanAlumni> {
   const sesi = await getAlumniSession();
 
   if (!sesi) {
+    /*
+     * Saat akses alumni ditutup, pengunjung anonim tidak punya pintu masuk lagi:
+     * ia diantar langsung ke beranda, bukan melewati `/alumni/login` yang kini
+     * juga mengarah ke sana. Sesi yang masih sah tetap boleh melanjutkan.
+     */
+    if (!AKSES_ALUMNI_TERBUKA) {
+      redirect("/");
+    }
+
     const cookieStore = await cookies();
     const sesiBerakhir = cookieStore.has(ALUMNI_SESSION_COOKIE_NAME);
     const tujuan = `/alumni/login?next=${encodeURIComponent(jalur)}`;
@@ -45,7 +55,11 @@ export async function akunAlumniHalaman(jalur: string): Promise<HalamanAlumni> {
   });
 
   if (!akun) {
-    redirect(`/alumni/login?next=${encodeURIComponent(jalur)}`);
+    redirect(
+      AKSES_ALUMNI_TERBUKA
+        ? `/alumni/login?next=${encodeURIComponent(jalur)}`
+        : "/"
+    );
   }
 
   return { akun };

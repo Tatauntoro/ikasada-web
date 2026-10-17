@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { gerbangApiAlumni } from "@/lib/akses-alumni";
 import { prisma } from "@/lib/db";
 import { ok, tooManyRequests, validationError } from "@/lib/response";
 import { apiHandlerWithoutParams, readJsonBody } from "@/lib/api-handler";
@@ -36,6 +37,9 @@ const PESAN_GENERIK =
   "Jika email terdaftar, permintaan reset kata sandi sudah diteruskan ke pengurus. Pengurus akan menghubungi Anda lewat kanal resmi.";
 
 async function handler(req: NextRequest): Promise<Response> {
+  const blokir = gerbangApiAlumni();
+  if (blokir) return blokir;
+
   const body = await readJsonBody(req);
 
   const parsed = alumniLupaPasswordSchema.safeParse(body);

@@ -10,6 +10,7 @@ import {
   MagnifyingGlass,
 } from "@phosphor-icons/react";
 import type { PublicArsip, PublicJenisArsip } from "@/lib/types";
+import { labelGembokArsip } from "@/lib/akses-arsip";
 import { panggilApi } from "@/lib/api-client";
 import { formatPeriodeKegiatan } from "@/lib/format";
 import { keTeksBiasa } from "@/lib/rich-text";
@@ -62,7 +63,7 @@ export function ArsipRow({
           {item.akses === "KHUSUS_ALUMNI" && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-black/60">
               <LockKey weight="bold" aria-hidden="true" />
-              {item.terkunci ? "Masuk untuk melihat" : "Khusus alumni"}
+              {labelGembokArsip(item.akses, item.terkunci)}
             </span>
           )}
           {item.jumlahMedia > 0 && (
@@ -75,7 +76,7 @@ export function ArsipRow({
             {item.jenis.nama}
           </span>
           {item.berkasFormat && (
-            <span className="rounded-full bg-black px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-white">
+            <span className="rounded-full bg-[#F4C430] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0f1012]">
               {item.berkasFormat}
             </span>
           )}
@@ -287,6 +288,7 @@ export default function ArsipDirectory({
         page={page}
         totalPages={totalPages}
         onPageChange={gantiHalaman}
+        tone="gold"
         className="mt-12"
       />
     </div>

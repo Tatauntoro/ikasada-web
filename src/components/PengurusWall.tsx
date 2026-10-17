@@ -81,7 +81,7 @@ export function PengurusCarousel({ pengurus }: { pengurus: PengurusItem[] }) {
   const half = Math.floor(n / 2);
 
   const buttonClass =
-    "absolute top-1/2 z-20 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white ring-1 ring-white/10 backdrop-blur transition hover:bg-white/10";
+    "absolute top-1/2 z-20 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[#0B5ED7] text-white ring-1 ring-[#0B5ED7]/20 transition-colors hover:bg-[#084BAA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]";
 
   return (
     <div
@@ -150,7 +150,7 @@ export function PengurusCarousel({ pengurus }: { pengurus: PengurusItem[] }) {
                   </span>
                   <p
                     className={`tracking-tight text-white ${
-                      center ? "text-3xl font-[400]" : "text-xl font-normal"
+                      center ? "text-3xl font-semibold" : "text-xl font-medium"
                     }`}
                   >
                     {item.nama}

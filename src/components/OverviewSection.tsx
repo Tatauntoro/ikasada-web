@@ -7,6 +7,7 @@ import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 import styles from "./OverviewSection.module.css";
 
@@ -97,6 +98,10 @@ export default function OverviewSection() {
     "eyebrow",
     "Jejaring Ikasada FIB UI"
   );
+  const gayaJudulTentang = gayaSection(beranda, "tentang-kami", "judul");
+  const gayaEyebrowTentang = gayaSection(beranda, "tentang-kami", "eyebrow");
+  const gayaJudulLima = gayaSection(beranda, "lima-cara", "judul");
+  const gayaEyebrowLima = gayaSection(beranda, "lima-cara", "eyebrow");
   const judulLimaRaw =
     beranda?.sections.find((s) => s.kunci === "lima-cara")?.judul ?? null;
   // Judul "Lima cara..." punya markup khusus (kata terakhir di-<span>); pakai
@@ -203,13 +208,22 @@ export default function OverviewSection() {
         aria-labelledby="overview-title ways-title"
       >
         {tentangAktif && (
-          <div className={styles.inner}>
+          <div className={`${styles.inner} home-section-container`}>
             <div className={styles.labelBlock}>
-              <p className={styles.label}>{labelTentang}</p>
+              <p
+                className={styles.label}
+                style={gayaEyebrowTentang}
+              >
+                {labelTentang}
+              </p>
             </div>
 
             <div className={styles.content}>
-              <h2 id="overview-title" className="section-title">
+              <h2
+                id="overview-title"
+                className="section-title"
+                style={gayaJudulTentang}
+              >
                 {judulTentang}
               </h2>
               <p className={styles.body}>{bodyTentang}</p>
@@ -218,10 +232,19 @@ export default function OverviewSection() {
         )}
 
         {limaAktif && (
-          <div id="tiga-cara" className={`${styles.ways} reveal-section`}>
+          <div id="tiga-cara" className={`${styles.ways} home-section-container reveal-section`}>
             <header className={styles.waysHeader}>
-              <p className={styles.waysKicker}>{kickerLima}</p>
-              <h2 id="ways-title" className={styles.waysTitle}>
+              <p
+                className={styles.waysKicker}
+                style={gayaEyebrowLima}
+              >
+                {kickerLima}
+              </p>
+              <h2
+                id="ways-title"
+                className={styles.waysTitle}
+                style={gayaJudulLima}
+              >
                 {limaKustom ? (
                   judulLimaRaw
                 ) : (

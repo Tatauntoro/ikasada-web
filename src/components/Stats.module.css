@@ -1,18 +1,17 @@
-/* Tiga permukaan editorial: statistik, peta, lalu detail angkatan.
-   "Sejauh ini" duduk di kanvas putih; peta tetap jadi band gelapnya. */
+/* Statistik dan detail berwarna biru; peta tetap pada kanvas putih. */
 .section {
-  --stats-ink: #0f1012;
-  --stats-muted: rgba(15, 16, 18, 0.68);
-  --stats-rule: rgba(15, 16, 18, 0.18);
-  background: #ffffff;
+  --stats-ink: #ffffff;
+  --stats-muted: rgba(255, 255, 255, 0.85);
+  --stats-rule: rgba(255, 255, 255, 0.3);
+  background: #0071e3;
   color: var(--stats-ink);
 }
 
 .geoSection {
-  --stats-ink: #fdfdfd;
-  --stats-muted: rgba(253, 253, 253, 0.68);
-  --stats-rule: rgba(253, 253, 253, 0.18);
-  background: #070707;
+  --stats-ink: #0f1012;
+  --stats-muted: rgba(15, 16, 18, 0.68);
+  --stats-rule: rgba(15, 16, 18, 0.18);
+  background: #ffffff;
   color: var(--stats-ink);
 }
 
@@ -25,9 +24,7 @@
 }
 
 .shell {
-  width: min(100% - 8vw, 1280px);
-  margin: 0 auto;
-  padding: clamp(64px, 7vw, 104px) 0 clamp(72px, 8vw, 112px);
+  padding-block: clamp(64px, 7vw, 104px) clamp(72px, 8vw, 112px);
 }
 
 .intro {
@@ -49,6 +46,7 @@
 .section .eyebrow,
 .section .heading {
   font-family: inherit;
+  color: var(--stats-ink);
 }
 
 .introCopy {
@@ -125,7 +123,7 @@
 .geoDescription {
   max-width: 32ch;
   margin: clamp(18px, 2vw, 28px) 0 0;
-  color: #ffffff;
+  color: var(--stats-muted);
   font-family: inherit;
   font-size: clamp(14px, 1.15vw, 17px);
   letter-spacing: -0.02em;
@@ -282,8 +280,7 @@
 
 @media (max-width: 640px) {
   .shell {
-    width: min(100% - 40px, 560px);
-    padding: 64px 0 80px;
+    padding-block: 64px 80px;
   }
 
   .intro {

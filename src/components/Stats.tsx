@@ -8,7 +8,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import type { PublicStatistik } from "@/lib/types";
 import { reportAssetError } from "@/lib/asset-error";
 import WorldSebaranMap from "./WorldSebaranMap";
-import { useBerandaConfig } from "@/lib/beranda-client";
+import { useBerandaConfig, gayaSection } from "@/lib/beranda-client";
 import styles from "./Stats.module.css";
 
 const EASE = [0.22, 0.61, 0.36, 1] as const;
@@ -144,7 +144,7 @@ export default function Stats() {
   if (isLoading) {
     return (
       <section id="statistik" className={sectionClassName}>
-        <div className={styles.shell}>
+        <div className={`${styles.shell} home-section-container`}>
           <div className="animate-pulse">
             <div className="h-3 w-24 bg-[#0f1012]/10" />
             <div className="mt-5 h-10 w-64 max-w-full bg-[#0f1012]/10" />
@@ -165,7 +165,7 @@ export default function Stats() {
   if (failed || !statistik) {
     return (
       <section id="statistik" className={sectionClassName}>
-        <div className={`${styles.shell} ${styles.failure}`}>
+        <div className={`${styles.shell} ${styles.failure} home-section-container`}>
           Statistik sedang tidak tersedia. Silakan coba beberapa saat lagi.
         </div>
       </section>
@@ -193,6 +193,8 @@ export default function Stats() {
   const aktif = (kunci: string) => sek(kunci)?.aktif ?? true;
   const teks = (nilai: string | null | undefined, fallback: string) =>
     nilai && nilai.trim() ? nilai : fallback;
+  const gayaJudulStatistik = gayaSection(beranda, "statistik", "judul");
+  const gayaEyebrowStatistik = gayaSection(beranda, "statistik", "eyebrow");
 
   // Titik asal busur (almamater) dari Kelola Beranda.
   const asalSebaran = (() => {
@@ -215,7 +217,7 @@ export default function Stats() {
 
   return (
     <section id="statistik" className={sectionClassName}>
-      <div className={styles.shell}>
+      <div className={`${styles.shell} home-section-container`}>
         {aktif("statistik") && (
           <>
             {/* Header */}
@@ -227,10 +229,16 @@ export default function Stats() {
               className={styles.intro}
             >
               <div>
-                <span className={`${styles.eyebrow} section-label`}>
+                <span
+                  className={`${styles.eyebrow} section-label`}
+                  style={gayaEyebrowStatistik}
+                >
                   {teks(sek("statistik")?.eyebrow, "Statistik")}
                 </span>
-                <h2 className={`${styles.heading} section-title`}>
+                <h2
+                  className={`${styles.heading} section-title`}
+                  style={gayaJudulStatistik}
+                >
                   {teks(sek("statistik")?.judul, "Sejauh ini")}
                 </h2>
               </div>
@@ -279,7 +287,7 @@ export default function Stats() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
         >
-          <div className={styles.shell}>
+          <div className={`${styles.shell} home-section-container`}>
             {/* Peta sebaran */}
             <WorldSebaranMap
               titik={beranda?.sebaran}
@@ -300,7 +308,7 @@ export default function Stats() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
         >
-          <div className={styles.shell}>
+          <div className={`${styles.shell} home-section-container`}>
             <div className={styles.details}>
               {/* Sebaran angkatan */}
               {aktif("sebaran-angkatan") && (

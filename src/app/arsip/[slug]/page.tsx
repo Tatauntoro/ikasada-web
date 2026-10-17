@@ -5,10 +5,12 @@ import { DownloadSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import { PratinjauArsip } from "@/components/arsip/PratinjauArsip";
+import { TautanEmailPengurus } from "@/components/arsip/TautanEmailPengurus";
 import { prisma } from "@/lib/db";
 import { getAlumniSession } from "@/lib/auth-alumni";
 import { alumniAktif } from "@/lib/sesi-alumni";
-import { bolehUnduh, terkunci } from "@/lib/akses-arsip";
+import { bolehUnduh, labelGembokArsip, terkunci } from "@/lib/akses-arsip";
+import { AKSES_ALUMNI_TERBUKA } from "@/lib/fitur";
 import { formatPeriodeKegiatan, formatTanggalWIB } from "@/lib/format";
 
 type PageProps = {
@@ -42,7 +44,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (terkunci(dokumen.akses, Boolean(aktif))) {
     return {
       title: `${dokumen.judul} - IKASADA FIB UI`,
-      description: "Arsip khusus alumni — masuk untuk melihat isinya.",
+      description: AKSES_ALUMNI_TERBUKA
+        ? "Arsip khusus alumni — masuk untuk melihat isinya."
+        : "Arsip khusus alumni — hubungi pengurus untuk membukanya.",
     };
   }
 
@@ -102,7 +106,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
             {dokumen.jenisArsip.nama}
           </span>
           {format && (
-            <span className="rounded-full bg-black px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-white">
+            <span className="rounded-full bg-[#F4C430] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0f1012]">
               {format}
             </span>
           )}
@@ -110,11 +114,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
           {dokumen.akses !== "PUBLIK" && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-black/60">
               <LockKey weight="bold" aria-hidden="true" />
-              {terkunciSekarang
-                ? "Masuk untuk melihat"
-                : dokumen.akses === "KHUSUS_ALUMNI"
-                  ? "Khusus alumni"
-                  : "Unduh khusus alumni"}
+              {labelGembokArsip(dokumen.akses, terkunciSekarang)}
             </span>
           )}
         </div>
@@ -143,20 +143,34 @@ export default async function ArsipDetailPage({ params }: PageProps) {
             </p>
             <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-black/60">
               {!sesi
-                ? `Masuk dengan akun alumni untuk membuka ${
-                    dokumen.media.length > 0
-                      ? `${dokumen.media.length} media`
-                      : "isi"
-                  }${format ? ` dan berkas ${format}` : ""} arsip ini.`
+                ? AKSES_ALUMNI_TERBUKA
+                  ? `Masuk dengan akun alumni untuk membuka ${
+                      dokumen.media.length > 0
+                        ? `${dokumen.media.length} media`
+                        : "isi"
+                    }${format ? ` dan berkas ${format}` : ""} arsip ini.`
+                  : "Isi arsip ini hanya untuk alumni. Silakan hubungi tim pengurus lewat email di bawah ini untuk meminta salinan berkas arsipnya."
                 : "Akun Anda belum aktif. Selesaikan verifikasi pengurus terlebih dahulu — setelah itu arsip ini bisa dibuka."}
             </p>
-            <Link
-              href={sesi ? "/alumni/status" : jalurLogin}
-              className="mt-5 inline-flex items-center gap-2 bg-[#0f1012] px-5 py-2.5 text-[13px] text-white transition-opacity hover:opacity-90"
-            >
-              <LockKey weight="bold" aria-hidden="true" />
-              {sesi ? "Lihat status akun" : "Masuk sebagai alumni"}
-            </Link>
+            {sesi ? (
+              <Link
+                href="/alumni/status"
+                className="mt-5 inline-flex items-center gap-2 bg-[#0f1012] px-5 py-2.5 text-[13px] text-white transition-opacity hover:opacity-90"
+              >
+                <LockKey weight="bold" aria-hidden="true" />
+                Lihat status akun
+              </Link>
+            ) : AKSES_ALUMNI_TERBUKA ? (
+              <Link
+                href={jalurLogin}
+                className="mt-5 inline-flex items-center gap-2 bg-[#0f1012] px-5 py-2.5 text-[13px] text-white transition-opacity hover:opacity-90"
+              >
+                <LockKey weight="bold" aria-hidden="true" />
+                Masuk sebagai alumni
+              </Link>
+            ) : (
+              <TautanEmailPengurus />
+            )}
           </div>
         ) : (
           <>
@@ -236,18 +250,30 @@ export default async function ArsipDetailPage({ params }: PageProps) {
                   </p>
                 </div>
               ) : !sesi ? (
-                /* Berkasnya ada, tapi pengunjung belum login sebagai alumni. */
+                /* Berkasnya ada, tapi pengunjung belum masuk sebagai alumni. */
                 <div className="mt-4 border border-dashed border-black/20 px-6 py-8">
                   <p className="flex items-center gap-2 text-[14px] leading-relaxed text-black/70">
                     <LockKey weight="bold" />
-                    Dokumen ini hanya bisa dibuka oleh alumni yang sudah masuk.
+                    {AKSES_ALUMNI_TERBUKA
+                      ? "Dokumen ini hanya bisa dibuka oleh alumni yang sudah masuk."
+                      : "Berkas arsip ini hanya bisa diunduh alumni."}
                   </p>
-                  <Link
-                    href={jalurLogin}
-                    className="mt-5 inline-flex items-center gap-2 bg-[#0f1012] px-5 py-2.5 text-[13px] text-white transition-opacity hover:opacity-90"
-                  >
-                    Masuk untuk membuka
-                  </Link>
+                  {AKSES_ALUMNI_TERBUKA ? (
+                    <Link
+                      href={jalurLogin}
+                      className="mt-5 inline-flex items-center gap-2 bg-[#0f1012] px-5 py-2.5 text-[13px] text-white transition-opacity hover:opacity-90"
+                    >
+                      Masuk untuk membuka
+                    </Link>
+                  ) : (
+                    <>
+                      <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-black/60">
+                        Silakan hubungi tim pengurus lewat email di bawah ini
+                        untuk meminta salinan berkasnya.
+                      </p>
+                      <TautanEmailPengurus />
+                    </>
+                  )}
                 </div>
               ) : !bolehAmbilBerkas ? (
                 /* Login, tapi akunnya belum ACTIVE (pending/suspend/ditolak). */
@@ -263,6 +289,10 @@ export default async function ArsipDetailPage({ params }: PageProps) {
                   >
                     Lihat status akun
                   </Link>
+                  <p className="mt-4 text-[13px] leading-relaxed text-black/60">
+                    Atau hubungi tim pengurus lewat email berikut.
+                  </p>
+                  <TautanEmailPengurus className="mt-3" />
                 </div>
               ) : (
                 <div className="mt-4 space-y-6">

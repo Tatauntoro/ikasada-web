@@ -51,11 +51,11 @@ export default async function BeritaDetailPage({ params }: Params) {
               ]}
             />
 
-            <span className="inline-block rounded-full bg-[#0f1012] px-[11px] py-[5px] text-[10px] uppercase tracking-[0.12em] text-[#fdfdfd]">
+            <span className="inline-block rounded-full bg-[#F4C430] px-[11px] py-[5px] text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0f1012]">
               {berita.tipe}
             </span>
 
-            <h1 className="page-title mt-6 text-pretty">{berita.judul}</h1>
+            <h1 className="page-title mt-6 font-semibold text-pretty">{berita.judul}</h1>
 
             <p className="mt-4 text-[13px] text-black/55">
               {formatTanggalWIB(berita.tanggal)} · {formatWaktuWIB(berita.tanggal)} WIB
@@ -78,7 +78,7 @@ export default async function BeritaDetailPage({ params }: Params) {
             />
 
             {media.length > 0 && (
-              <section className="mt-12 border-t border-black/10 pt-8">
+              <section className="mt-12 border-t border-[#0B5ED7]/15 pt-8">
                 <h2 className="text-[10px] uppercase tracking-[0.18em] text-black/50">
                   Galeri ({media.length})
                 </h2>
@@ -92,10 +92,10 @@ export default async function BeritaDetailPage({ params }: Params) {
                             src={sumber}
                             controls
                             preload="metadata"
-                            className="w-full rounded-[12px] border border-black/10 bg-black"
+                            className="w-full rounded-[12px] border border-[#0B5ED7]/15 bg-black"
                           />
                         ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-black/10">
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-[#0B5ED7]/15">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={sumber}

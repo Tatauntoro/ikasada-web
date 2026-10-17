@@ -13,6 +13,7 @@ import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 
 const LIMIT = 6;
@@ -83,6 +84,8 @@ export default function EventsSection() {
     "judul",
     "Hadiri Kegiatan Kami."
   );
+  const gayaJudulKegiatan = gayaSection(beranda, "kegiatan", "judul");
+  const gayaEyebrowKegiatan = gayaSection(beranda, "kegiatan", "eyebrow");
 
   // Section bisa disembunyikan dari Kelola Beranda.
   if (!sectionAktif(beranda, "kegiatan")) return null;
@@ -90,21 +93,29 @@ export default function EventsSection() {
   return (
     <section
       id="kegiatan"
-      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(0,0,0,0.06)] bg-[#f2f2f4] py-[88px] text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(11,94,215,0.14)] bg-[#f2f2f4] py-[88px] text-[#0f1012] reveal-section`}
     >
-      <div className="relative z-10 mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-10">
+      <div className="home-section-container relative z-10">
         <div className="mb-16">
           <div className="max-w-3xl">
-            <span className="reveal-item block section-label">
+            <span
+              className="reveal-item block section-label"
+              style={gayaEyebrowKegiatan}
+            >
               {eyebrowKegiatan}
             </span>
-            <h2 className="reveal-item mt-4 section-title">{judulKegiatan}</h2>
+            <h2
+              className="reveal-item mt-4 section-title"
+              style={gayaJudulKegiatan}
+            >
+              {judulKegiatan}
+            </h2>
           </div>
         </div>
 
         {isLoading && (
           <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="animate-pulse overflow-hidden rounded-[16px] border border-[rgba(0,0,0,0.14)] bg-[#fdfdfd]">
+            <div className="animate-pulse overflow-hidden rounded-[16px] border border-[rgba(11,94,215,0.16)] bg-[#fdfdfd]">
               <div className="h-[238px] bg-[#e7e7ec]" />
               <div className="space-y-3 p-7">
                 <div className="h-5 w-3/4 rounded bg-neutral-100" />
@@ -115,7 +126,7 @@ export default function EventsSection() {
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-20 animate-pulse rounded-[12px] border border-[rgba(0,0,0,0.14)] bg-[#fdfdfd]"
+                  className="h-20 animate-pulse rounded-[12px] border border-[rgba(11,94,215,0.16)] bg-[#fdfdfd]"
                 />
               ))}
             </div>
@@ -146,7 +157,7 @@ export default function EventsSection() {
             {/* Featured event */}
             {featured && (
               <Tilt max={6} className="h-full">
-                <article className="reveal-item group flex h-full flex-col overflow-hidden rounded-[16px] border border-[rgba(0,0,0,0.22)] bg-[#fdfdfd] transition-all duration-[400ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:border-[#0f1012]">
+                <article className="reveal-item group flex h-full flex-col overflow-hidden rounded-[16px] border border-[rgba(11,94,215,0.18)] bg-[#fdfdfd] transition-all duration-[400ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:border-[#0B5ED7]">
                   <div data-scroll-scrub data-cursor-label="Buka kegiatan" className="relative h-[238px] overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -162,18 +173,29 @@ export default function EventsSection() {
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col gap-[14px] p-[26px_28px_28px]">
-                    <span className="self-start rounded-full bg-[#0f1012] px-[11px] py-[5px] text-[10.5px] font-normal uppercase tracking-[0.1em] text-[#fdfdfd]">
-                      Unggulan
-                    </span>
-                    <h3 className="font-display text-[28px] font-normal leading-[1.12] tracking-[-0.025em] text-[#0f1012] text-pretty sm:text-[31px]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="self-start rounded-full bg-[#F4C430] px-[11px] py-[5px] text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#26354A]">
+                        Unggulan
+                      </span>
+                      {featured.linkPendaftaran && (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#237a3b]">
+                          <span
+                            aria-hidden="true"
+                            className="size-1.5 rounded-full bg-[#28A745]"
+                          />
+                          Link pendaftaran
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.025em] text-[#0f1012] text-pretty sm:text-[31px]">
                       {featured.judul}
                     </h3>
                     <p className="text-[14.5px] leading-[1.6] text-[#0f1012] text-pretty">
                       {keTeksBiasa(featured.deskripsiSingkat)}
                     </p>
-                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[rgba(0,0,0,0.14)] pt-[18px]">
+                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[rgba(11,94,215,0.18)] pt-[18px]">
                       <span className="flex items-center gap-2 text-[13.5px] font-normal text-[#5e5e5e]">
-                        <span className="h-[7px] w-[7px] rounded-full border-2 border-[#0f1012]" />
+                        <span className="h-[7px] w-[7px] rounded-full border-2 border-[#0B5ED7]" />
                         {featured.lokasi}
                       </span>
                       <Link
@@ -200,9 +222,9 @@ export default function EventsSection() {
                   <Tilt key={item.id} max={4}>
                     <Link
                       href={`/kegiatan/${item.slug}`}
-                      className="reveal-item group relative grid grid-cols-[66px_1fr_auto] items-center gap-5 overflow-hidden rounded-xl border-b border-[rgba(0,0,0,0.14)] px-3 py-5 text-left transition-all duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:bg-[#fdfdfd]/70 hover:pl-6"
+                      className="reveal-item group relative grid grid-cols-[66px_1fr_auto] items-center gap-5 overflow-hidden rounded-xl border-b border-[rgba(11,94,215,0.18)] px-3 py-5 text-left transition-all duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:bg-[#EAF4FF] hover:pl-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]"
                     >
-                      <span className="absolute left-0 top-0 h-full w-[3px] origin-top scale-y-0 bg-[#0f1012] transition-transform duration-300 group-hover:scale-y-100" />
+                      <span className="absolute left-0 top-0 h-full w-[3px] origin-top scale-y-0 bg-[#0B5ED7] transition-transform duration-300 group-hover:scale-y-100" />
 
                       <span className="flex flex-col items-center leading-none">
                         <span className="font-display text-[30px] font-normal text-[#0f1012]">
@@ -214,11 +236,22 @@ export default function EventsSection() {
                       </span>
 
                       <span className="flex flex-col gap-[6px]">
-                        <span className="text-[15.5px] font-normal tracking-[-0.01em] text-[#0f1012] text-pretty">
+                        <span className="text-[15.5px] font-medium tracking-[-0.01em] text-[#0f1012] text-pretty">
                           {item.judul}
                         </span>
-                        <span className="flex items-center gap-1 text-[12.5px] text-[#5e5e5e]">
-                          <MapPin weight="bold" /> {item.lokasi}
+                        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-[#5e5e5e]">
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin weight="bold" /> {item.lokasi}
+                          </span>
+                          {item.linkPendaftaran && (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#237a3b]">
+                              <span
+                                aria-hidden="true"
+                                className="size-1.5 rounded-full bg-[#28A745]"
+                              />
+                              Link pendaftaran
+                            </span>
+                          )}
                         </span>
                       </span>
 

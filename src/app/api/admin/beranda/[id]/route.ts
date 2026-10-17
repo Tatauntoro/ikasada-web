@@ -64,6 +64,18 @@ async function handler(
         ...(data.judul !== undefined ? { judul: data.judul } : {}),
         ...(data.eyebrow !== undefined ? { eyebrow: data.eyebrow } : {}),
         ...(data.deskripsi !== undefined ? { deskripsi: data.deskripsi } : {}),
+        ...(data.warnaJudul !== undefined
+          ? { warnaJudul: data.warnaJudul }
+          : {}),
+        ...(data.warnaEyebrow !== undefined
+          ? { warnaEyebrow: data.warnaEyebrow }
+          : {}),
+        ...(data.ukuranJudul !== undefined
+          ? { ukuranJudul: data.ukuranJudul }
+          : {}),
+        ...(data.ukuranEyebrow !== undefined
+          ? { ukuranEyebrow: data.ukuranEyebrow }
+          : {}),
         ...(konfigurasiBaru !== undefined
           ? { konfigurasi: konfigurasiBaru }
           : {}),
@@ -82,6 +94,10 @@ async function handler(
           judul: existing.judul,
           eyebrow: existing.eyebrow,
           deskripsi: existing.deskripsi,
+          warnaJudul: existing.warnaJudul,
+          warnaEyebrow: existing.warnaEyebrow,
+          ukuranJudul: existing.ukuranJudul,
+          ukuranEyebrow: existing.ukuranEyebrow,
           konfigurasi: existing.konfigurasi,
         },
         {
@@ -90,6 +106,10 @@ async function handler(
           judul: hasil.judul,
           eyebrow: hasil.eyebrow,
           deskripsi: hasil.deskripsi,
+          warnaJudul: hasil.warnaJudul,
+          warnaEyebrow: hasil.warnaEyebrow,
+          ukuranJudul: hasil.ukuranJudul,
+          ukuranEyebrow: hasil.ukuranEyebrow,
           konfigurasi: hasil.konfigurasi,
         }
       ),

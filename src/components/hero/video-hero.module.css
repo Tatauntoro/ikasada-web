@@ -1,0 +1,46 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  container-type: size;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #101a22;
+  color: #fff;
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+.poster { object-fit: cover; }
+.video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; transition: opacity 500ms ease; }
+.video[data-visible] { opacity: 1; }
+/* Siluet gelap: video diredupkan supaya teks putih terbaca, paling kuat di sisi
+   kiri tempat teks berdiri dan makin tipis ke kanan. */
+.content {
+  position: relative;
+  display: flex;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 120px clamp(24px, 6vw, 90px) 90px;
+  background: linear-gradient(90deg, rgba(6, 14, 22, 0.85) 0%, rgba(6, 14, 22, 0.62) 45%, rgba(6, 14, 22, 0.42) 100%);
+  text-align: left;
+}
+/* Plakat putih dipertahankan: teks hitam "IKASADA FIB UI" di dalam logo tidak
+   terbaca kalau emblem transparan ditaruh langsung di atas video gelap. */
+.logo { position: absolute; top: 28px; left: clamp(24px, 6vw, 90px); padding: 5px; border-radius: 6px; background: #fff; }
+.logo img { display: block; width: 48px; height: auto; }
+.description, .tagline { margin: 0; text-wrap: balance; }
+.description { max-width: 42ch; font-size: clamp(16px, 1.5vw, 20px); line-height: 1.5; font-weight: 400; color: rgba(255, 255, 255, 0.9); }
+.tagline { margin-top: 6px; max-width: 18ch; font-size: clamp(34px, 5.2vw, 76px); line-height: 1.03; letter-spacing: -0.03em; font-weight: 500; color: #fff; }
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin-top: 30px; padding: 0 24px; border: 0; border-radius: 999px; background: #0071e3; color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.cta:hover { background: #005fc1; }
+.cta:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@media (max-width: 600px) {
+  .content { padding: 130px 20px 100px; }
+  .logo { top: 24px; left: 20px; }
+  .logo img { width: 38px; }
+  .description { max-width: 32ch; font-size: 15px; }
+  .tagline { max-width: 15ch; font-size: clamp(30px, 9vw, 46px); }
+}
+@media (prefers-reduced-motion: reduce) { .video { transition: none; } }

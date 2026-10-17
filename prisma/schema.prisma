@@ -725,6 +725,10 @@ model SectionBeranda {
   judul       String?
   eyebrow     String?
   deskripsi   String?
+  warnaJudul  String?   @map("warna_judul")
+  warnaEyebrow String?  @map("warna_eyebrow")
+  ukuranJudul  Int?     @map("ukuran_judul")
+  ukuranEyebrow Int?    @map("ukuran_eyebrow")
   konfigurasi Json?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

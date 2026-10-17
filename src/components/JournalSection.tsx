@@ -15,6 +15,7 @@ import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 
 const GAMBAR_CADANGAN = "/images/placeholder-event.jpg";
@@ -75,12 +76,20 @@ export default function JournalSection() {
     fetchData();
   }, [fetchData]);
 
+  const eyebrowKerjasama = teksSection(
+    beranda,
+    "kerjasama",
+    "eyebrow",
+    "Kerjasama"
+  );
   const judulKerjasama = teksSection(
     beranda,
     "kerjasama",
     "judul",
     "Kerjasama Kami"
   );
+  const gayaJudulKerjasama = gayaSection(beranda, "kerjasama", "judul");
+  const gayaEyebrowKerjasama = gayaSection(beranda, "kerjasama", "eyebrow");
 
   // Section dimatikan atau tidak ada yang dipublikasikan: jangan tampil kosong.
   if (!sectionAktif(beranda, "kerjasama")) return null;
@@ -94,13 +103,22 @@ export default function JournalSection() {
       className={`${styles.section} ${plusJakartaSans.className} reveal-section`}
       aria-labelledby="journal-title"
     >
-      <div className={styles.header}>
-        <h2
-          id="journal-title"
-          className={`${styles.title} section-title section-title--terang`}
-        >
-          {judulKerjasama}
-        </h2>
+      <div className={`${styles.header} home-section-container`}>
+        <div className={styles.headerText}>
+          <span
+            className={`${styles.eyebrow} section-label`}
+            style={gayaEyebrowKerjasama}
+          >
+            {eyebrowKerjasama}
+          </span>
+          <h2
+            id="journal-title"
+            className={`${styles.title} section-title`}
+            style={gayaJudulKerjasama}
+          >
+            {judulKerjasama}
+          </h2>
+        </div>
       </div>
 
       {isLoading && (
@@ -129,7 +147,7 @@ export default function JournalSection() {
             showCaption
             showNavigation
             showPagination
-            lightText
+            paginationAccent="green"
           />
         </div>
       )}

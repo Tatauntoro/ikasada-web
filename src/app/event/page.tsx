@@ -38,7 +38,7 @@ export default function EventPage() {
               style={{ animation: "fadeSlideIn 0.8s ease-out 0.1s both" }}
             >
               <h1 className="page-title page-title--single">
-                Hadiri Kegiatan <span className="text-black/25">Kami.</span>
+                Hadiri Kegiatan Kami.
               </h1>
               <p
                 className="mt-5 max-w-2xl text-[15px] leading-relaxed text-black/68 text-pretty sm:text-base"

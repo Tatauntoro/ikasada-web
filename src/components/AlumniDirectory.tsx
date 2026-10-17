@@ -25,13 +25,14 @@ import type {
   PublicSektorIndustri,
 } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
-import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+import { AKSES_ALUMNI_TERBUKA, FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
 import type { StatusKoneksi } from "@/lib/connection";
 import { StateCrossfade } from "./motion/StateCrossfade";
 import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 import { reportAssetError } from "@/lib/asset-error";
 import Pagination from "./Pagination";
@@ -141,6 +142,8 @@ function AvailabilityBadges({
  * arahnya ke status verifikasi — bukan ke login, karena ia sudah punya session.
  */
 function LockedAvailability({ authState }: { authState: AuthState }) {
+  if (!AKSES_ALUMNI_TERBUKA) return null;
+
   const menungguVerifikasi = authState === "pending";
 
   return (
@@ -164,6 +167,7 @@ function LockedAvailability({ authState }: { authState: AuthState }) {
  * menampilkan apa pun di sini — emailnya tampil sebagai CTA di pojok kartu.
  */
 function InfoAksesDirektori({ authState }: { authState: AuthState }) {
+  if (!AKSES_ALUMNI_TERBUKA) return null;
   if (authState === "aktif" || authState === "memuat") return null;
 
   const menungguVerifikasi = authState === "pending";
@@ -456,6 +460,8 @@ export default function AlumniDirectory({
     "judul",
     "Temukan Rekan Alumni."
   );
+  const gayaJudulAlumni = gayaSection(beranda, "direktori-alumni", "judul");
+  const gayaEyebrowAlumni = gayaSection(beranda, "direktori-alumni", "eyebrow");
 
   // Section bisa disembunyikan dari Kelola Beranda.
   if (!sectionAktif(beranda, "direktori-alumni")) return null;
@@ -475,14 +481,24 @@ export default function AlumniDirectory({
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-10">
+      <div className="home-section-container relative z-10 mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-10">
         {header && <div className="mb-10">{header}</div>}
 
         {/* Header editorial + filter */}
         <div className="mb-16">
           <div className="reveal-item">
-            <span className="section-label mb-4 block">{eyebrowAlumni}</span>
-            <h2 className="section-title">{judulAlumni}</h2>
+            <span
+              className="section-label mb-4 block"
+              style={gayaEyebrowAlumni}
+            >
+              {eyebrowAlumni}
+            </span>
+            <h2
+              className="section-title"
+              style={gayaJudulAlumni}
+            >
+              {judulAlumni}
+            </h2>
           </div>
 
           <div className="reveal-item mt-8 grid w-full grid-cols-1 items-center gap-y-4 border-b border-black/[0.06] pb-3 md:grid-cols-[minmax(240px,1fr)_minmax(180px,auto)_minmax(220px,auto)_auto] md:gap-x-8">

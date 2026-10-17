@@ -63,6 +63,8 @@ export interface CoverflowCarouselProps {
   showCaption?: boolean;
   showPagination?: boolean;
   showNavigation?: boolean;
+  /** Warna aksen indikator slide aktif. */
+  paginationAccent?: "blue" | "green";
   /** Teks terang, untuk carousel yang duduk di permukaan gelap. */
   lightText?: boolean;
   /** Names the carousel for assistive tech. */
@@ -84,6 +86,7 @@ export function CoverflowCarousel({
   showCaption = false,
   showPagination = false,
   showNavigation = false,
+  paginationAccent = "blue",
   lightText = false,
   label = "Cover carousel",
   className,
@@ -275,10 +278,10 @@ export function CoverflowCarousel({
 
   const active = slides[selected];
 
-  const captionTitle = lightText ? "text-[#fdfdfd]" : "text-[#0f1012]";
+  const captionTitle = lightText
+    ? "font-semibold text-[#fdfdfd]"
+    : "font-semibold text-[#0f1012]";
   const captionMuted = lightText ? "text-[#c8c8ca]" : "text-[#5e5e5e]";
-  const dotColor = lightText ? "bg-[#fdfdfd]" : "bg-[#0f1012]";
-
   return (
     <div
       className={cn("w-full", className)}
@@ -352,7 +355,7 @@ export function CoverflowCarousel({
               type="button"
               aria-label="Slide sebelumnya"
               onClick={() => nudge(-1)}
-              className="absolute left-3 top-1/2 z-[200] -translate-y-1/2 rounded-full augen-hairline bg-[#fdfdfd] p-2 text-[#0f1012] transition hover:text-[#0071e3]"
+              className="absolute left-3 top-1/2 z-[200] -translate-y-1/2 rounded-full augen-hairline bg-[#fdfdfd] p-2 text-[#0f1012] transition hover:text-[#0B5ED7]"
             >
               <CaretLeft weight="bold" className="size-5" />
             </button>
@@ -360,7 +363,7 @@ export function CoverflowCarousel({
               type="button"
               aria-label="Slide berikutnya"
               onClick={() => nudge(1)}
-              className="absolute right-3 top-1/2 z-[200] -translate-y-1/2 rounded-full augen-hairline bg-[#fdfdfd] p-2 text-[#0f1012] transition hover:text-[#0071e3]"
+              className="absolute right-3 top-1/2 z-[200] -translate-y-1/2 rounded-full augen-hairline bg-[#fdfdfd] p-2 text-[#0f1012] transition hover:text-[#0B5ED7]"
             >
               <CaretRight weight="bold" className="size-5" />
             </button>
@@ -421,7 +424,11 @@ export function CoverflowCarousel({
               onClick={() => goTo(index)}
               className={cn(
                 "size-2 rounded-full transition-opacity",
-                dotColor,
+                lightText
+                  ? "bg-[#fdfdfd]"
+                  : paginationAccent === "green" && index === selected
+                    ? "bg-[#28A745]"
+                    : "bg-[#0B5ED7]",
                 index === selected ? "opacity-100" : "opacity-30",
               )}
             />
