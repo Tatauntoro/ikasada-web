@@ -96,7 +96,7 @@ export default function AllEventsGrid({
           <p>{error}</p>
           <button
             onClick={fetchData}
-            className="mt-4 rounded-full bg-[#0f1012] px-5 py-2 text-sm font-normal text-[#fdfdfd] transition-colors hover:bg-[#5e5e5e]"
+            className="mt-4 rounded-full bg-[#0B5ED7] px-5 py-2 text-sm font-normal text-white transition-colors hover:bg-[#084BAA]"
           >
             Coba Lagi
           </button>
@@ -153,7 +153,7 @@ export default function AllEventsGrid({
                     <span className="line-clamp-3 font-display text-lg font-normal leading-tight text-[#fdfdfd] sm:text-xl">
                       {item.judul}
                     </span>
-                    <span className="hidden flex-none rounded-full bg-black/60 px-3 py-1 text-[10.5px] font-normal uppercase tracking-[0.1em] text-neutral-300 backdrop-blur-sm sm:inline-flex">
+                    <span className="hidden flex-none rounded-full bg-[#F4C430] px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#0f1012] sm:inline-flex">
                       {item.kategori}
                     </span>
                   </div>
@@ -202,6 +202,7 @@ export default function AllEventsGrid({
             page={page}
             totalPages={totalPages}
             onPageChange={changePage}
+            tone="gold"
             className="mt-12"
           />
         </>

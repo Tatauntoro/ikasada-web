@@ -7,7 +7,8 @@ import { AnimatePresence, m, useMotionValueEvent, useScroll } from "framer-motio
 import { List, UserCircle, X } from "@phosphor-icons/react";
 import { panggilApi } from "@/lib/api-client";
 import { getInitials } from "@/lib/format";
-import { FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+import { AKSES_ALUMNI_TERBUKA, FITUR_JEJARING_ALUMNI } from "@/lib/fitur";
+import { sectionAktif, useBerandaConfig } from "@/lib/beranda-client";
 import { scrollToSection } from "@/lib/scroll";
 import { useLoader } from "./LoaderProvider";
 import { useHeroMotionPolicy } from "@/lib/useHeroMotionPolicy";
@@ -31,6 +32,20 @@ const navItems: { id: string; label: string; href?: string }[] = [
   { id: "kegiatan", label: "Kegiatan" },
   { id: "arsip", label: "Arsip" },
 ];
+
+/**
+ * Kunci section beranda (`@/lib/beranda`) untuk tiap item pill.
+ *
+ * Satu sumber dengan sakelar "Kelola Beranda": saat sebuah section dimatikan di
+ * Portal Admin, item pill-nya ikut hilang. Item tanpa kunci (mis. "Beranda")
+ * tidak punya section di beranda, jadi selalu tampil.
+ */
+const KUNCI_SECTION_NAV: Record<string, string> = {
+  alumni: "direktori-alumni",
+  berita: "berita",
+  kegiatan: "kegiatan",
+  arsip: "arsip",
+};
 
 /** Jeda masuk pill navbar dan CTA Masuk/Daftar, dalam milidetik. */
 const JEDA_NAV = { pill: 2900, auth: 3200 };
@@ -90,6 +105,7 @@ export default function Navbar() {
   const { ready, introAktif } = useLoader();
   const reducedMotion = useHeroMotionPolicy() === "reduced";
   const { scrollY } = useScroll();
+  const beranda = useBerandaConfig();
 
   /*
    * Entrance pill/CTA hanya dianimasikan saat intro memang main. Kalau beranda
@@ -102,6 +118,16 @@ export default function Navbar() {
   const [sesiSelesai, setSesiSelesai] = useState(false);
 
   const isHome = pathname === "/";
+
+  /*
+   * Item pill yang section-nya masih aktif di Kelola Beranda. Konfigurasi belum
+   * termuat → `sectionAktif` mengembalikan `true`, jadi seluruh pill tampil dulu
+   * lalu menyusut bila ada yang dimatikan (tanpa kedip di render pertama).
+   */
+  const navTampil = navItems.filter((item) => {
+    const kunci = KUNCI_SECTION_NAV[item.id];
+    return !kunci || sectionAktif(beranda, kunci);
+  });
 
   /*
    * Status sesi alumni. Server tetap penentu data apa yang boleh keluar; di sini
@@ -209,7 +235,7 @@ export default function Navbar() {
         >
           <div className={`flex items-center gap-1 px-[11px] py-[11px] ${surfaceBase}`}>
             <div className="augen-nav-group flex min-w-0 items-center gap-0.5">
-              {navItems.map((item) =>
+              {navTampil.map((item) =>
                 item.href ? (
                   <Link key={item.id} href={item.href} className={linkBase}>
                     {item.label}
@@ -256,7 +282,7 @@ export default function Navbar() {
           >
             <AvatarProfil nama={akun.nama} fotoUrl={akun.fotoUrl} />
           </Link>
-        ) : sesiSelesai ? (
+        ) : sesiSelesai && AKSES_ALUMNI_TERBUKA ? (
           <>
             <Link
               href="/alumni/login"
@@ -305,49 +331,51 @@ export default function Navbar() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="fixed top-[88px] left-5 right-5 z-40 md:hidden augen-hairline bg-[#fdfdfd] rounded-[26px] px-5 pt-4 pb-5 space-y-1"
           >
-            <div className="mb-2 flex gap-2 border-b border-black/10 px-3 pb-4">
-              {akun ? (
-                <Link
-                  href={akun.href}
-                  onClick={() => setMobileOpen(false)}
-                  aria-label={
-                    akun.nama ? `Buka profil ${akun.nama}` : "Buka profil"
-                  }
-                  className="inline-flex min-h-11 flex-1 items-center gap-3 rounded-[10px] border border-black/10 px-3 text-[15px] font-normal text-[#0f1012] focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0071e3]"
-                >
-                  <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-[#f4f4f5] text-[12px] font-medium text-[#0f1012]">
-                    <AvatarProfil nama={akun.nama} fotoUrl={akun.fotoUrl} />
-                  </span>
-                  <span className="truncate">
-                    {akun.nama || "Profil saya"}
-                  </span>
-                </Link>
-              ) : sesiSelesai ? (
-                <>
+            {(akun || (sesiSelesai && AKSES_ALUMNI_TERBUKA)) && (
+              <div className="mb-2 flex gap-2 border-b border-black/10 px-3 pb-4">
+                {akun ? (
                   <Link
-                    href="/alumni/login"
+                    href={akun.href}
                     onClick={() => setMobileOpen(false)}
-                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[10px] border border-black/10 px-3 text-[15px] font-normal text-[#0f1012] focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0071e3]"
+                    aria-label={
+                      akun.nama ? `Buka profil ${akun.nama}` : "Buka profil"
+                    }
+                    className="inline-flex min-h-11 flex-1 items-center gap-3 rounded-[10px] border border-black/10 px-3 text-[15px] font-normal text-[#0f1012] focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0071e3]"
                   >
-                    Masuk
+                    <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-[#f4f4f5] text-[12px] font-medium text-[#0f1012]">
+                      <AvatarProfil nama={akun.nama} fotoUrl={akun.fotoUrl} />
+                    </span>
+                    <span className="truncate">
+                      {akun.nama || "Profil saya"}
+                    </span>
                   </Link>
-                  <Link
-                    href="/alumni/register"
-                    onClick={() => setMobileOpen(false)}
-                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[10px] bg-[#0071e3] px-3 text-[15px] font-normal text-white transition-colors hover:bg-[#005fc1] hover:text-white focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0f1012]"
-                  >
-                    Daftar
-                  </Link>
-                </>
-              ) : null}
-              {akun && FITUR_JEJARING_ALUMNI && (
-                <TombolPermintaanMasuk
-                  variant="menu"
-                  onKlik={() => setMobileOpen(false)}
-                />
-              )}
-            </div>
-            {navItems.map((item) =>
+                ) : sesiSelesai && AKSES_ALUMNI_TERBUKA ? (
+                  <>
+                    <Link
+                      href="/alumni/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[10px] border border-black/10 px-3 text-[15px] font-normal text-[#0f1012] focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0071e3]"
+                    >
+                      Masuk
+                    </Link>
+                    <Link
+                      href="/alumni/register"
+                      onClick={() => setMobileOpen(false)}
+                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-[10px] bg-[#0071e3] px-3 text-[15px] font-normal text-white transition-colors hover:bg-[#005fc1] hover:text-white focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#0f1012]"
+                    >
+                      Daftar
+                    </Link>
+                  </>
+                ) : null}
+                {akun && FITUR_JEJARING_ALUMNI && (
+                  <TombolPermintaanMasuk
+                    variant="menu"
+                    onKlik={() => setMobileOpen(false)}
+                  />
+                )}
+              </div>
+            )}
+            {navTampil.map((item) =>
               item.href ? (
                 <Link
                   key={item.id}

@@ -15,6 +15,8 @@ interface WorldMapProps {
   dots?: BusurPeta[];
   /** Warna busur. Gradasinya memudar transparan di kedua ujung. */
   lineColor?: string;
+  /** Warna titik asal, untuk membedakannya dari tujuan. */
+  originColor?: string;
   /** Warna titik daratan; harus kontras dengan `backgroundColor`. */
   dotColor?: string;
   /**
@@ -62,6 +64,7 @@ const LABEL_JARAK_ATAS = 30;
 export function WorldMap({
   dots = [],
   lineColor = "#8abaff",
+  originColor = lineColor,
   dotColor = "#ffffff33",
   backgroundColor = "#070707",
   className = "w-full aspect-[2/1] rounded-lg relative font-sans overflow-hidden",
@@ -227,7 +230,7 @@ export function WorldMap({
                     cx={startPoint.x}
                     cy={startPoint.y}
                     r="3"
-                    fill={lineColor}
+                    fill={originColor}
                     filter="url(#glow)"
                     className="drop-shadow-lg"
                   />
@@ -235,7 +238,7 @@ export function WorldMap({
                     cx={startPoint.x}
                     cy={startPoint.y}
                     r="3"
-                    fill={lineColor}
+                    fill={originColor}
                     opacity="0.5"
                   >
                     <animate

@@ -12,6 +12,7 @@ import {
 import { panggilApi } from "@/lib/api-client";
 import {
   DEFAULT_PER_KUNCI,
+  PALET_WARNA,
   SECTION_PAKAI_DESKRIPSI,
   SECTION_PAKAI_EYEBROW,
   SECTION_POSISI,
@@ -35,6 +36,10 @@ type SectionItem = {
   judul: string | null;
   eyebrow: string | null;
   deskripsi: string | null;
+  warnaJudul: string | null;
+  warnaEyebrow: string | null;
+  ukuranJudul: number | null;
+  ukuranEyebrow: number | null;
   konfigurasi: unknown;
 };
 
@@ -54,6 +59,10 @@ type DraftSection = {
   eyebrow: string;
   judul: string;
   deskripsi: string;
+  warnaJudul: string;
+  warnaEyebrow: string;
+  ukuranJudul: string;
+  ukuranEyebrow: string;
   konfigurasi: Record<string, unknown>;
 };
 
@@ -109,8 +118,114 @@ function draftDari(s: SectionItem): DraftSection {
     eyebrow: s.eyebrow ?? "",
     judul: s.judul ?? "",
     deskripsi: s.deskripsi ?? "",
+    warnaJudul: s.warnaJudul ?? "",
+    warnaEyebrow: s.warnaEyebrow ?? "",
+    ukuranJudul: s.ukuranJudul == null ? "" : String(s.ukuranJudul),
+    ukuranEyebrow: s.ukuranEyebrow == null ? "" : String(s.ukuranEyebrow),
     konfigurasi: konfigurasiDari(s.konfigurasi),
   };
+}
+
+/**
+ * Kontrol warna: deretan swatch preset + input hex manual + tombol "Bawaan".
+ *
+ * Nilai kosong berarti memakai warna bawaan desain. Hex yang tidak sah akan
+ * ditolak server (lihat `sectionUpdateSchema`), jadi di sini tidak divalidasi.
+ */
+function KontrolWarna({
+  label,
+  nilai,
+  onUbah,
+}: {
+  label: string;
+  nilai: string;
+  onUbah: (nilaiBaru: string) => void;
+}) {
+  const aktif = (hex: string) => nilai.trim().toLowerCase() === hex.toLowerCase();
+
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
+        {label}
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        {PALET_WARNA.map((w) => (
+          <button
+            key={w.nilai}
+            type="button"
+            title={w.nama}
+            aria-label={w.nama}
+            aria-pressed={aktif(w.nilai)}
+            onClick={() => onUbah(w.nilai)}
+            className={`h-7 w-7 rounded-full border transition-colors ${
+              aktif(w.nilai)
+                ? "border-[#0071e3] ring-2 ring-[#0071e3]/40"
+                : "border-black/15"
+            }`}
+            style={{ backgroundColor: w.nilai }}
+          />
+        ))}
+        <button
+          type="button"
+          onClick={() => onUbah("")}
+          className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
+        >
+          Bawaan
+        </button>
+      </div>
+      <input
+        type="text"
+        value={nilai}
+        onChange={(e) => onUbah(e.target.value)}
+        placeholder="#0b5ed7"
+        className={`${inputClass} mt-2`}
+      />
+    </div>
+  );
+}
+
+/**
+ * Kontrol ukuran relatif (persen). Kosong = 100% (ukuran bawaan). Nilai di luar
+ * rentang ditolak server (`sectionUpdateSchema`), jadi di sini tidak divalidasi.
+ */
+function KontrolUkuran({
+  label,
+  nilai,
+  onUbah,
+}: {
+  label: string;
+  nilai: string;
+  onUbah: (nilaiBaru: string) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
+        {label}
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="number"
+          min={50}
+          max={200}
+          step={5}
+          value={nilai}
+          onChange={(e) => onUbah(e.target.value)}
+          placeholder="100"
+          className="w-24 rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-3 py-2 text-sm text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3]"
+        />
+        <span className="text-xs text-[#5e5e5e]">
+          % · 100 = ukuran bawaan
+        </span>
+        <button
+          type="button"
+          onClick={() => onUbah("")}
+          className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
+        >
+          Bawaan
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function Dialog({
@@ -281,6 +396,10 @@ export function KelolaBeranda() {
         eyebrow: d.eyebrow.trim() || null,
         judul: d.judul.trim() || null,
         deskripsi: d.deskripsi.trim() || null,
+        warnaJudul: d.warnaJudul.trim() || null,
+        warnaEyebrow: d.warnaEyebrow.trim() || null,
+        ukuranJudul: d.ukuranJudul.trim() ? Number(d.ukuranJudul) : null,
+        ukuranEyebrow: d.ukuranEyebrow.trim() ? Number(d.ukuranEyebrow) : null,
         // Section dengan data khas (lima-cara / kontak / sebaran-geografis)
         // ikut menyimpan config.
         ...(s.kunci === "lima-cara" ||
@@ -501,6 +620,38 @@ export function KelolaBeranda() {
                           ubahDraft(s.id, { deskripsi: e.target.value })
                         }
                         className={inputClass}
+                      />
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <KontrolWarna
+                      label="Warna judul"
+                      nilai={d.warnaJudul}
+                      onUbah={(v) => ubahDraft(s.id, { warnaJudul: v })}
+                    />
+                  </div>
+                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (
+                    <div className="sm:col-span-2">
+                      <KontrolWarna
+                        label="Warna eyebrow"
+                        nilai={d.warnaEyebrow}
+                        onUbah={(v) => ubahDraft(s.id, { warnaEyebrow: v })}
+                      />
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <KontrolUkuran
+                      label="Ukuran judul (%)"
+                      nilai={d.ukuranJudul}
+                      onUbah={(v) => ubahDraft(s.id, { ukuranJudul: v })}
+                    />
+                  </div>
+                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (
+                    <div className="sm:col-span-2">
+                      <KontrolUkuran
+                        label="Ukuran eyebrow (%)"
+                        nilai={d.ukuranEyebrow}
+                        onUbah={(v) => ubahDraft(s.id, { ukuranEyebrow: v })}
                       />
                     </div>
                   )}

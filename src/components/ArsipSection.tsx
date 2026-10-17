@@ -12,6 +12,7 @@ import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
+  gayaSection,
 } from "@/lib/beranda-client";
 
 /** Berapa dokumen terbaru yang dipratinjau di beranda. */
@@ -69,6 +70,8 @@ export default function ArsipSection() {
     "judul",
     "Dokumen & Laporan."
   );
+  const gayaJudulArsip = gayaSection(beranda, "arsip", "judul");
+  const gayaEyebrowArsip = gayaSection(beranda, "arsip", "eyebrow");
 
   // Section dimatikan atau tidak ada dokumen terbit: jangan tampil kosong.
   if (!sectionAktif(beranda, "arsip")) return null;
@@ -79,15 +82,23 @@ export default function ArsipSection() {
   return (
     <section
       id="arsip"
-      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(0,0,0,0.06)] bg-[#f2f2f4] py-[88px] text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(0,0,0,0.06)] bg-white py-[88px] text-[#0f1012] reveal-section`}
     >
-      <div className="relative z-10 mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-10">
+      <div className="home-section-container relative z-10">
         <div className="mb-16">
           <div className="max-w-3xl">
-            <span className="reveal-item block section-label">
+            <span
+              className="reveal-item block section-label"
+              style={gayaEyebrowArsip}
+            >
               {eyebrowArsip}
             </span>
-            <h2 className="reveal-item mt-4 section-title">{judulArsip}</h2>
+            <h2
+              className="reveal-item mt-4 section-title"
+              style={gayaJudulArsip}
+            >
+              {judulArsip}
+            </h2>
           </div>
         </div>
 

@@ -10,9 +10,7 @@
 }
 
 .shell {
-  width: min(100% - 10vw, 1440px);
-  margin: 0 auto;
-  padding: clamp(64px, 7vw, 104px) 0 28px;
+  padding-block: clamp(64px, 7vw, 104px) 28px;
 }
 
 .grid {
@@ -31,12 +29,12 @@
 .title {
   max-width: none;
   margin: 0;
-  color: var(--ink) !important;
+  color: var(--ink);
 }
 
 @media (max-width: 767px) {
   .title {
-    font-size: clamp(30px, 8.5vw, 42px);
+    font-size: calc(clamp(30px, 8.5vw, 42px) * var(--skala-judul, 1));
   }
 }
 
@@ -98,7 +96,6 @@
 
 @media (max-width: 860px) {
   .shell {
-    width: min(100% - 40px, 620px);
     padding-top: 64px;
   }
 
@@ -108,7 +105,7 @@
 
   .title {
     max-width: none;
-    font-size: clamp(32px, 8vw, 48px);
+    font-size: calc(clamp(32px, 8vw, 48px) * var(--skala-judul, 1));
     line-height: 1.05;
     text-wrap: balance;
     white-space: normal;

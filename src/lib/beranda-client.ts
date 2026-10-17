@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { KONTAK } from "@/data/kontak";
 
 /**
  * Pembaca konfigurasi beranda untuk komponen klien.
@@ -16,6 +17,12 @@ export type SectionBerandaPublic = {
   judul: string | null;
   eyebrow: string | null;
   deskripsi: string | null;
+  /** Warna hex kustom untuk judul/eyebrow; `null` = pakai warna bawaan. */
+  warnaJudul: string | null;
+  warnaEyebrow: string | null;
+  /** Skala ukuran (%) untuk judul/eyebrow; `null`/`100` = ukuran bawaan. */
+  ukuranJudul: number | null;
+  ukuranEyebrow: number | null;
   konfigurasi: Record<string, unknown> | null;
 };
 
@@ -62,6 +69,36 @@ export function sectionAktif(
   return beranda?.sections.find((s) => s.kunci === kunci)?.aktif ?? true;
 }
 
+/**
+ * Gaya inline (warna + skala ukuran) untuk judul/eyebrow section, atau
+ * `undefined` bila keduanya kosong (memakai desain bawaan).
+ *
+ * Warna masuk sebagai `color`; ukuran masuk sebagai CSS custom property pengali
+ * (`--skala-judul`/`--skala-eyebrow`) yang dipakai aturan `font-size` di CSS —
+ * jadi `clamp()` responsifnya tetap berlaku.
+ */
+export function gayaSection(
+  beranda: BerandaPublic | null,
+  kunci: string,
+  bidang: "judul" | "eyebrow"
+): CSSProperties | undefined {
+  const s = beranda?.sections.find((x) => x.kunci === kunci);
+  if (!s) return undefined;
+
+  const warna = bidang === "judul" ? s.warnaJudul : s.warnaEyebrow;
+  const ukuran = bidang === "judul" ? s.ukuranJudul : s.ukuranEyebrow;
+
+  const gaya: Record<string, string> = {};
+  if (warna && warna.trim()) gaya.color = warna;
+  if (ukuran && ukuran !== 100) {
+    gaya[bidang === "judul" ? "--skala-judul" : "--skala-eyebrow"] = String(
+      ukuran / 100
+    );
+  }
+
+  return Object.keys(gaya).length > 0 ? (gaya as CSSProperties) : undefined;
+}
+
 /** Teks dari config, atau `fallback` bila kosong/belum termuat. */
 export function teksSection(
   beranda: BerandaPublic | null,
@@ -71,4 +108,18 @@ export function teksSection(
 ): string {
   const nilai = beranda?.sections.find((s) => s.kunci === kunci)?.[bidang];
   return nilai && nilai.trim() ? nilai : fallback;
+}
+
+/**
+ * Email kanal kontak dari Kelola Beranda (section "kontak"), atau kanal resmi
+ * bila pengurus mengosongkannya.
+ *
+ * Dipakai section Kontak di beranda dan ajakan menghubungi pengurus di halaman
+ * arsip, supaya keduanya menunjuk alamat yang sama.
+ */
+export function emailKontakBeranda(beranda: BerandaPublic | null): string {
+  const konfig = beranda?.sections.find((s) => s.kunci === "kontak")
+    ?.konfigurasi as { email?: unknown } | null | undefined;
+  const nilai = typeof konfig?.email === "string" ? konfig.email.trim() : "";
+  return nilai || KONTAK.email;
 }

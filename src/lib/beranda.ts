@@ -156,6 +156,7 @@ export const SECTION_DEFAULT: DefaultSection[] = [
     kunci: "kerjasama",
     label: "Kerjasama",
     urutan: 10,
+    eyebrow: "Kerjasama",
     judul: "Kerjasama Kami",
   },
   {
@@ -169,6 +170,7 @@ export const SECTION_DEFAULT: DefaultSection[] = [
     kunci: "pengurus",
     label: "Pengurus Inti",
     urutan: 12,
+    eyebrow: "Pengurus",
     judul: "Dewan Pengurus Inti",
     deskripsi:
       "Nakhoda organisasi yang berdedikasi menjaga sinergi antar-alumni dan kejayaan tradisi Sastra Daerah FIB UI.",
@@ -189,6 +191,22 @@ export const DEFAULT_PER_KUNCI: Record<KunciSection, DefaultSection> =
     KunciSection,
     DefaultSection
   >;
+
+/**
+ * Palet warna cepat untuk judul/eyebrow section di Kelola Beranda.
+ *
+ * Nilainya sengaja hex (bukan token) supaya sama persis dengan yang disimpan di
+ * DB dan gampang ditimpa lewat input hex manual. Empat pertama menyamai token
+ * warna yang sudah dipakai beranda (`--ikasada-*` di globals.css).
+ */
+export const PALET_WARNA: { nama: string; nilai: string }[] = [
+  { nama: "Hitam", nilai: "#0f1012" },
+  { nama: "Biru", nilai: "#0b5ed7" },
+  { nama: "Hijau", nilai: "#28a745" },
+  { nama: "Gold", nilai: "#f4c430" },
+  { nama: "Merah", nilai: "#d92d20" },
+  { nama: "Putih", nilai: "#ffffff" },
+];
 
 /**
  * Kunci yang posisinya menentukan urutan blok di beranda (satu blok bisa
@@ -215,7 +233,9 @@ export const SECTION_PAKAI_EYEBROW: KunciSection[] = [
   "direktori-alumni",
   "berita",
   "kegiatan",
+  "kerjasama",
   "arsip",
+  "pengurus",
 ];
 
 /** Kunci yang section-nya menampilkan field "Deskripsi". */

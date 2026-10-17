@@ -87,22 +87,22 @@ export default function BeritaDirectory({
       )}
 
       {isLoading ? (
-        <ul className="border-t border-black/10">
+        <ul className="border-t border-[#0B5ED7]/15">
           {Array.from({ length: PER_PAGE }).map((_, i) => (
-            <li key={i} className="border-b border-black/10 py-6">
+            <li key={i} className="border-b border-[#0B5ED7]/15 py-6">
               <div className="flex animate-pulse items-start gap-5 sm:gap-6">
-                <span className="h-[104px] w-[136px] flex-none rounded-[12px] bg-black/10 sm:h-[120px] sm:w-[168px]" />
+                <span className="h-[104px] w-[136px] flex-none rounded-[12px] bg-[#0B5ED7]/10 sm:h-[120px] sm:w-[168px]" />
                 <span className="flex flex-1 flex-col gap-3">
-                  <span className="h-5 w-20 self-end rounded-full bg-black/10" />
-                  <span className="h-5 w-3/4 bg-black/10" />
-                  <span className="h-3 w-40 bg-black/[0.07]" />
+                  <span className="h-5 w-20 self-end rounded-full bg-[#0B5ED7]/10" />
+                  <span className="h-5 w-3/4 bg-[#0B5ED7]/10" />
+                  <span className="h-3 w-40 bg-[#0B5ED7]/[0.07]" />
                 </span>
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <ul className="border-t border-black/10">
+        <ul className="border-t border-[#0B5ED7]/15">
           {data.map((item) => (
             <BeritaRow key={item.slug} item={item} />
           ))}
@@ -113,6 +113,7 @@ export default function BeritaDirectory({
         page={page}
         totalPages={totalPages}
         onPageChange={gantiHalaman}
+        tone="gold"
         className="mt-12"
       />
     </div>

@@ -14,6 +14,35 @@ const teksOpsional = (maks: number, pesan: string) =>
     .nullable()
     .optional();
 
+/**
+ * Warna hex opsional untuk judul/eyebrow.
+ *
+ * Ketat ke bentuk hex (`#RGB`/`#RRGGBB`) karena nilainya dipakai langsung sebagai
+ * inline `style` di beranda — bentuk bebas bisa menyelipkan CSS lain.
+ */
+const warnaOpsional = z
+  .string({ message: "Warna tidak valid" })
+  .trim()
+  .regex(
+    /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/,
+    "Format warna harus hex, mis. #f4c430"
+  )
+  .nullable()
+  .optional();
+
+/**
+ * Ukuran relatif (persen) judul/eyebrow. `100`/`null` = ukuran bawaan; nilainya
+ * dipakai sebagai pengali `font-size` di beranda (mis. `140` → 1,4×).
+ */
+const ukuranOpsional = z
+  .coerce
+  .number({ message: "Ukuran harus angka" })
+  .int("Ukuran harus bilangan bulat")
+  .min(50, "Ukuran minimal 50%")
+  .max(200, "Ukuran maksimal 200%")
+  .nullable()
+  .optional();
+
 export const sectionUpdateSchema = z
   .object({
     aktif: z.boolean({ message: "Penanda aktif harus boolean" }).optional(),
@@ -26,6 +55,10 @@ export const sectionUpdateSchema = z
     judul: teksOpsional(160, "Judul tidak valid"),
     eyebrow: teksOpsional(60, "Eyebrow tidak valid"),
     deskripsi: teksOpsional(500, "Deskripsi tidak valid"),
+    warnaJudul: warnaOpsional,
+    warnaEyebrow: warnaOpsional,
+    ukuranJudul: ukuranOpsional,
+    ukuranEyebrow: ukuranOpsional,
     /** Data khas section; bentuknya divalidasi per-kunci di route. */
     konfigurasi: z.unknown().optional(),
   })

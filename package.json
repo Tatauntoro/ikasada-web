@@ -10,6 +10,7 @@
     "motion:verify": "node scripts/verify-motion.mjs",
     "auth:verify": "tsx scripts/verify-auth-alumni.mts",
     "auth:endpoints:verify": "tsx scripts/verify-alumni-auth-endpoints.mts",
+    "akses:verify": "tsx scripts/verify-akses-alumni.mts",
     "alumni:approval:verify": "tsx scripts/verify-alumni-approval.mts",
     "alumni:profil-endpoint:verify": "tsx scripts/verify-alumni-profil-endpoint.mts",
     "alumni:directory:verify": "tsx scripts/verify-alumni-directory.mts",

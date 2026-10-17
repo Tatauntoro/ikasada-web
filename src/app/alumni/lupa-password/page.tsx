@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LupaPasswordForm from "@/components/alumni/LupaPasswordForm";
+import { gerbangHalamanAlumni } from "@/lib/akses-alumni";
 
 export const metadata: Metadata = {
   title: "Lupa Kata Sandi - IKASADA FIB UI",
@@ -7,5 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function AlumniLupaPasswordPage() {
+  gerbangHalamanAlumni();
+
   return <LupaPasswordForm />;
 }

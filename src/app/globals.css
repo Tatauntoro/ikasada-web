@@ -150,7 +150,7 @@
  */
 .section-title {
   font-family: var(--font-pp-neue-montreal), "PP Neue Montreal", sans-serif;
-  font-size: var(--text-display-section);
+  font-size: calc(var(--text-display-section) * var(--skala-judul, 1));
   font-weight: 400;
   letter-spacing: var(--tracking-display-section);
   line-height: var(--leading-display-section);
@@ -160,7 +160,7 @@
 
 @media (max-width: 767px) {
   .section-title {
-    font-size: clamp(18px, 5vw, 32px);
+    font-size: calc(clamp(18px, 5vw, 32px) * var(--skala-judul, 1));
   }
 }
 
@@ -250,7 +250,7 @@
 /* Label kecil di atas judul (pasangan label + judul ala DESIGN-augen). */
 .section-label {
   font-family: var(--font-pp-neue-montreal), "PP Neue Montreal", sans-serif;
-  font-size: 11px;
+  font-size: calc(11px * var(--skala-eyebrow, 1));
   font-weight: 400;
   letter-spacing: var(--tracking-label);
   line-height: 1.1;
@@ -280,6 +280,10 @@ html.light body {
 /* Halaman publik: kanvas putih Augen. Latar antar-section terpusat di sini,
    jadi satu perubahan ini menggeser seluruh permukaan halaman. */
 .public-page {
+  --ikasada-ui-blue: #0b5ed7;
+  --ikasada-growth-green: #28a745;
+  --ikasada-fib-gold: #f4c430;
+  --ikasada-line: rgba(11, 94, 215, 0.16);
   --font-pp-neue: var(--font-plus-jakarta);
   --font-pp-neue-montreal: var(--font-plus-jakarta);
   --font-sans: var(--font-plus-jakarta), system-ui, sans-serif;
@@ -289,19 +293,49 @@ html.light body {
   color: #0f1012;
 }
 
+/* Satu garis konten untuk seluruh section beranda setelah Hero. */
+.home-page {
+  --home-container-width: 1180px;
+  --home-gutter: 20px;
+}
+
+.home-page .home-section-container {
+  width: 100%;
+  max-width: var(--home-container-width);
+  margin-inline: auto;
+  padding-inline: var(--home-gutter);
+}
+
+@media (min-width: 640px) {
+  .home-page {
+    --home-gutter: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-page {
+    --home-gutter: 40px;
+  }
+}
+
 .public-page #alumni,
-.public-page #kegiatan,
 .public-page #berita {
   background: #ffffff !important;
   color: #0f1012;
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: var(--ikasada-line) !important;
 }
 
-/* Kerjasama Kami: band gelap, momen kontras penuh setelah direktori. */
+.public-page #kegiatan {
+  background: #ffffff !important;
+  color: #0f1012;
+  border-color: var(--ikasada-line) !important;
+}
+
+/* Kegiatan dan Kerjasama memakai permukaan putih yang sama. */
 .public-page #journal {
-  background: #0f1012 !important;
-  color: #fdfdfd;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #ffffff !important;
+  color: #0f1012;
+  border-color: var(--ikasada-line) !important;
 }
 
 .public-page #overview {
@@ -309,19 +343,44 @@ html.light body {
   color: #0f1012;
 }
 
-/* Statistik duduk di kanvas putih yang sama dengan section lain. Peta sebaran
-   di dalamnya tetap membawa latarnya sendiri (lihat Stats.module.css). */
+/* Statistik memakai biru; peta di dalamnya membawa latarnya sendiri. */
 .public-page #statistik {
-  background: #ffffff !important;
-  color: #0f1012;
+  background: #0071e3 !important;
+  color: #ffffff;
 }
 
-/* Band gelap tetap gelap: Augen menyediakan #0f1012 justru untuk "full-bleed
-   contrast moments", dan staf adalah salah satu dari dua momen itu (satunya
-   lagi Kerjasama Kami, lihat di atas). */
 .public-page #staf {
-  background: #0f1012 !important;
-  color: #fdfdfd;
+  background: #f2f2f4 !important;
+  color: #0f1012;
+  border-color: var(--ikasada-line) !important;
+}
+
+/* Warna bawaan judul section biru; warna kustom dari Kelola Beranda datang
+   sebagai inline `style` sehingga menang tanpa perlu `!important`. */
+.public-page #staf .section-title,
+.public-page #journal .section-title {
+  color: var(--ikasada-ui-blue);
+}
+
+.public-page .home-jakarta-section .section-title,
+.public-page .home-jakarta-section .section-label {
+  font-weight: 400;
+}
+
+.public-page .home-jakarta-section .section-label {
+  color: var(--ikasada-ui-blue);
+}
+
+.public-page #journal > *,
+.public-page #staf > * {
+  position: relative;
+  z-index: 1;
+}
+
+.public-page #journal .section-title,
+.public-page #staf .section-title {
+  position: relative;
+  z-index: 1;
 }
 
 .public-page #staf > div[aria-hidden="true"],
@@ -343,8 +402,12 @@ html.light body {
   border: 0.5px solid rgba(0, 0, 0, 0.06);
 }
 
+.public-page #journal .augen-hairline {
+  border-color: rgba(11, 94, 215, 0.16);
+}
+
 .augen-nav-surface {
-  border: 0.5px solid rgba(15, 16, 18, 0.07);
+  border: 0.5px solid rgba(11, 94, 215, 0.16);
   background: rgba(244, 244, 245, 0.84);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.88),
@@ -373,7 +436,7 @@ html.light body {
   gap: 8px;
   border: 0;
   border-radius: 999px;
-  background: #0071e3;
+  background: #0b5ed7;
   color: #ffffff;
   font-family: var(--font-pp-neue), sans-serif;
   font-size: 13px;
@@ -386,7 +449,7 @@ html.light body {
 
 .augen-cta:hover,
 .augen-cta:focus-visible {
-  background: #005fc1;
+  background: #084baa;
   color: #ffffff;
 }
 
@@ -395,7 +458,7 @@ html.light body {
 }
 
 .augen-cta:focus-visible {
-  outline: 2px solid #0f1012;
+  outline: 2px solid #0b5ed7;
   outline-offset: 3px;
 }
 

@@ -44,7 +44,7 @@ export default async function BeritaPage() {
 
             <div className="mb-12">
               <h1 className="page-title page-title--single">
-                Berita <span className="text-black/25">Terkini.</span>
+                Berita Terkini.
               </h1>
               <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-black/68 text-pretty sm:text-base">
                 Kabar terbaru seputar prestasi, kegiatan, dan pengumuman IKASADA

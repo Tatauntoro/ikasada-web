@@ -9,7 +9,7 @@ type PaginationProps = {
   totalPages: number;
   onPageChange: (page: number) => void;
   className?: string;
-  tone?: "light" | "dark";
+  tone?: "light" | "dark" | "gold";
 };
 
 /** Daftar nomor halaman dengan elipsis: 1 … 4 5 6 … 20 */
@@ -41,20 +41,29 @@ export default function Pagination({
 
   const items = buildItems(page, totalPages);
   const dark = tone === "dark";
+  const gold = tone === "gold";
 
   const arrowClass = `inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-default disabled:opacity-35 ${
     dark
       ? "border-white/20 text-white enabled:hover:border-white enabled:hover:text-white"
-      : "border-black/18 text-black enabled:hover:border-black enabled:hover:text-black"
-  }`;
+      : gold
+        ? "border-[#F4C430]/75 text-[#0f1012] enabled:hover:border-[#d9a900] enabled:hover:bg-[#F4C430]/20"
+        : "border-black/18 text-black enabled:hover:border-black enabled:hover:text-black"
+  } focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]`;
 
   const numberBase =
     "relative inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-[14px] font-normal transition-colors";
-  const numberActive = dark ? "text-[#0f1012]" : "text-[#fdfdfd]";
-  const indicatorActive = dark ? "bg-[#fdfdfd]" : "bg-[#0f1012]";
+  const numberActive = dark || gold ? "text-[#0f1012]" : "text-[#fdfdfd]";
+  const indicatorActive = dark
+    ? "bg-[#fdfdfd]"
+    : gold
+      ? "bg-[#F4C430]"
+      : "bg-[#0f1012]";
   const numberIdle = dark
     ? "border border-white/20 text-white/80 hover:border-white hover:text-white"
-    : "border border-black/18 text-black hover:border-black hover:text-black";
+    : gold
+      ? "border border-[#F4C430]/75 text-[#0f1012] hover:border-[#d9a900] hover:bg-[#F4C430]/20"
+      : "border border-black/18 text-black hover:border-black hover:text-black";
 
   return (
     <nav
