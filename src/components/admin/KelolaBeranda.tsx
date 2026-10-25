@@ -78,7 +78,13 @@ type DraftSection = {
   konfigurasi: Record<string, unknown>;
 };
 
-type ItemLima = { judul: string; deskripsi: string; fotoUrl: string; tampilkanFoto: boolean };
+type ItemLima = {
+  judul: string;
+  deskripsi: string;
+  fotoUrl: string;
+  tampilkanFoto: boolean;
+  warnaLatar: string;
+};
 type ModeMediaTentang = "foto" | "slideshow" | "video";
 type MediaTentang = { mode: ModeMediaTentang; fotoUrls: string[]; videoUrl: string; posterUrl: string };
 
@@ -143,12 +149,14 @@ function itemsLima(konfig: Record<string, unknown>): ItemLima[] {
       deskripsi?: unknown;
       fotoUrl?: unknown;
       tampilkanFoto?: unknown;
+      warnaLatar?: unknown;
     };
     return {
       judul: String(o.judul ?? ""),
       deskripsi: String(o.deskripsi ?? ""),
       fotoUrl: String(o.fotoUrl ?? ""),
       tampilkanFoto: o.tampilkanFoto !== false,
+      warnaLatar: typeof o.warnaLatar === "string" ? o.warnaLatar : "",
     };
   });
 }
@@ -164,6 +172,7 @@ function itemsLimaUntukEditor(konfig: Record<string, unknown>): ItemLima[] {
       deskripsi: String(o.deskripsi ?? ""),
       fotoUrl: "",
       tampilkanFoto: true,
+      warnaLatar: "",
     };
   });
 }
@@ -460,7 +469,16 @@ export function KelolaBeranda() {
           ...d,
           konfigurasi: {
             ...d.konfigurasi,
-            items: [...items, { judul: "", deskripsi: "" }],
+            items: [
+              ...items,
+              {
+                judul: "",
+                deskripsi: "",
+                fotoUrl: "",
+                tampilkanFoto: true,
+                warnaLatar: "",
+              },
+            ],
           },
         },
       };
@@ -1218,6 +1236,14 @@ export function KelolaBeranda() {
                               }
                               placeholder="Deskripsi"
                               className={inputClass}
+                            />
+                            <KontrolWarna
+                              label={`Warna latar panel ${i + 1}`}
+                              nilai={it.warnaLatar}
+                              palet={PALET_WARNA_BACKGROUND}
+                              onUbah={(warnaLatar) =>
+                                ubahItemLima(s.id, i, { warnaLatar })
+                              }
                             />
                             <button
                               type="button"

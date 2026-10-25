@@ -213,7 +213,7 @@ export default function ArsipSection() {
     <section
       id="arsip"
       style={gayaBackgroundArsip}
-      className={`home-jakarta-section ${plusJakartaSans.className} ${styles.section} relative overflow-hidden border-y border-[rgba(0,0,0,0.06)] bg-white py-9 pb-7 md:pt-[50px] md:pb-8 reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} ${styles.section} relative overflow-hidden border-y border-[rgba(0,0,0,0.06)] bg-white py-9 pb-7 md:pt-[50px] md:pb-8`}
       onPointerLeave={leaveSection}
       onBlurCapture={blurSection}
     >
@@ -226,7 +226,7 @@ export default function ArsipSection() {
             {eyebrowArsip}
           </span>
           <h2
-            className={`reveal-item section-title ${styles.title}`}
+            className={`section-title ${styles.title}`}
             style={gayaJudulArsip}
           >
             {ampersandIndex === -1 ? (

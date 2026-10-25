@@ -130,7 +130,7 @@ export default function BeritaSection() {
   return (
     <section
       id="berita"
-      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(11,94,215,0.14)] bg-white py-9 pb-6 md:pt-[50px] md:pb-6 text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(11,94,215,0.14)] bg-white py-9 pb-6 md:pt-[50px] md:pb-6 text-[#0f1012]`}
       style={gayaBackgroundBerita}
     >
       <div className="home-section-container relative z-10">
@@ -143,7 +143,7 @@ export default function BeritaSection() {
               {eyebrowBerita}
             </span>
             <h2
-              className="reveal-item mt-4 section-title"
+              className="mt-4 section-title"
               style={gayaJudulBerita}
             >
               {judulBerita}

@@ -127,6 +127,7 @@ export const limaCaraKonfigSchema = z.object({
           .optional()
           .default(""),
         tampilkanFoto: z.boolean().optional().default(true),
+        warnaLatar: warnaOpsional.or(z.literal("")).optional(),
       })
     )
     .max(10, "Maksimal 10 poin"),
