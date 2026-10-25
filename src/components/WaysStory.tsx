@@ -10,6 +10,8 @@ export type WayStoryItem = {
   image: string;
   imageAlt: string;
   showImage?: boolean;
+  backgroundColor?: string;
+  inkColor?: string;
 };
 
 type Props = {
@@ -174,7 +176,15 @@ export default function WaysStory({
               className={`${styles.panel} ${styles[`panel${index % 5}`]}`}
               aria-label={`Cara ${index + 1}: ${item.title}`}
               aria-hidden={index > 0}
-              style={{ zIndex: index + 1 }}
+              style={{
+                zIndex: index + 1,
+                ...(item.backgroundColor
+                  ? {
+                      "--surface": item.backgroundColor,
+                      "--ink": item.inkColor ?? "#17191c",
+                    }
+                  : {}),
+              } as CSSProperties}
             >
               <span className={styles.number} aria-hidden="true">{index + 1}</span>
               <div className={styles.copy}>

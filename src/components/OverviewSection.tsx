@@ -155,7 +155,7 @@ export default function OverviewSection() {
   const limaItems = (() => {
     const konfig = beranda?.sections.find((s) => s.kunci === "lima-cara")
       ?.konfigurasi as
-      | { items?: { judul?: unknown; deskripsi?: unknown; fotoUrl?: unknown; tampilkanFoto?: unknown }[] }
+      | { items?: { judul?: unknown; deskripsi?: unknown; fotoUrl?: unknown; tampilkanFoto?: unknown; warnaLatar?: unknown }[] }
       | null
       | undefined;
     const items = konfig?.items;
@@ -165,6 +165,7 @@ export default function OverviewSection() {
         deskripsi: String(x?.deskripsi ?? ""),
         fotoUrl: typeof x?.fotoUrl === "string" ? x.fotoUrl : "",
         tampilkanFoto: x?.tampilkanFoto !== false,
+        warnaLatar: typeof x?.warnaLatar === "string" ? x.warnaLatar : "",
       }));
     }
     return ways.map((w) => ({
@@ -172,6 +173,7 @@ export default function OverviewSection() {
       deskripsi: w.headline,
       fotoUrl: "",
       tampilkanFoto: true,
+      warnaLatar: "",
     }));
   })();
   const mediaTentang = (() => {
@@ -329,6 +331,10 @@ export default function OverviewSection() {
               image: item.fotoUrl || fallback.image,
               showImage: item.tampilkanFoto,
               imageAlt: fallback.imageAlt,
+              backgroundColor: item.warnaLatar.trim() || undefined,
+              inkColor: item.warnaLatar.trim()
+                ? tintaUntukLatar(item.warnaLatar)
+                : undefined,
             };
           })}
         />

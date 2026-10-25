@@ -70,7 +70,7 @@ export default function StaffSection() {
     <section
       id="staf"
       style={gayaBackgroundPengurus}
-      className={`home-jakarta-section ${plusJakartaSans.className} relative isolate overflow-hidden bg-[#f2f2f4] py-9 pb-7 md:pt-[50px] md:pb-8 text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} relative isolate overflow-hidden bg-[#f2f2f4] py-9 pb-7 md:pt-[50px] md:pb-8 text-[#0f1012]`}
     >
       <div className="home-section-container relative z-10">
         {/* Header rata kiri (sama seperti Direktori Alumni) */}
@@ -82,7 +82,7 @@ export default function StaffSection() {
             {eyebrowPengurus}
           </span>
           <h2
-            className="reveal-item mt-4 section-title"
+            className="mt-4 section-title"
             style={gayaJudulPengurus}
           >
             {judulPengurus}
