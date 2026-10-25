@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Pratinjau hover section Arsip IKASADA, terinspirasi daftar merek interaktif Cosmos." />
+    <title>Pratinjau Arsip · Hover IKASADA</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #101114;
+        --muted: #c4c5c7;
+        --blue: #0b5ed7;
+        --line: #e7e8e9;
+        --ease: cubic-bezier(.2,.7,.2,1);
+        font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+        font-synthesis: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; min-width: 320px; color: var(--ink); background: #fff; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+      button { font: inherit; }
+      a { color: inherit; }
+
+      .preview-note {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        padding: 18px clamp(22px, 5vw, 76px);
+        border-bottom: 1px solid var(--line);
+        color: #656a70;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+      .preview-note strong { color: var(--ink); letter-spacing: .18em; }
+
+      .archive {
+        min-height: 100svh;
+        padding: clamp(70px, 6vw, 96px) clamp(22px, 5vw, 76px) clamp(64px, 8vw, 112px);
+        overflow: hidden;
+      }
+      .inner { max-width: 1600px; margin: 0 auto; }
+      .header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 30px;
+        margin-bottom: clamp(36px, 3.8vw, 58px);
+      }
+      .eyebrow {
+        margin: 0 0 16px;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(48px, 4.4vw, 72px);
+        font-weight: 500;
+        line-height: 1.02;
+        letter-spacing: -.05em;
+      }
+      h1 span { color: var(--blue); }
+      .content {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(390px, .9fr);
+        align-items: center;
+        gap: clamp(38px, 5vw, 96px);
+      }
+      .list { min-width: 0; margin: 0; padding: 0; list-style: none; }
+      .list li { min-width: 0; }
+      .archive-choice {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: clamp(88px, 7vw, 112px);
+        padding: 4px 0;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        text-align: left;
+        transition: color 260ms ease;
+      }
+      .archive-choice:hover,
+      .archive-choice:focus-visible,
+      .archive-choice.is-active { color: var(--ink); }
+      .archive-choice:focus-visible { outline: 2px solid var(--blue); outline-offset: 5px; }
+      .mini {
+        width: 0;
+        height: clamp(60px, 5.3vw, 86px);
+        flex: 0 0 auto;
+        margin-right: 0;
+        overflow: hidden;
+        border-radius: 11px;
+        opacity: 0;
+        transform: scale(.82);
+        transition: width 410ms var(--ease), margin-right 410ms var(--ease), opacity 260ms ease, transform 410ms var(--ease);
+      }
+      .archive-choice.is-active .mini,
+      .archive-choice:hover .mini,
+      .archive-choice:focus-visible .mini {
+        width: clamp(60px, 5.3vw, 86px);
+        margin-right: clamp(12px, 1.35vw, 22px);
+        opacity: 1;
+        transform: scale(1);
+      }
+      .mini img { display: block; width: clamp(60px, 5.3vw, 86px); height: 100%; object-fit: cover; }
+      .choice-text { display: block; min-width: 0; }
+      .choice-number {
+        display: block;
+        margin-bottom: 4px;
+        color: #a8aaae;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        transition: color 260ms ease;
+      }
+      .archive-choice.is-active .choice-number,
+      .archive-choice:hover .choice-number,
+      .archive-choice:focus-visible .choice-number { color: var(--blue); }
+      .choice-title {
+        display: block;
+        max-width: 740px;
+        font-size: clamp(32px, 3vw, 49px);
+        font-weight: 600;
+        letter-spacing: -.04em;
+        line-height: 1.02;
+        text-wrap: balance;
+      }
+      .stage {
+        position: relative;
+        height: clamp(500px, 43vw, 640px);
+        min-width: 0;
+        isolation: isolate;
+      }
+      .preview-panel {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(22px) scale(.98);
+        transition: opacity 390ms ease, transform 520ms var(--ease), visibility 0s linear 520ms;
+      }
+      .preview-panel.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+        transition: opacity 390ms ease, transform 520ms var(--ease), visibility 0s;
+      }
+      .image-stack { position: relative; height: 74%; }
+      .image-stack img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .image-main {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: min(75%, 360px);
+        height: 100%;
+        overflow: hidden;
+        background: #f2f2f4;
+        transform: translateX(-50%);
+      }
+      .document-stub {
+        position: absolute;
+        right: 1%;
+        bottom: -11%;
+        display: flex;
+        width: 38%;
+        height: 24%;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(13px, 1.6vw, 24px);
+        border: 1px solid #e6e8eb;
+        background: #f5f6f7;
+      }
+      .document-stub span { color: var(--blue); font-size: 11px; font-weight: 700; letter-spacing: .15em; }
+      .document-stub strong { font-size: clamp(17px, 1.65vw, 26px); font-weight: 500; letter-spacing: -.04em; line-height: 1.07; }
+      .preview-info { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin-top: 28px; }
+      .preview-info p { max-width: 340px; margin: 0; color: #666c72; font-size: 15px; line-height: 1.55; }
+      .preview-info a {
+        display: inline-flex;
+        align-items: center;
+        flex: 0 0 auto;
+        gap: 14px;
+        padding: 0 0 8px;
+        border-bottom: 1px solid var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .preview-info a:hover, .preview-info a:focus-visible { color: var(--blue); border-color: var(--blue); }
+      .footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: clamp(62px, 8vw, 126px); padding-top: 20px; border-top: 1px solid var(--line); }
+      .footer span { color: #777b80; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+      .footer a { display: inline-flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 700; text-decoration: none; }
+      .footer a:hover, .footer a:focus-visible { color: var(--blue); }
+
+      @media (max-width: 900px) {
+        .archive { padding-top: 86px; }
+        .header { align-items: start; flex-direction: column; gap: 19px; margin-bottom: 38px; }
+        .content { display: flex; flex-direction: column; align-items: stretch; gap: 35px; }
+        .archive-choice { min-height: 85px; }
+        .choice-title { font-size: clamp(28px, 5.8vw, 48px); }
+        .stage { height: min(73vw, 590px); min-height: 420px; }
+      }
+      @media (max-width: 600px) {
+        .preview-note { font-size: 9px; }
+        .preview-note span { display: none; }
+        .archive { padding-top: 66px; }
+        h1 { font-size: clamp(47px, 12.2vw, 72px); }
+        .archive-choice { min-height: 75px; }
+        .choice-title { font-size: clamp(25px, 7vw, 39px); }
+        .mini, .mini img { height: 54px; }
+        .archive-choice.is-active .mini, .archive-choice:hover .mini, .archive-choice:focus-visible .mini { width: 54px; margin-right: 11px; }
+        .mini img { width: 54px; }
+        .stage { height: 485px; min-height: 0; }
+        .image-stack { height: 67%; }
+        .image-main { width: min(78%, 295px); height: 100%; }
+        .document-stub { width: 42%; height: 23%; bottom: -10%; }
+        .preview-info { align-items: start; flex-direction: column; gap: 12px; margin-top: 19px; }
+        .preview-info p { font-size: 13px; }
+        .preview-info a { font-size: 13px; }
+        .footer { align-items: start; flex-direction: column; margin-top: 65px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="preview-note"><strong>IKASADA / Pratinjau</strong><span>Studi interaksi hover untuk beranda</span></div>
+    <main class="archive" id="arsip">
+      <div class="inner">
+        <header class="header">
+          <div><p class="eyebrow">Arsip IKASADA</p><h1>Dokumen <span>&amp;</span> Laporan.</h1></div>
+        </header>
+
+        <div class="content">
+          <ol class="list" aria-label="Pilih arsip untuk melihat pratinjau">
+            <li><button class="archive-choice is-active" type="button" data-index="0" aria-controls="arsip-preview" aria-pressed="true"><span class="mini"><img src="arsip-cosmos-assets/arsip-aib.jpg" alt="" /></span><span class="choice-text"><span class="choice-number">01 / DOKUMENTASI</span><span class="choice-title">Kumpulan Foto-Foto Aib Lama</span></span></button></li>
+            <li><button class="archive-choice" type="button" data-index="1" aria-controls="arsip-preview" aria-pressed="false"><span class="mini"><img src="arsip-cosmos-assets/arsip-proposal.jpg" alt="" /></span><span class="choice-text"><span class="choice-number">02 / PROPOSAL</span><span class="choice-title">Proposal Program Beasiswa Sastra Daerah</span></span></button></li>
+            <li><button class="archive-choice" type="button" data-index="2" aria-controls="arsip-preview" aria-pressed="false"><span class="mini"><img src="arsip-cosmos-assets/arsip-notulen.png" alt="" /></span><span class="choice-text"><span class="choice-number">03 / NOTULEN</span><span class="choice-title">Notulen Rapat Kerja Pengurus 2026</span></span></button></li>
+            <li><button class="archive-choice" type="button" data-index="3" aria-controls="arsip-preview" aria-pressed="false"><span class="mini"><img src="arsip-cosmos-assets/arsip-proposal.jpg" alt="" /></span><span class="choice-text"><span class="choice-number">04 / LAPORAN</span><span class="choice-title">Laporan Tahunan IKASADA 2025</span></span></button></li>
+          </ol>
+
+          <div class="stage" id="arsip-preview" aria-live="polite" aria-label="Pratinjau arsip terpilih">
+            <article class="preview-panel is-active" data-panel="0" aria-hidden="false">
+              <div class="image-stack"><div class="image-main"><img src="arsip-cosmos-assets/arsip-aib.jpg" alt="Sampul Kumpulan Foto-Foto Aib Lama" /></div><div class="document-stub"><span>11 SEP 2026 · PDF</span><strong>Dokumentasi<br />alumni</strong></div></div>
+              <div class="preview-info"><p>Kumpulan foto alumni yang tersimpan dalam arsip komunitas.</p><a href="http://localhost:3000/arsip/kumpulan-foto-foto-aib-lama">Buka arsip <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="preview-panel" data-panel="1" aria-hidden="true">
+              <div class="image-stack"><div class="image-main"><img src="arsip-cosmos-assets/arsip-proposal.jpg" alt="Sampul Proposal Program Beasiswa Sastra Daerah" /></div><div class="document-stub"><span>02 MAR 2026 · DOCX</span><strong>Usulan<br />beasiswa</strong></div></div>
+              <div class="preview-info"><p>Usulan beasiswa untuk mahasiswa Sastra Daerah beserta rencana anggarannya.</p><a href="http://localhost:3000/arsip/proposal-beasiswa-2026">Buka arsip <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="preview-panel" data-panel="2" aria-hidden="true">
+              <div class="image-stack"><div class="image-main"><img src="arsip-cosmos-assets/arsip-notulen.png" alt="Sampul Notulen Rapat Kerja Pengurus 2026" /></div><div class="document-stub"><span>14 FEB 2026 · PDF</span><strong>Hasil rapat<br />pengurus</strong></div></div>
+              <div class="preview-info"><p>Catatan penyusunan program prioritas dan pembagian bidang pengurus.</p><a href="http://localhost:3000/arsip/notulen-rapat-kerja-2026">Buka arsip <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="preview-panel" data-panel="3" aria-hidden="true">
+              <div class="image-stack"><div class="image-main"><img src="arsip-cosmos-assets/arsip-proposal.jpg" alt="Sampul Laporan Tahunan IKASADA 2025" /></div><div class="document-stub"><span>31 JAN 2026 · PDF</span><strong>Satu tahun<br />IKASADA</strong></div></div>
+              <div class="preview-info"><p>Rekapitulasi program, keuangan, dan capaian organisasi sepanjang 2025.</p><a href="http://localhost:3000/arsip/laporan-tahunan-2025">Buka arsip <span aria-hidden="true">↗</span></a></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="footer"><span>Arahkan kursor atau pilih judul · 01—04</span><a href="http://localhost:3000/arsip">Lihat Semua Arsip <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </main>
+    <script>
+      const choices = [...document.querySelectorAll('.archive-choice')];
+      const panels = [...document.querySelectorAll('.preview-panel')];
+      const stage = document.querySelector('.stage');
+      let active = 0;
+
+      function activate(index, scrollOnTouch = false) {
+        if (index < 0 || index >= choices.length || index === active) return;
+        active = index;
+        choices.forEach((choice, i) => {
+          const selected = i === index;
+          choice.classList.toggle('is-active', selected);
+          choice.setAttribute('aria-pressed', String(selected));
+        });
+        panels.forEach((panel, i) => {
+          const selected = i === index;
+          panel.classList.toggle('is-active', selected);
+          panel.setAttribute('aria-hidden', String(!selected));
+          panel.querySelectorAll('a').forEach(link => { link.tabIndex = selected ? 0 : -1; });
+        });
+        if (scrollOnTouch && matchMedia('(max-width: 900px)').matches) {
+          stage.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' });
+        }
+      }
+
+      panels.forEach((panel, i) => {
+        if (i !== 0) panel.querySelectorAll('a').forEach(link => { link.tabIndex = -1; });
+      });
+      choices.forEach((choice, index) => {
+        choice.addEventListener('pointerenter', event => {
+          if (event.pointerType === 'mouse' || event.pointerType === 'pen') activate(index);
+        });
+        choice.addEventListener('focus', () => activate(index));
+        choice.addEventListener('click', event => activate(index, event.detail !== 0));
+        choice.addEventListener('keydown', event => {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            const next = (index + (event.key === 'ArrowDown' ? 1 : choices.length - 1)) % choices.length;
+            choices[next].focus();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

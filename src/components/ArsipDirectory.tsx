@@ -21,12 +21,8 @@ const PER_PAGE = 6;
 const JEDA_CARI_MS = 400;
 
 /**
- * Satu baris arsip. Dipakai dua tempat — daftar di halaman `/arsip` dan section
- * Arsip di beranda — supaya keduanya tidak pernah berbeda tampilannya.
- *
- * `level` mengatur tag judulnya: 2 di halaman `/arsip` (halamannya cuma punya
- * satu `h1`), 3 di beranda (judul section-nya sendiri sudah `h2`, jadi baris
- * tidak boleh mengulang `h2`).
+ * Satu baris arsip untuk direktori. `level` tetap tersedia bagi pemakaian
+ * ulang pada konteks yang membutuhkan judul `h3`.
  */
 export function ArsipRow({
   item,

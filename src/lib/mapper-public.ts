@@ -133,6 +133,7 @@ export type PublicBerita = {
   slug: string;
   tipe: string;
   judul: string;
+  penulis: string;
   deskripsiSingkat: string;
   deskripsiLengkap: string | null;
   tanggal: string;
@@ -267,6 +268,7 @@ export function toPublicBerita(berita: BeritaDenganJenis): PublicBerita {
     slug: berita.slug,
     tipe: berita.jenisBerita.nama,
     judul: berita.judul,
+    penulis: berita.penulis,
     deskripsiSingkat: berita.deskripsiSingkat,
     deskripsiLengkap: berita.deskripsiLengkap,
     tanggal: berita.tanggal.toISOString(),

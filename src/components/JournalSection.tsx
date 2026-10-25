@@ -1,21 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Image from "next/image";
+import Link from "next/link";
 import type { PublicKerjasama } from "@/lib/types";
 import { panggilApi } from "@/lib/api-client";
 import { keTeksBiasa } from "@/lib/rich-text";
 import { reportAssetError } from "@/lib/asset-error";
-import {
-  CoverflowCarousel,
-  type CoverflowSlide,
-} from "./ui/coverflow-carousel";
 import styles from "./JournalSection.module.css";
 import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
   gayaSection,
+  gayaBackgroundSection,
 } from "@/lib/beranda-client";
 
 const GAMBAR_CADANGAN = "/images/placeholder-event.jpg";
@@ -34,23 +33,107 @@ const plusJakartaSans = Plus_Jakarta_Sans({
  * di server component akan menyajikan data basi sampai build berikutnya.
  * Pola fetch kliennya sama dengan section tetangga (EventsSection, StaffSection).
  *
- * Kartu-kartu bertumpuk diganti coverflow: satu kartu di tengah, sisanya mundur
- * dan miring ke belakang. Isi kartunya tetap seperti sebelumnya — organisasi dan
- * kegiatan utamanya, plus tautan ke halaman detail.
+ * Kartu menampilkan media, organisasi, program utama, dan profil singkat.
+ * Daftar tetap diambil dari API publik agar perubahan admin langsung muncul.
  */
-function toSlides(daftar: PublicKerjasama[]): CoverflowSlide[] {
-  return daftar.map((item) => ({
-    src: item.imageUrl ?? GAMBAR_CADANGAN,
-    alt: item.alt,
-    title: item.organisasi,
-    subtitle: keTeksBiasa(item.programUtama),
-    href: `/kerjasama/${item.slug}`,
-  }));
+function KerjasamaCards({ items }: { items: PublicKerjasama[] }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [pagination, setPagination] = useState({ first: 0, visible: 1 });
+
+  const measure = useCallback(() => {
+    const track = trackRef.current;
+    const firstCard = track?.querySelector<HTMLElement>("[data-kerjasama-card]");
+    if (!track || !firstCard) return;
+
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const step = firstCard.offsetWidth + gap;
+    const visible = Math.min(items.length, Math.max(1, Math.round((track.clientWidth + gap) / step)));
+    const first = Math.min(items.length - visible, Math.max(0, Math.round(track.scrollLeft / step)));
+    setPagination((previous) =>
+      previous.first === first && previous.visible === visible ? previous : { first, visible },
+    );
+  }, [items.length]);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    measure();
+    return () => observer.disconnect();
+  }, [measure]);
+
+  function move(direction: number) {
+    const track = trackRef.current;
+    const firstCard = track?.querySelector<HTMLElement>("[data-kerjasama-card]");
+    if (!track || !firstCard) return;
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const step = firstCard.offsetWidth + gap;
+    const lastStart = Math.max(0, items.length - pagination.visible);
+    const target = Math.max(0, Math.min(lastStart, pagination.first + direction));
+    track.scrollTo({
+      left: target * step,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }
+
+  return (
+    <div className={`${styles.gallery} home-section-container`}>
+      <div
+        ref={trackRef}
+        className={styles.track}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Daftar kerjasama"
+        tabIndex={0}
+        onScroll={measure}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            move(event.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+      >
+        {items.map((item, index) => {
+          const image = item.imageUrl ?? GAMBAR_CADANGAN;
+          return (
+            <Link
+              key={item.id}
+              data-kerjasama-card
+              className={styles.card}
+              href={`/kerjasama/${item.slug}`}
+              aria-label={`Lihat kerjasama ${item.organisasi}`}
+            >
+              <span className={styles.visual}>
+                <Image src={image} alt="" fill unoptimized sizes="(max-width: 620px) 88vw, (max-width: 950px) 45vw, 33vw" className={styles.visualBackdrop} aria-hidden="true" />
+                <Image src={image} alt={item.alt || item.organisasi} fill unoptimized sizes="(max-width: 620px) 88vw, (max-width: 950px) 45vw, 33vw" className={styles.visualImage} />
+              </span>
+              <span className={styles.caption}>
+                <span className={styles.meta}>{String(index + 1).padStart(2, "0")} / {keTeksBiasa(item.programUtama)}</span>
+                <span className={styles.cardTitle}>{item.organisasi}</span>
+                <span className={styles.subtitle}>{keTeksBiasa(item.profil)}</span>
+                <span className={styles.cardLink}>Lihat kerjasama <span aria-hidden="true">↗</span></span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+      <div className={styles.galleryFooter}>
+        <span className={styles.pageIndicator} aria-live="polite">
+          <strong>{String(pagination.first + 1).padStart(2, "0")}–{String(Math.min(items.length, pagination.first + pagination.visible)).padStart(2, "0")}</strong> / {String(items.length).padStart(2, "0")}
+        </span>
+        <div className={styles.controls} aria-label="Navigasi kerjasama">
+          <button type="button" onClick={() => move(-1)} disabled={pagination.first === 0} aria-label="Kerjasama sebelumnya">←</button>
+          <button type="button" onClick={() => move(1)} disabled={pagination.first + pagination.visible >= items.length} aria-label="Kerjasama berikutnya">→</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function JournalSection() {
   const beranda = useBerandaConfig();
-  const [slides, setSlides] = useState<CoverflowSlide[]>([]);
+  const [items, setItems] = useState<PublicKerjasama[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +150,7 @@ export default function JournalSection() {
       return;
     }
 
-    setSlides(toSlides(hasil.data));
+    setItems(hasil.data);
     setIsLoading(false);
   }, []);
 
@@ -90,10 +173,11 @@ export default function JournalSection() {
   );
   const gayaJudulKerjasama = gayaSection(beranda, "kerjasama", "judul");
   const gayaEyebrowKerjasama = gayaSection(beranda, "kerjasama", "eyebrow");
+  const gayaBackgroundKerjasama = gayaBackgroundSection(beranda, "kerjasama");
 
   // Section dimatikan atau tidak ada yang dipublikasikan: jangan tampil kosong.
   if (!sectionAktif(beranda, "kerjasama")) return null;
-  if (!isLoading && !error && slides.length === 0) {
+  if (!isLoading && !error && items.length === 0) {
     return null;
   }
 
@@ -101,6 +185,7 @@ export default function JournalSection() {
     <section
       id="journal"
       className={`${styles.section} ${plusJakartaSans.className} reveal-section`}
+      style={gayaBackgroundKerjasama}
       aria-labelledby="journal-title"
     >
       <div className={`${styles.header} home-section-container`}>
@@ -138,18 +223,8 @@ export default function JournalSection() {
         </div>
       )}
 
-      {!isLoading && !error && slides.length > 0 && (
-        <div className={styles.carousel}>
-          <CoverflowCarousel
-            slides={slides}
-            label="Kerjasama kami"
-            cardWidth="clamp(190px, 24vw, 320px)"
-            showCaption
-            showNavigation
-            showPagination
-            paginationAccent="green"
-          />
-        </div>
+      {!isLoading && !error && items.length > 0 && (
+        <KerjasamaCards items={items} />
       )}
     </section>
   );

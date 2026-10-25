@@ -188,6 +188,15 @@ export type PublicStatistik = {
   totalKegiatan: number;
   totalPengurus: number;
   angkatanPerDekade: { dekade: number; jumlah: number }[];
+  sebaranSektor: { id: string | null; nama: string; jumlah: number }[];
+  relevansiPekerjaan: {
+    sesuai: number;
+    tidakSesuai: number;
+    belumDiketahui: number;
+    totalDinilai: number;
+    persenSesuai: number | null;
+    persenTidakSesuai: number | null;
+  };
   kegiatanTerakhir: PublicStatistikKegiatan | null;
   kegiatanMendatang: PublicStatistikKegiatan[];
 };

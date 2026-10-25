@@ -283,6 +283,7 @@ model Berita {
   id               String       @id @default(uuid())
   slug             String       @unique
   judul            String
+  penulis          String       @default("Redaksi IKASADA") @db.VarChar(120)
   jenisBeritaId    String       @map("jenis_berita_id")
   jenisBerita      JenisBerita  @relation(fields: [jenisBeritaId], references: [id])
   tanggal          DateTime
@@ -727,6 +728,7 @@ model SectionBeranda {
   deskripsi   String?
   warnaJudul  String?   @map("warna_judul")
   warnaEyebrow String?  @map("warna_eyebrow")
+  warnaBackground String? @map("warna_background")
   ukuranJudul  Int?     @map("ukuran_judul")
   ukuranEyebrow Int?    @map("ukuran_eyebrow")
   konfigurasi Json?

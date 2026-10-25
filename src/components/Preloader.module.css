@@ -6,124 +6,76 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  isolation: isolate;
-  opacity: 1;
-  transition: opacity 250ms ease-in;
+  background: #fff;
+  color: #0071e3;
+  transform: translateY(0);
+  transition: transform 760ms cubic-bezier(0.76, 0, 0.22, 1);
 }
-.veil[data-exiting] { opacity: 0; pointer-events: none; }
-.ornamen {
-  position: absolute;
-  width: clamp(260px, 31vw, 440px);
-  aspect-ratio: 1;
+
+.veil[data-exiting] {
+  transform: translateY(-100%);
   pointer-events: none;
-  background: url("/decoration/preloader-sulur-referensi.png") center / contain no-repeat;
-  mix-blend-mode: multiply;
-  opacity: 0.65;
-  mask-image: linear-gradient(to right, transparent, #000 18%), linear-gradient(to bottom, #000 78%, transparent);
-  mask-composite: intersect;
-  animation: ornamen-in 450ms ease-out both;
 }
-.ornamenKanan { top: -100px; right: -24px; }
-.ornamenKiri {
-  width: clamp(340px, 43vw, 620px);
-  aspect-ratio: 2 / 1;
-  bottom: 0;
-  left: -12px;
-  background-image: url("/decoration/preloader-sulur-bawah.png");
-  mask-image: none;
-}
+
 .lockup {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: min(100% - 40px, 440px);
-  transform: translateY(-3svh);
+  display: grid;
+  place-items: center;
 }
+
 .aksara {
+  display: block;
   width: min(70vw, 320px);
   height: 89px;
   overflow: visible;
-  color: #0071e3;
+  color: currentColor;
   font-family: var(--font-javanese), "Noto Sans Javanese", sans-serif;
 }
+
 .garis {
   stroke-dasharray: 320;
   stroke-dashoffset: 320;
-  animation: tulis 240ms cubic-bezier(0.45, 0, 0.35, 1) both;
+  animation: tulis 420ms cubic-bezier(0.45, 0, 0.35, 1) both;
 }
-.isi { animation: fade-in 120ms ease-out 760ms both; }
-.status {
-  max-width: 220px;
-  margin: 24px 0 0;
-  color: #526176;
-  font-size: 16px;
-  line-height: 1.5;
-  text-align: center;
-  text-wrap: balance;
-  animation: status-in 250ms ease-out 650ms both;
+
+.isi {
+  opacity: 0;
+  animation: isi-in 180ms ease-out 980ms both;
 }
-.track {
-  width: 160px;
-  height: 3px;
-  margin-top: 24px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: #dceefd;
-  animation: fade-in 150ms ease-out 800ms both;
-}
-.fill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to right, #0085ed 0 85%, #28a745 85% 100%);
-  transform: scaleX(0);
-  transform-origin: left;
-}
-.gelombang {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: clamp(100px, 22svh, 200px);
-  pointer-events: none;
-  animation: fade-in 300ms ease-out both;
-}
-@keyframes ornamen-in {
-  from { opacity: 0; }
-  to { opacity: 0.65; }
-}
+
 @keyframes tulis {
   from { stroke-dashoffset: 320; }
   to { stroke-dashoffset: 0; }
 }
-@keyframes fade-in {
+
+@keyframes isi-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes status-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+
 @media (max-width: 640px) {
-  .ornamenKanan { width: 220px; top: -40px; right: -32px; }
-  .ornamenKiri { width: min(90vw, 380px); bottom: 16px; left: -12px; }
-  .aksara { width: min(76vw, 280px); height: 78px; }
-  .status { max-width: 180px; margin-top: 22px; font-size: 14px; }
-  .track { width: 140px; margin-top: 24px; }
-  .gelombang { height: clamp(100px, 18svh, 160px); }
+  .aksara {
+    width: min(76vw, 280px);
+    height: 78px;
+  }
 }
+
 @media (max-height: 500px) {
-  .ornamenKanan { width: 200px; top: -80px; }
-  .ornamenKiri { width: 260px; bottom: 0; }
-  .aksara { width: 200px; height: 55px; }
-  .status { margin-top: 12px; font-size: 13px; }
-  .track { margin-top: 20px; }
-  .gelombang { height: 70px; }
+  .aksara {
+    width: 200px;
+    height: 55px;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .ornamen, .isi, .status, .track, .gelombang { animation: none; }
-  .garis { animation: none; stroke-dashoffset: 0; }
+  .garis {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .isi {
+    animation: none;
+    opacity: 1;
+  }
+
   .veil { transition-duration: 150ms; }
 }

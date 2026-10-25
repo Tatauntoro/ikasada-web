@@ -7,7 +7,7 @@ import { ChipBerubah, KELAS_FIELD_BERUBAH } from "./ChipBerubah";
 
 export type ImageUploadProps = {
   label?: string;
-  tipe: "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita";
+  tipe: "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita" | "hero" | "beranda";
   value?: string | null;
   onChange: (url: string | null) => void;
   error?: string;
@@ -102,7 +102,7 @@ export function ImageUpload({
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={isUploading}
-              className="px-3 py-1.5 rounded-lg bg-[#fdfdfd]/95 text-[#0f1012] text-xs font-bold shadow hover:bg-[#f2f2f4] transition-colors disabled:opacity-70"
+              className="min-h-11 rounded-lg bg-[#fdfdfd]/95 px-3 text-xs font-bold text-[#0f1012] shadow transition-colors hover:bg-[#f2f2f4] disabled:opacity-70 sm:min-h-0 sm:py-1.5"
             >
               Ganti
             </button>
@@ -110,7 +110,7 @@ export function ImageUpload({
               type="button"
               onClick={handleRemove}
               disabled={isUploading}
-              className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold shadow hover:bg-red-600 transition-colors disabled:opacity-70"
+              className="min-h-11 rounded-lg bg-red-500 px-3 text-xs font-bold text-white shadow transition-colors hover:bg-red-600 disabled:opacity-70 sm:min-h-0 sm:py-1.5"
             >
               <Trash weight="bold" className="inline mr-1" />
               Hapus

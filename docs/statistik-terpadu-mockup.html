@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Mockup gabungan Statistik, Sebaran Geografis, dan Sebaran Angkatan IKASADA." />
+    <title>Statistik &amp; Sebaran Alumni — IKASADA</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #101114;
+        --muted: #78808a;
+        --line: rgba(16, 17, 20, 0.1);
+        --blue: #0b5ed7;
+        --blue-soft: #dce8f8;
+        --paper: #ffffff;
+        --panel: #f2f3f3;
+        --gold: #f4c430;
+        font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background: #f4f5f5;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; padding: 8px; }
+      a { color: inherit; }
+
+      .combined-section {
+        width: min(100%, 1720px);
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 17px;
+        background: var(--paper);
+      }
+
+      .feature {
+        display: grid;
+        min-height: 670px;
+        grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+        gap: clamp(32px, 5vw, 76px);
+        padding: clamp(34px, 4vw, 62px) clamp(28px, 3.2vw, 54px) 18px;
+      }
+
+      .copy {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 0 18px;
+      }
+
+      .step {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        min-height: 38px;
+        padding: 0 16px;
+        border-radius: 9px;
+        background: #f4f5f5;
+        color: #68717b;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .step-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--blue);
+        box-shadow: 0 0 0 4px rgba(11, 94, 215, 0.08);
+      }
+
+      h1 {
+        max-width: 13ch;
+        margin: clamp(48px, 5vw, 74px) 0 20px;
+        font-size: clamp(42px, 5vw, 72px);
+        font-weight: 400;
+        letter-spacing: -0.075em;
+        line-height: 0.99;
+      }
+
+      .lede {
+        max-width: 52ch;
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(16px, 1.38vw, 20px);
+        letter-spacing: -0.025em;
+        line-height: 1.52;
+      }
+
+      .points {
+        display: grid;
+        gap: 20px;
+        width: 100%;
+        margin: auto 0 38px;
+        padding: 36px 0 0;
+        list-style: none;
+      }
+
+      .points li {
+        display: grid;
+        grid-template-columns: 26px 1fr;
+        align-items: center;
+        gap: 18px;
+        color: #78808a;
+        font-size: clamp(14px, 1.2vw, 17px);
+        line-height: 1.45;
+      }
+
+      .point-icon {
+        width: 24px;
+        height: 24px;
+        color: #69727b;
+      }
+
+      .explore {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+        color: #424950;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .explore:hover { color: var(--blue); }
+      .explore svg { width: 16px; height: 16px; transition: transform 200ms ease; }
+      .explore:hover svg { transform: translateX(4px); }
+
+      .visual {
+        position: relative;
+        display: grid;
+        min-height: 570px;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 12px;
+        background:
+          radial-gradient(ellipse at 70% 78%, rgba(11, 94, 215, 0.07), transparent 42%),
+          linear-gradient(135deg, #f1f2f2 0%, #f5f6f6 52%, #f1f2f4 100%);
+      }
+
+      .visual::before {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(16, 17, 20, 0.1) 0.8px, transparent 0.8px);
+        background-position: 5px 4px;
+        background-size: 26px 26px;
+        content: "";
+        opacity: 0.22;
+        mask-image: linear-gradient(to bottom, #000, transparent 86%);
+        pointer-events: none;
+      }
+
+      .visual-label {
+        position: absolute;
+        z-index: 2;
+        top: 25px;
+        left: 28px;
+        color: #78808a;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .network {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .network path {
+        fill: none;
+        stroke: #aeb4b9;
+        stroke-dasharray: 1 7;
+        stroke-linecap: round;
+        stroke-width: 2;
+      }
+
+      .network .route-soft {
+        stroke: rgba(11, 94, 215, 0.36);
+        stroke-dasharray: 2 8;
+      }
+
+      .network circle { fill: #9ca4aa; }
+      .network .node { fill: #fff; stroke: #6d7780; stroke-width: 2; }
+      .network .origin { fill: var(--blue); stroke: #fff; stroke-width: 6; }
+
+      .source-row {
+        position: absolute;
+        z-index: 2;
+        top: 11%;
+        left: 50%;
+        display: grid;
+        width: min(72%, 440px);
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        transform: translateX(-50%);
+      }
+
+      .source {
+        display: grid;
+        min-height: 75px;
+        place-items: center;
+        gap: 6px;
+        padding: 10px;
+        border: 1px solid rgba(16, 17, 20, 0.045);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 7px 18px rgba(16, 17, 20, 0.035);
+        color: #68717b;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .source svg { width: 21px; height: 21px; color: var(--blue); }
+
+      .hub {
+        position: absolute;
+        z-index: 3;
+        top: 46%;
+        left: 50%;
+        display: grid;
+        width: 112px;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid rgba(16, 17, 20, 0.12);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 12px 38px rgba(16, 17, 20, 0.09);
+        color: var(--ink);
+        transform: translate(-50%, -50%);
+      }
+
+      .hub-mark {
+        display: grid;
+        width: 70px;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        font-family: Georgia, serif;
+        font-size: 26px;
+      }
+
+      .hub small {
+        position: absolute;
+        bottom: -22px;
+        color: #737b83;
+        font-size: 8px;
+        letter-spacing: 0.15em;
+        white-space: nowrap;
+      }
+
+      .cohort-card {
+        position: absolute;
+        z-index: 4;
+        right: 9%;
+        bottom: 7%;
+        left: 16%;
+        min-height: 164px;
+        padding: 19px 22px 16px;
+        border: 1px solid rgba(16, 17, 20, 0.06);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 15px 40px rgba(16, 17, 20, 0.07);
+      }
+
+      .cohort-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .cohort-heading strong { font-size: 13px; font-weight: 500; }
+      .cohort-heading span { color: #81878c; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+      .bars {
+        display: flex;
+        height: 67px;
+        align-items: end;
+        gap: 9px;
+        margin-top: 18px;
+        border-bottom: 1px solid rgba(16, 17, 20, 0.12);
+      }
+
+      .bars i {
+        display: block;
+        width: 100%;
+        max-width: 54px;
+        height: var(--bar);
+        border-radius: 3px 3px 0 0;
+        background: linear-gradient(to top, rgba(11, 94, 215, 0.24), rgba(11, 94, 215, 0.7));
+        transform-origin: bottom;
+        animation: rise 850ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+        animation-delay: var(--delay, 0ms);
+      }
+
+      .bar-labels {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 9px;
+        color: #899097;
+        font-size: 8px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      @keyframes rise {
+        from { transform: scaleY(0.12); opacity: 0.35; }
+        to { transform: scaleY(1); opacity: 1; }
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        padding: 0 12px 13px;
+      }
+
+      .metric {
+        display: flex;
+        min-height: 214px;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: clamp(22px, 2.1vw, 34px) clamp(19px, 2vw, 30px);
+        border-radius: 9px;
+        background: #f1f2f2;
+      }
+
+      .metric-value {
+        margin: 0 0 10px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(48px, 6vw, 80px);
+        font-weight: 400;
+        letter-spacing: -0.065em;
+        line-height: 0.9;
+      }
+
+      .metric-label { color: #74808a; font-size: clamp(14px, 1.3vw, 18px); }
+      .metric-note { margin-top: 7px; color: #a0a5a9; font-size: 10px; }
+
+      .footnote {
+        margin: 0;
+        padding: 0 24px 18px;
+        color: #8b9195;
+        font-size: 10px;
+        text-align: right;
+      }
+
+      @media (max-width: 900px) {
+        .feature { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 25px; }
+        .visual { min-height: 500px; }
+        .cohort-card { right: 5%; left: 8%; }
+        .source-row { width: 86%; }
+        .source { min-height: 66px; padding: 8px 4px; font-size: 8px; }
+        .points { gap: 15px; }
+      }
+
+      @media (max-width: 680px) {
+        body { padding: 0; background: var(--paper); }
+        .combined-section { border-radius: 0; }
+        .feature { display: flex; flex-direction: column; gap: 32px; padding: 34px 20px 14px; }
+        .copy { padding: 0; }
+        h1 { max-width: 12ch; margin: 42px 0 16px; font-size: clamp(39px, 11vw, 56px); }
+        .lede { font-size: 16px; }
+        .points { gap: 16px; margin: 34px 0 20px; padding: 0; }
+        .points li { gap: 13px; font-size: 14px; }
+        .visual { width: 100%; min-height: 430px; }
+        .visual-label { top: 18px; left: 17px; font-size: 9px; }
+        .source-row { top: 12%; width: 88%; gap: 6px; }
+        .source { min-height: 58px; font-size: 7px; letter-spacing: 0.05em; }
+        .source svg { width: 18px; height: 18px; }
+        .hub { top: 45%; width: 86px; }
+        .hub-mark { width: 54px; font-size: 20px; }
+        .cohort-card { right: 5%; bottom: 6%; left: 5%; min-height: 142px; padding: 15px; }
+        .bars { height: 55px; gap: 6px; margin-top: 12px; }
+        .bar-labels { font-size: 7px; }
+        .metrics { grid-template-columns: 1fr; gap: 9px; padding: 8px 20px 14px; }
+        .metric { min-height: 132px; padding: 20px; }
+        .metric-value { font-size: 56px; }
+        .footnote { padding: 0 20px 20px; text-align: left; line-height: 1.5; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="combined-section" aria-labelledby="title">
+        <div class="feature">
+          <div class="copy">
+            <div class="step"><span class="step-dot" aria-hidden="true"></span>Profil alumni · 01</div>
+            <h1 id="title">Satu jejaring, lintas wilayah dan angkatan.</h1>
+            <p class="lede">Ringkasan statistik, persebaran geografis, dan perjalanan angkatan alumni IKASADA dalam satu pandangan.</p>
+
+            <ul class="points">
+              <li>
+                <svg class="point-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M10 3.5v17" stroke="currentColor" stroke-width="1.8"/></svg>
+                <span>Ringkasan alumni dan kegiatan hingga saat ini</span>
+              </li>
+              <li>
+                <svg class="point-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+                <span>Jejaring geografis berangkat dari Indonesia</span>
+              </li>
+              <li>
+                <svg class="point-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19V5m0 14h17M8 16v-4m4 4V8m4 8v-6m4 6V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <span>Sebaran angkatan dirangkum per dekade</span>
+              </li>
+            </ul>
+
+            <a class="explore" href="#metrik">
+              Lihat ringkasan alumni
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+
+          <div class="visual" role="img" aria-label="Diagram konsep yang menghubungkan statistik, sebaran geografis, dan angkatan">
+            <span class="visual-label">Satu gambaran · tiga dimensi</span>
+            <div class="source-row" aria-hidden="true">
+              <div class="source"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 20c.6-3.5 2.8-5.4 6.5-5.4s5.9 1.9 6.5 5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Statistik</div>
+              <div class="source"><svg viewBox="0 0 24 24" fill="none"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg>Geografis</div>
+              <div class="source"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h17M8 16v-4m4 4V8m4 8v-6m4 6V4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Angkatan</div>
+            </div>
+
+            <svg class="network" viewBox="0 0 760 570" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M190 140 C190 205 285 205 338 253" />
+              <path d="M380 140 C380 190 380 205 380 247" />
+              <path d="M570 140 C570 205 475 205 422 253" />
+              <path class="route-soft" d="M380 302 C315 350 230 347 170 407" />
+              <path class="route-soft" d="M380 302 C350 360 327 377 302 417" />
+              <path class="route-soft" d="M380 302 C420 356 466 368 515 418" />
+              <path class="route-soft" d="M380 302 C490 330 570 365 620 421" />
+              <circle cx="190" cy="140" r="3"/><circle cx="380" cy="140" r="3"/><circle cx="570" cy="140" r="3"/>
+              <circle class="node" cx="170" cy="407" r="6"/><circle class="node" cx="302" cy="417" r="6"/><circle class="origin" cx="380" cy="278" r="8"/><circle class="node" cx="515" cy="418" r="6"/><circle class="node" cx="620" cy="421" r="6"/>
+            </svg>
+
+            <div class="hub" aria-hidden="true"><span class="hub-mark">ꦆ</span><small>Jejaring IKASADA</small></div>
+
+            <div class="cohort-card">
+              <div class="cohort-heading"><strong>Sebaran angkatan</strong><span>Per dekade</span></div>
+              <div class="bars" aria-hidden="true">
+                <i style="--bar:35%;--delay:80ms"></i>
+                <i style="--bar:57%;--delay:140ms"></i>
+                <i style="--bar:46%;--delay:200ms"></i>
+                <i style="--bar:78%;--delay:260ms"></i>
+                <i style="--bar:62%;--delay:320ms"></i>
+                <i style="--bar:88%;--delay:380ms"></i>
+                <i style="--bar:71%;--delay:440ms"></i>
+              </div>
+              <div class="bar-labels"><span>angkatan lama</span><span>angkatan terbaru</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics" id="metrik" aria-label="Ringkasan statistik">
+          <article class="metric"><p class="metric-value">—</p><span class="metric-label">Alumni terdaftar</span><span class="metric-note">Nilai mengikuti data aktual</span></article>
+          <article class="metric"><p class="metric-value">—</p><span class="metric-label">Kegiatan terselenggara</span><span class="metric-note">Nilai mengikuti data aktual</span></article>
+          <article class="metric"><p class="metric-value">—</p><span class="metric-label">Rentang angkatan</span><span class="metric-note">Ditampilkan sesuai dekade tersedia</span></article>
+        </div>
+        <p class="footnote">Diagram dan batang angkatan pada mockup ini bersifat ilustratif.</p>
+      </section>
+    </main>
+  </body>
+</html>

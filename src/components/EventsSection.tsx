@@ -1,22 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { ArrowRight, CaretRight, MapPin } from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react";
 import type { PublicKegiatan } from "@/lib/types";
 import { formatTanggalWIB } from "@/lib/format";
 import { keTeksBiasa } from "@/lib/rich-text";
-import Tilt from "./Tilt";
 import { rekamAsalMorphDari } from "./motion/ImageMorph";
+import styles from "./EventsSection.module.css";
 import {
   sectionAktif,
   teksSection,
   useBerandaConfig,
   gayaSection,
+  gayaBackgroundSection,
 } from "@/lib/beranda-client";
 
-const LIMIT = 6;
+const LIMIT = 4;
+const THEMES = [styles.themeBlue, styles.themeYellow, styles.themeSoft, styles.themeDeep];
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -35,13 +37,13 @@ type ListResponse = {
   };
 };
 
-function parseDate(tgl: string) {
-  const parts = tgl.split(" ");
-  return {
-    day: parts[0] || "",
-    month: parts[1] ? parts[1].slice(0, 3) : "",
-    year: parts[2] || "",
-  };
+function batasi(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function smoothstep(start: number, end: number, value: number) {
+  const step = batasi((value - start) / (end - start));
+  return step * step * (3 - 2 * step);
 }
 
 export default function EventsSection() {
@@ -49,6 +51,8 @@ export default function EventsSection() {
   const [data, setData] = useState<PublicKegiatan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const articleRefs = useRef<Array<HTMLElement | null>>([]);
+  const layerRefs = useRef<Array<HTMLElement | null>>([]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -74,8 +78,55 @@ export default function EventsSection() {
     fetchData();
   }, [fetchData]);
 
-  const featured = data[0];
-  const agenda = data.slice(1);
+  useEffect(() => {
+    if (isLoading || error || data.length < 2) return;
+
+    const desktop = window.matchMedia("(min-width: 801px)");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+
+    const sinkronkanGambar = () => {
+      frame = 0;
+      if (!desktop.matches) return;
+
+      const viewportHeight = window.innerHeight;
+      for (let index = 1; index < data.length; index += 1) {
+        const article = articleRefs.current[index];
+        const currentLayer = layerRefs.current[index];
+        const previousLayer = layerRefs.current[index - 1];
+        if (!article || !currentLayer || !previousLayer) continue;
+
+        const progress = batasi(1 - article.getBoundingClientRect().top / viewportHeight);
+        const shown = reduceMotion.matches ? Number(progress >= 0.5) : progress;
+        currentLayer.style.transform = `translate3d(0, ${(1 - shown) * 100}%, 0)`;
+
+        const previousImage = previousLayer.querySelector("img");
+        if (previousImage) {
+          previousImage.style.opacity = reduceMotion.matches
+            ? "1"
+            : String(1 - smoothstep(0.35, 0.95, progress));
+        }
+      }
+    };
+
+    const jadwalkan = () => {
+      if (!frame) frame = window.requestAnimationFrame(sinkronkanGambar);
+    };
+
+    window.addEventListener("scroll", jadwalkan, { passive: true });
+    window.addEventListener("resize", jadwalkan);
+    desktop.addEventListener("change", jadwalkan);
+    reduceMotion.addEventListener("change", jadwalkan);
+    sinkronkanGambar();
+
+    return () => {
+      window.removeEventListener("scroll", jadwalkan);
+      window.removeEventListener("resize", jadwalkan);
+      desktop.removeEventListener("change", jadwalkan);
+      reduceMotion.removeEventListener("change", jadwalkan);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [data, error, isLoading]);
 
   const eyebrowKegiatan = teksSection(beranda, "kegiatan", "eyebrow", "Kegiatan");
   const judulKegiatan = teksSection(
@@ -86,199 +137,119 @@ export default function EventsSection() {
   );
   const gayaJudulKegiatan = gayaSection(beranda, "kegiatan", "judul");
   const gayaEyebrowKegiatan = gayaSection(beranda, "kegiatan", "eyebrow");
+  const gayaBackgroundKegiatan = gayaBackgroundSection(beranda, "kegiatan");
 
-  // Section bisa disembunyikan dari Kelola Beranda.
   if (!sectionAktif(beranda, "kegiatan")) return null;
 
   return (
     <section
       id="kegiatan"
-      className={`home-jakarta-section ${plusJakartaSans.className} relative overflow-hidden border-y border-[rgba(11,94,215,0.14)] bg-[#f2f2f4] py-[88px] text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} ${styles.section}`}
+      style={gayaBackgroundKegiatan}
+      aria-labelledby="kegiatan-title"
     >
-      <div className="home-section-container relative z-10">
-        <div className="mb-16">
-          <div className="max-w-3xl">
-            <span
-              className="reveal-item block section-label"
-              style={gayaEyebrowKegiatan}
-            >
-              {eyebrowKegiatan}
-            </span>
-            <h2
-              className="reveal-item mt-4 section-title"
-              style={gayaJudulKegiatan}
-            >
-              {judulKegiatan}
-            </h2>
-          </div>
+      <header className={styles.heading}>
+        <span className={styles.eyebrow} style={gayaEyebrowKegiatan}>
+          {eyebrowKegiatan}
+        </span>
+        <h2 id="kegiatan-title" className={styles.headingTitle} style={gayaJudulKegiatan}>
+          {judulKegiatan}
+        </h2>
+      </header>
+
+      {isLoading && (
+        <div className={styles.loading} aria-label="Memuat kegiatan">
+          <div />
+          <div />
         </div>
+      )}
 
-        {isLoading && (
-          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="animate-pulse overflow-hidden rounded-[16px] border border-[rgba(11,94,215,0.16)] bg-[#fdfdfd]">
-              <div className="h-[238px] bg-[#e7e7ec]" />
-              <div className="space-y-3 p-7">
-                <div className="h-5 w-3/4 rounded bg-neutral-100" />
-                <div className="h-3 w-full rounded bg-neutral-100" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-20 animate-pulse rounded-[12px] border border-[rgba(11,94,215,0.16)] bg-[#fdfdfd]"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!isLoading && error && (
-          <div className="py-12 text-center text-neutral-500">
-            <p>{error}</p>
-            <button
-              onClick={fetchData}
-              className="augen-cta mt-4 px-5"
-            >
-              Coba Lagi
-              <ArrowRight weight="bold" aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
-        {!isLoading && !error && data.length === 0 && (
-          <div className="py-12 text-center text-black/50">
-            <p>Belum ada kegiatan yang tersedia.</p>
-          </div>
-        )}
-
-        {!isLoading && !error && data.length > 0 && (
-          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            {/* Featured event */}
-            {featured && (
-              <Tilt max={6} className="h-full">
-                <article className="reveal-item group flex h-full flex-col overflow-hidden rounded-[16px] border border-[rgba(11,94,215,0.18)] bg-[#fdfdfd] transition-all duration-[400ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:border-[#0B5ED7]">
-                  <div data-scroll-scrub data-cursor-label="Buka kegiatan" className="relative h-[238px] overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={
-                        featured.gambarThumbnailUrl ||
-                        "/images/placeholder-event.jpg"
-                      }
-                      alt={featured.judul}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <span className="absolute top-4 left-4 rounded-full bg-[#fdfdfd] px-[14px] py-2 text-[11.5px] font-normal text-[#0f1012]">
-                      {formatTanggalWIB(featured.tanggalMulai)}
-                    </span>
-                  </div>
-                  <div className="flex flex-1 flex-col gap-[14px] p-[26px_28px_28px]">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="self-start rounded-full bg-[#F4C430] px-[11px] py-[5px] text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#26354A]">
-                        Unggulan
-                      </span>
-                      {featured.linkPendaftaran && (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#237a3b]">
-                          <span
-                            aria-hidden="true"
-                            className="size-1.5 rounded-full bg-[#28A745]"
-                          />
-                          Link pendaftaran
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.025em] text-[#0f1012] text-pretty sm:text-[31px]">
-                      {featured.judul}
-                    </h3>
-                    <p className="text-[14.5px] leading-[1.6] text-[#0f1012] text-pretty">
-                      {keTeksBiasa(featured.deskripsiSingkat)}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[rgba(11,94,215,0.18)] pt-[18px]">
-                      <span className="flex items-center gap-2 text-[13.5px] font-normal text-[#5e5e5e]">
-                        <span className="h-[7px] w-[7px] rounded-full border-2 border-[#0B5ED7]" />
-                        {featured.lokasi}
-                      </span>
-                      <Link
-                        href={`/kegiatan/${featured.slug}`}
-                        onClick={(e) => rekamAsalMorphDari(e.currentTarget)}
-                        className="augen-cta px-5"
-                      >
-                        Detail
-                        <ArrowRight weight="bold" aria-hidden="true" />
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              </Tilt>
-            )}
-
-            {/* Agenda list */}
-            <div className="flex flex-col">
-              {agenda.map((item) => {
-                const { day, month, year } = parseDate(
-                  formatTanggalWIB(item.tanggalMulai)
-                );
-                return (
-                  <Tilt key={item.id} max={4}>
-                    <Link
-                      href={`/kegiatan/${item.slug}`}
-                      className="reveal-item group relative grid grid-cols-[66px_1fr_auto] items-center gap-5 overflow-hidden rounded-xl border-b border-[rgba(11,94,215,0.18)] px-3 py-5 text-left transition-all duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:bg-[#EAF4FF] hover:pl-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]"
-                    >
-                      <span className="absolute left-0 top-0 h-full w-[3px] origin-top scale-y-0 bg-[#0B5ED7] transition-transform duration-300 group-hover:scale-y-100" />
-
-                      <span className="flex flex-col items-center leading-none">
-                        <span className="font-display text-[30px] font-normal text-[#0f1012]">
-                          {day}
-                        </span>
-                        <span className="mt-[5px] text-[10.5px] uppercase tracking-[0.1em] text-[#5e5e5e]">
-                          {month}
-                        </span>
-                      </span>
-
-                      <span className="flex flex-col gap-[6px]">
-                        <span className="text-[15.5px] font-medium tracking-[-0.01em] text-[#0f1012] text-pretty">
-                          {item.judul}
-                        </span>
-                        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-[#5e5e5e]">
-                          <span className="inline-flex items-center gap-1">
-                            <MapPin weight="bold" /> {item.lokasi}
-                          </span>
-                          {item.linkPendaftaran && (
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#237a3b]">
-                              <span
-                                aria-hidden="true"
-                                className="size-1.5 rounded-full bg-[#28A745]"
-                              />
-                              Link pendaftaran
-                            </span>
-                          )}
-                        </span>
-                      </span>
-
-                      <span className="flex items-center gap-2">
-                        <span className="text-[10.5px] font-normal uppercase tracking-[0.09em] text-[#5e5e5e]">
-                          {year}
-                        </span>
-                        <CaretRight
-                          weight="bold"
-                          className="-translate-x-1 text-[14px] text-[#0f1012] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
-                        />
-                      </span>
-                    </Link>
-                  </Tilt>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="reveal-item mt-12 flex justify-center">
-          <Link href="/event" className="augen-cta whitespace-nowrap px-5">
-            Lihat Semua Agenda
+      {!isLoading && error && (
+        <div className={styles.message}>
+          <p>{error}</p>
+          <button onClick={fetchData} className="augen-cta mt-4 px-5">
+            Coba Lagi
             <ArrowRight weight="bold" aria-hidden="true" />
-          </Link>
+          </button>
         </div>
-      </div>
+      )}
+
+      {!isLoading && !error && data.length === 0 && (
+        <div className={styles.message}>Belum ada kegiatan yang tersedia.</div>
+      )}
+
+      {!isLoading && !error && data.length > 0 && (
+        <div className={styles.agendaList}>
+          <div className={styles.copyStack}>
+            <div className={styles.agendaCta}>
+              <Link href="/event">Lihat semua agenda</Link>
+            </div>
+
+            {data.map((item, index) => (
+              <article
+                key={item.id}
+                ref={(element) => { articleRefs.current[index] = element; }}
+                className={`${styles.projectCopy} ${THEMES[index % THEMES.length]}`}
+              >
+                <span className={styles.projectIndex}>
+                  IKASADA / {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div className={styles.projectBody}>
+                  <div className={styles.projectMeta}>
+                    <span className={styles.projectType}>
+                      {item.kategori || "Kegiatan"} · {item.lokasi}
+                    </span>
+                    <time className={styles.projectDate} dateTime={item.tanggalMulai}>
+                      {formatTanggalWIB(item.tanggalMulai)}
+                    </time>
+                  </div>
+                  <h3 className={styles.projectTitle}>{item.judul}</h3>
+                  <p className={styles.projectDescription}>
+                    {keTeksBiasa(item.deskripsiSingkat)}
+                  </p>
+                  <Link
+                    href={`/kegiatan/${item.slug}`}
+                    onClick={(event) => rekamAsalMorphDari(event.currentTarget)}
+                    className={styles.detailLink}
+                  >
+                    Lihat kegiatan <span aria-hidden="true">↗</span>
+                  </Link>
+                </div>
+
+                <div className={styles.projectFooter}>
+                  <span>Agenda pilihan</span>
+                  <span>
+                    {String(index + 1).padStart(2, "0")} / {String(data.length).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <figure className={styles.mobilePhoto}>
+                  {item.gambarThumbnailUrl && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={item.gambarThumbnailUrl} alt={item.judul} loading={index ? "lazy" : "eager"} />
+                  )}
+                </figure>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.imageStage} aria-hidden="true">
+            {data.map((item, index) => (
+              <figure
+                key={item.id}
+                ref={(element) => { layerRefs.current[index] = element; }}
+                className={styles.imageLayer}
+              >
+                {item.gambarThumbnailUrl && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={item.gambarThumbnailUrl} alt="" loading={index ? "lazy" : "eager"} />
+                )}
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

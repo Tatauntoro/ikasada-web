@@ -295,8 +295,8 @@ html.light body {
 
 /* Satu garis konten untuk seluruh section beranda setelah Hero. */
 .home-page {
-  --home-container-width: 1180px;
-  --home-gutter: 20px;
+  --home-container-width: 1600px;
+  --home-gutter: clamp(20px, 4.65vw, 74px);
 }
 
 .home-page .home-section-container {
@@ -306,51 +306,42 @@ html.light body {
   padding-inline: var(--home-gutter);
 }
 
-@media (min-width: 640px) {
-  .home-page {
-    --home-gutter: 24px;
-  }
+.home-page > section.home-section-white-after {
+  border-bottom-width: 0 !important;
 }
 
-@media (min-width: 1024px) {
-  .home-page {
-    --home-gutter: 40px;
-  }
+.home-page > section.home-section-white-before {
+  border-top-width: 0 !important;
 }
 
 .public-page #alumni,
 .public-page #berita {
-  background: #ffffff !important;
+  background: var(--warna-background-section, #ffffff) !important;
   color: #0f1012;
   border-color: var(--ikasada-line) !important;
 }
 
 .public-page #kegiatan {
-  background: #ffffff !important;
+  background: var(--warna-background-section, #ffffff) !important;
   color: #0f1012;
   border-color: var(--ikasada-line) !important;
 }
 
 /* Kegiatan dan Kerjasama memakai permukaan putih yang sama. */
 .public-page #journal {
-  background: #ffffff !important;
+  background: var(--warna-background-section, #ffffff) !important;
   color: #0f1012;
   border-color: var(--ikasada-line) !important;
 }
 
-.public-page #overview {
-  background: #f2f2f4 !important;
-  color: #0f1012;
-}
-
 /* Statistik memakai biru; peta di dalamnya membawa latarnya sendiri. */
 .public-page #statistik {
-  background: #0071e3 !important;
-  color: #ffffff;
+  background-color: var(--warna-background-section, #0071e3);
+  color: var(--stats-ink, #ffffff);
 }
 
 .public-page #staf {
-  background: #f2f2f4 !important;
+  background: var(--warna-background-section, #f2f2f4) !important;
   color: #0f1012;
   border-color: var(--ikasada-line) !important;
 }
@@ -360,6 +351,55 @@ html.light body {
 .public-page #staf .section-title,
 .public-page #journal .section-title {
   color: var(--ikasada-ui-blue);
+}
+
+/* Judul dan eyebrow section ini mengikuti skala tipografi Statistik.
+   Nilai ukuran dari konfigurasi lama sengaja tidak dipakai untuk keenam section. */
+.public-page #berita .section-title,
+.public-page #kegiatan #kegiatan-title,
+.public-page #journal .section-title,
+.public-page #arsip .section-title,
+.public-page #staf .section-title,
+.public-page #kontak .section-title {
+  font-family: inherit;
+  font-size: clamp(64px, 5.9vw, 94px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  white-space: normal;
+}
+
+.public-page #berita .section-label,
+.public-page #kegiatan header > span,
+.public-page #journal .section-label,
+.public-page #arsip .section-label,
+.public-page #staf .section-label {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .public-page #berita .section-title,
+  .public-page #kegiatan #kegiatan-title,
+  .public-page #journal .section-title,
+  .public-page #arsip .section-title,
+  .public-page #staf .section-title,
+  .public-page #kontak .section-title {
+    font-size: clamp(58px, 13vw, 78px);
+  }
+
+  .public-page #berita .section-label,
+  .public-page #kegiatan header > span,
+  .public-page #journal .section-label,
+  .public-page #arsip .section-label,
+  .public-page #staf .section-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
 }
 
 .public-page .home-jakarta-section .section-title,
@@ -966,7 +1006,7 @@ html[data-section-navigation="true"] .public-page #hero {
     opacity: 0;
   }
 
-  .public-page[data-motion-ready="true"] .reveal-item.revealed {
+  .public-page[data-motion-ready="true"] .reveal-item.revealed:not([data-reveal-instant="true"]) {
     animation: reveal-item-in 620ms cubic-bezier(0.22, 0.61, 0.36, 1)
       var(--reveal-delay, 0ms) backwards;
   }

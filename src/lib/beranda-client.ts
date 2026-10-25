@@ -20,6 +20,7 @@ export type SectionBerandaPublic = {
   /** Warna hex kustom untuk judul/eyebrow; `null` = pakai warna bawaan. */
   warnaJudul: string | null;
   warnaEyebrow: string | null;
+  warnaBackground: string | null;
   /** Skala ukuran (%) untuk judul/eyebrow; `null`/`100` = ukuran bawaan. */
   ukuranJudul: number | null;
   ukuranEyebrow: number | null;
@@ -37,7 +38,7 @@ let janji: Promise<BerandaPublic | null> | null = null;
 
 function ambil(): Promise<BerandaPublic | null> {
   if (!janji) {
-    janji = fetch("/api/public/beranda")
+    janji = fetch("/api/public/beranda", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => (j?.data as BerandaPublic) ?? null)
       .catch(() => null);
@@ -45,16 +46,29 @@ function ambil(): Promise<BerandaPublic | null> {
   return janji;
 }
 
+/** Buang konfigurasi publik yang tersimpan setelah admin menyimpan perubahan. */
+export function invalidasiBerandaConfig(): void {
+  janji = null;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ikasada:beranda-config-updated"));
+  }
+}
+
 export function useBerandaConfig(): BerandaPublic | null {
   const [data, setData] = useState<BerandaPublic | null>(null);
 
   useEffect(() => {
     let hidup = true;
-    ambil().then((d) => {
-      if (hidup) setData(d);
-    });
+    const muat = () => {
+      ambil().then((d) => {
+        if (hidup) setData(d);
+      });
+    };
+    muat();
+    window.addEventListener("ikasada:beranda-config-updated", muat);
     return () => {
       hidup = false;
+      window.removeEventListener("ikasada:beranda-config-updated", muat);
     };
   }, []);
 
@@ -97,6 +111,20 @@ export function gayaSection(
   }
 
   return Object.keys(gaya).length > 0 ? (gaya as CSSProperties) : undefined;
+}
+
+/** Warna background khusus section, atau `undefined` untuk desain bawaan. */
+export function gayaBackgroundSection(
+  beranda: BerandaPublic | null,
+  kunci: string
+): CSSProperties | undefined {
+  const warna = beranda?.sections.find((s) => s.kunci === kunci)?.warnaBackground;
+  return warna && warna.trim()
+    ? ({
+        backgroundColor: warna,
+        "--warna-background-section": warna,
+      } as CSSProperties)
+    : undefined;
 }
 
 /** Teks dari config, atau `fallback` bila kosong/belum termuat. */

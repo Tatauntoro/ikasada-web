@@ -15,6 +15,13 @@ export const beritaBaseSchema = z.object({
     .string({ message: "Judul wajib diisi" })
     .min(3, "Judul minimal 3 karakter")
     .max(150, "Judul maksimal 150 karakter"),
+  // Opsional pada API untuk kompatibilitas klien lama; nilai kosong ditolak.
+  penulis: z
+    .string({ message: "Nama penulis harus berupa teks" })
+    .trim()
+    .min(2, "Nama penulis minimal 2 karakter")
+    .max(120, "Nama penulis maksimal 120 karakter")
+    .optional(),
   jenisBeritaId: z
     .string({ message: "Tipe berita wajib dipilih" })
     .min(1, "Tipe berita wajib dipilih"),

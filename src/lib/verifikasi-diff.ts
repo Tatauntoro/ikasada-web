@@ -18,6 +18,7 @@ export type SnapshotKonten = Record<string, unknown>;
 /** Label bagian konten untuk ringkasan "bagian yang berubah". */
 export const LABEL_SNAPSHOT: Record<string, string> = {
   judul: "Judul",
+  penulis: "Nama penulis",
   deskripsiSingkat: "Deskripsi singkat",
   deskripsiLengkap: "Deskripsi lengkap",
   tanggalMulai: "Tanggal mulai",
@@ -93,6 +94,7 @@ export function bikinSnapshot(
     case "berita":
       return {
         judul: norm(d.judul),
+        penulis: norm(d.penulis),
         jenisBeritaId: norm(d.jenisBeritaId),
         tanggal: norm(d.tanggal),
         deskripsiSingkat: norm(d.deskripsiSingkat),
@@ -148,7 +150,14 @@ export function fieldBerubah(
 ): string[] {
   if (!snapshot) return [];
   const sekarang = bikinSnapshot(entitas, d);
-  return Object.keys(sekarang).filter((k) => !setara(sekarang[k], snapshot[k]));
+  return Object.keys(sekarang).filter((k) => {
+    // Snapshot sebelum kolom penulis memakai atribusi default yang sama.
+    const lama =
+      entitas === "berita" && k === "penulis" && !(k in snapshot)
+        ? "Redaksi IKASADA"
+        : snapshot[k];
+    return !setara(sekarang[k], lama);
+  });
 }
 
 /** Terjemahkan kunci field menjadi label unik (untuk ringkasan). */
