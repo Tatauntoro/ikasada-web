@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Mockup Section Kegiatan — IKASADA</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --blue: #0071e3;
+        --ink: #0f1012;
+        --muted: #666a73;
+        --line: rgba(15, 16, 18, .2);
+        --page: #fff;
+        --font: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .section {
+        min-height: 100svh;
+        padding: clamp(38px, 6.2vw, 88px) clamp(20px, 4.2vw, 64px) 72px;
+      }
+
+      .wrap { width: min(100%, 1440px); margin: 0 auto; }
+
+      .heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: clamp(32px, 4vw, 56px);
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .19em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(38px, 5.4vw, 72px);
+        font-weight: 400;
+        letter-spacing: -.065em;
+        line-height: .98;
+      }
+
+      .view-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex: 0 0 auto;
+        padding: 0 0 10px;
+        border-bottom: 1px solid var(--blue);
+        color: var(--blue);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        letter-spacing: .08em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .view-all span { font-size: 18px; transition: transform 220ms ease; }
+      .view-all:hover span { transform: translateX(4px); }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+        gap: 16px;
+        min-height: min(60vw, 590px);
+      }
+
+      .image-stage {
+        position: relative;
+        min-height: 500px;
+        overflow: hidden;
+        background: #e6edf5;
+      }
+
+      .image-stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(1.08) saturate(1.04);
+        opacity: 1;
+        transition: opacity 260ms ease, transform 650ms cubic-bezier(.2,.7,.2,1);
+      }
+
+      .image-stage.is-changing img { opacity: .65; transform: scale(1.025); }
+
+      .image-caption {
+        position: absolute;
+        z-index: 1;
+        right: 22px;
+        bottom: 20px;
+        left: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 255, 255, .72);
+        background: rgba(255, 255, 255, .9);
+        color: #142b45;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        backdrop-filter: blur(12px);
+      }
+
+      .image-caption span:last-child { color: #52657a; opacity: .9; }
+
+      .event-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+      }
+
+      .event-card {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: space-between;
+        overflow: hidden;
+        padding: clamp(18px, 2.2vw, 30px);
+        border: 0;
+        border-top: 1px solid var(--line);
+        background: transparent;
+        color: var(--blue);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+        transition: background-color 360ms cubic-bezier(.22,.61,.36,1), color 280ms ease;
+      }
+
+      .event-card:nth-child(odd) { border-right: 1px solid var(--line); }
+      .event-card:nth-last-child(-n + 2) { border-bottom: 1px solid var(--line); }
+      .event-card:hover, .event-card:focus-visible, .event-card.is-active {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .event-card:focus-visible { outline: 2px solid var(--ink); outline-offset: -5px; }
+
+      .event-date {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: clamp(15px, 1.5vw, 21px);
+        letter-spacing: -.04em;
+      }
+
+      .event-date small {
+        font-size: 10px;
+        letter-spacing: .08em;
+        opacity: .7;
+      }
+
+      .event-copy { display: grid; gap: 12px; padding-right: 26px; }
+
+      .event-kind {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 9px;
+        letter-spacing: .14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+      }
+
+      .event-card h2 {
+        max-width: 340px;
+        margin: 0;
+        font-size: clamp(17px, 2vw, 24px);
+        font-weight: 400;
+        letter-spacing: -.045em;
+        line-height: 1.12;
+        text-wrap: pretty;
+      }
+
+      .card-arrow {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        width: 54px;
+        height: 54px;
+        place-items: center;
+        background: #fff;
+        color: var(--blue);
+        font-size: 20px;
+        opacity: 0;
+        transform: translate(8px, 8px);
+        transition: opacity 250ms ease, transform 250ms ease;
+      }
+
+      .event-card:hover .card-arrow,
+      .event-card:focus-visible .card-arrow,
+      .event-card.is-active .card-arrow {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+
+      @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+        .image-stage { min-height: 400px; aspect-ratio: 1.45; }
+        .event-grid { min-height: 500px; }
+      }
+
+      @media (max-width: 560px) {
+        .section { padding: 34px 18px 48px; }
+        .heading { align-items: start; flex-direction: column; gap: 20px; margin-bottom: 28px; }
+        h1 { font-size: clamp(40px, 12vw, 56px); }
+        .layout { gap: 10px; }
+        .image-stage { min-height: 0; aspect-ratio: 1.2; }
+        .image-caption { right: 14px; bottom: 13px; left: 14px; font-size: 8px; }
+        .event-grid { grid-template-columns: 1fr; grid-template-rows: none; min-height: 0; }
+        .event-card {
+          min-height: 180px;
+          padding: 19px 16px;
+          border-right: 0 !important;
+          border-bottom: 1px solid var(--line);
+        }
+        .event-card h2 { max-width: 290px; font-size: 21px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="section" aria-labelledby="section-title">
+        <div class="wrap">
+          <header class="heading">
+            <div>
+              <p class="eyebrow">Kegiatan IKASADA</p>
+              <h1 id="section-title">Hadiri Kegiatan Kami.</h1>
+            </div>
+            <a class="view-all" href="#agenda">Lihat Semua Agenda <span aria-hidden="true">→</span></a>
+          </header>
+
+          <div class="layout" id="agenda">
+            <figure class="image-stage" id="image-stage">
+              <img
+                id="featured-image"
+                src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=85&w=1400"
+                alt="Buku dan naskah terbuka untuk pameran manuskrip IKASADA"
+              />
+              <figcaption class="image-caption">
+                <span id="image-title">Pameran Manuskrip</span>
+                <span>IKASADA · FIB UI</span>
+              </figcaption>
+            </figure>
+
+            <div class="event-grid" aria-label="Agenda kegiatan pilihan">
+              <button
+                class="event-card"
+                type="button"
+                data-image="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=85&w=1400"
+                data-alt="Buku dan naskah terbuka untuk pameran manuskrip IKASADA"
+                data-title="Pameran Manuskrip"
+                aria-pressed="false"
+              >
+                <span class="event-date">25 FEB <small>2027</small></span>
+                <span class="event-copy">
+                  <span class="event-kind">Pameran · Depok</span>
+                  <h2>Pameran Manuskrip &amp; Artefak Sastra Daerah</h2>
+                </span>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </button>
+
+              <button
+                class="event-card"
+                type="button"
+                data-image="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=85&w=1400"
+                data-alt="Alumni berdiskusi dalam kegiatan IKASADA"
+                data-title="Diskusi Publik"
+                aria-pressed="false"
+              >
+                <span class="event-date">18 JAN <small>2027</small></span>
+                <span class="event-copy">
+                  <span class="event-kind">Diskusi · Daring</span>
+                  <h2>Diskusi Publik: Masa Depan Bahasa Daerah di Era AI</h2>
+                </span>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </button>
+
+              <button
+                class="event-card"
+                type="button"
+                data-image="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=85&w=1400"
+                data-alt="Suasana pertemuan dan kongres alumni"
+                data-title="Kongres Alumni"
+                aria-pressed="false"
+              >
+                <span class="event-date">20 DES <small>2026</small></span>
+                <span class="event-copy">
+                  <span class="event-kind">Gathering · FIB UI</span>
+                  <h2>Kongres Tahunan &amp; Gathering Alumni</h2>
+                </span>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </button>
+
+              <button
+                class="event-card"
+                type="button"
+                data-image="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=85&w=1400"
+                data-alt="Pertunjukan seni bersama komunitas alumni"
+                data-title="Malam Seni"
+                aria-pressed="false"
+              >
+                <span class="event-date">13 NOV <small>2026</small></span>
+                <span class="event-copy">
+                  <span class="event-kind">Pertunjukan · Depok</span>
+                  <h2>Malam Seni Pertunjukan Sastra Nusantara</h2>
+                </span>
+                <span class="card-arrow" aria-hidden="true">↗</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const stage = document.querySelector("#image-stage");
+      const image = document.querySelector("#featured-image");
+      const imageTitle = document.querySelector("#image-title");
+      const cards = [...document.querySelectorAll(".event-card")];
+      const defaultImage = image.src;
+      const defaultAlt = image.alt;
+      const defaultTitle = imageTitle.textContent;
+      let pinnedCard = null;
+
+      function activate(card) {
+        cards.forEach((item) => {
+          const active = item === card;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+        const nextImage = card?.dataset.image || defaultImage;
+        const nextAlt = card?.dataset.alt || defaultAlt;
+        const nextTitle = card?.dataset.title || defaultTitle;
+        if (image.src === nextImage) {
+          image.alt = nextAlt;
+          imageTitle.textContent = nextTitle;
+          return;
+        }
+        stage.classList.add("is-changing");
+        window.setTimeout(() => {
+          image.src = nextImage;
+          image.alt = nextAlt;
+          imageTitle.textContent = nextTitle;
+          requestAnimationFrame(() => stage.classList.remove("is-changing"));
+        }, 130);
+      }
+
+      cards.forEach((card) => {
+        card.addEventListener("pointerenter", () => activate(card));
+        card.addEventListener("focus", () => activate(card));
+        card.addEventListener("click", () => {
+          pinnedCard = pinnedCard === card ? null : card;
+          activate(pinnedCard);
+        });
+      });
+
+      document.querySelector(".event-grid").addEventListener("pointerleave", () => activate(pinnedCard));
+    </script>
+  </body>
+</html>

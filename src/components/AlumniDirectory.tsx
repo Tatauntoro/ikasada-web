@@ -33,6 +33,7 @@ import {
   teksSection,
   useBerandaConfig,
   gayaSection,
+  gayaBackgroundSection,
 } from "@/lib/beranda-client";
 import { reportAssetError } from "@/lib/asset-error";
 import Pagination from "./Pagination";
@@ -462,6 +463,7 @@ export default function AlumniDirectory({
   );
   const gayaJudulAlumni = gayaSection(beranda, "direktori-alumni", "judul");
   const gayaEyebrowAlumni = gayaSection(beranda, "direktori-alumni", "eyebrow");
+  const gayaBackgroundAlumni = gayaBackgroundSection(beranda, "direktori-alumni");
 
   // Section bisa disembunyikan dari Kelola Beranda.
   if (!sectionAktif(beranda, "direktori-alumni")) return null;
@@ -470,6 +472,7 @@ export default function AlumniDirectory({
     <section
       ref={sectionRef}
       id="alumni"
+      style={gayaBackgroundAlumni}
       className={`alumni-directory-page ${plusJakartaSans.className} relative scroll-mt-8 overflow-hidden bg-[#f2f2f4] py-[88px] text-[#0f1012] reveal-section`}
     >
       <div

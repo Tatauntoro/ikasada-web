@@ -1,0 +1,43 @@
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.4 / 1;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+}
+
+.countryMap {
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.markers {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mapLabel {
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .frame {
+    aspect-ratio: 1.8 / 1;
+  }
+
+  .mapLabel {
+    display: none;
+  }
+}

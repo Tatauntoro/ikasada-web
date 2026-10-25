@@ -1,10 +1,19 @@
 import { NextRequest } from "next/server";
 import { badRequest, ok } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
-import { requireAdminAktif } from "@/lib/sesi-admin";
+import { requireAdminAktif, requirePermission } from "@/lib/sesi-admin";
+import { AKSI, MODUL } from "@/lib/permission";
 import { uploadGambar, TipeUploadGambar } from "@/lib/upload-gambar";
 
-const TIPE_VALID: TipeUploadGambar[] = ["kegiatan", "alumni", "kerjasama", "arsip", "berita"];
+const TIPE_VALID: TipeUploadGambar[] = [
+  "kegiatan",
+  "alumni",
+  "kerjasama",
+  "arsip",
+  "berita",
+  "hero",
+  "beranda",
+];
 const MIME_VALID = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 
@@ -13,13 +22,17 @@ function isValidMimeType(mimeType: string): boolean {
 }
 
 async function handler(req: NextRequest): Promise<Response> {
-  await requireAdminAktif();
-
   const formData = await req.formData();
 
   const tipe = formData.get("tipe");
   if (typeof tipe !== "string" || !TIPE_VALID.includes(tipe as TipeUploadGambar)) {
     return badRequest("Tipe upload wajib diisi dengan salah satu tipe yang dikenal");
+  }
+
+  if (tipe === "hero" || tipe === "beranda") {
+    await requirePermission(MODUL.BERANDA, AKSI.UBAH);
+  } else {
+    await requireAdminAktif();
   }
 
   const file = formData.get("file");

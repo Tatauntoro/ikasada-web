@@ -114,6 +114,7 @@ async function handleUpdate(
     const perubahan = diffPerubahan(
       {
         judul: existing.judul,
+        penulis: existing.penulis,
         jenisBeritaId: existing.jenisBeritaId,
         tanggal: existing.tanggal,
         deskripsiSingkat: existing.deskripsiSingkat,
@@ -123,6 +124,7 @@ async function handleUpdate(
       },
       {
         judul: data.judul,
+        penulis: data.penulis ?? existing.penulis,
         jenisBeritaId: data.jenisBeritaId,
         tanggal: data.tanggal,
         deskripsiSingkat: data.deskripsiSingkat,

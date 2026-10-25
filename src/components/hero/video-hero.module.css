@@ -9,7 +9,10 @@
   color: #fff;
   font-family: var(--font-plus-jakarta), sans-serif;
 }
+.media { position: absolute; inset: 0; overflow: hidden; }
 .poster { object-fit: cover; }
+.photo { position: absolute; inset: 0; object-fit: cover; opacity: 0; transition: opacity 600ms ease; }
+.photo[data-visible] { opacity: 1; }
 .video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; transition: opacity 500ms ease; }
 .video[data-visible] { opacity: 1; }
 /* Siluet gelap: video diredupkan supaya teks putih terbaca, paling kuat di sisi
@@ -37,10 +40,23 @@
 .cta:hover { background: #005fc1; }
 .cta:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 @media (max-width: 600px) {
-  .content { padding: 130px 20px 100px; }
+  .hero { height: 82svh; }
+  .media { bottom: auto; height: 54%; }
+  .content {
+    justify-content: flex-start;
+    padding: 46svh 20px 100px;
+    background: linear-gradient(
+      180deg,
+      rgba(6, 14, 22, 0.12) 0%,
+      rgba(6, 14, 22, 0.16) 25%,
+      rgba(6, 14, 22, 0.82) 43%,
+      #101a22 58%,
+      #101a22 100%
+    );
+  }
   .logo { top: 24px; left: 20px; }
   .logo img { width: 38px; }
   .description { max-width: 32ch; font-size: 15px; }
   .tagline { max-width: 15ch; font-size: clamp(30px, 9vw, 46px); }
 }
-@media (prefers-reduced-motion: reduce) { .video { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .video, .photo { transition: none; } }

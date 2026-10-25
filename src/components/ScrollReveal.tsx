@@ -51,7 +51,10 @@ export default function ScrollReveal() {
       observer.disconnect();
       document
         .querySelectorAll<HTMLElement>(".reveal-section, .reveal-item")
-        .forEach((el) => el.classList.add("revealed"));
+        .forEach((el) => {
+          el.classList.add("revealed");
+          el.dataset.revealInstant = "true";
+        });
     };
     window.addEventListener("popstate", tampilkanSemuaSaatKembali);
 
@@ -70,6 +73,7 @@ export default function ScrollReveal() {
 
         if (lewatiAnimasiMasuk) {
           el.classList.add("revealed");
+          el.dataset.revealInstant = "true";
         } else {
           observer.observe(el);
         }
@@ -82,6 +86,7 @@ export default function ScrollReveal() {
       .forEach((el) => {
         if (lewatiAnimasiMasuk) {
           el.classList.add("revealed");
+          el.dataset.revealInstant = "true";
         } else {
           observer.observe(el);
         }

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0071e3" />
+    <title>Pratinjau Pre-loader IKASADA</title>
+    <style>
+      @font-face {
+        font-family: "Noto Sans Javanese";
+        src: url("./preview-assets/noto-sans-javanese.woff2") format("woff2");
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+      }
+
+      :root {
+        color-scheme: light;
+        --blue: #0071e3;
+        --ink: #17191f;
+        --muted: #737783;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { min-height: 100%; }
+
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .page {
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        text-align: center;
+      }
+
+      .page-content {
+        width: min(100%, 680px);
+        opacity: 0;
+        transform: translateY(18px);
+        animation: page-in 700ms cubic-bezier(.2,.75,.25,1) 1.7s forwards;
+      }
+
+      .eyebrow {
+        margin: 0 0 22px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(42px, 9vw, 88px);
+        font-weight: 400;
+        letter-spacing: -.065em;
+        line-height: .98;
+      }
+
+      .description {
+        margin: 24px auto 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .replay {
+        margin-top: 34px;
+        padding: 11px 16px;
+        border: 1px solid #dfe2eb;
+        border-radius: 999px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: border-color 180ms ease, color 180ms ease;
+      }
+
+      .replay:hover, .replay:focus-visible {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+
+      .replay:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+      .loader {
+        position: fixed;
+        z-index: 2;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: var(--blue);
+        color: #fff;
+        transition: transform 760ms cubic-bezier(.76, 0, .22, 1);
+      }
+
+      .loader.is-leaving { transform: translateY(-100%); }
+
+      .identity {
+        display: grid;
+        justify-items: center;
+        transform: translateY(8px);
+      }
+
+      .identity.is-playing {
+        animation: identity-in 620ms cubic-bezier(.18,.72,.26,1) 80ms both;
+      }
+
+      .glyph {
+        width: min(70vw, 260px);
+        height: 72px;
+        overflow: visible;
+        color: currentColor;
+        font-family: "Noto Sans Javanese", sans-serif;
+      }
+
+      .glyph-stroke {
+        stroke-dasharray: 320;
+        stroke-dashoffset: 320;
+      }
+
+      .identity.is-playing .glyph-stroke {
+        animation: glyph-write 420ms cubic-bezier(.45, 0, .35, 1) both;
+      }
+
+      .glyph-fill { opacity: 0; }
+
+      .identity.is-playing .glyph-fill {
+        animation: glyph-fill-in 240ms ease-out 980ms both;
+      }
+
+      @keyframes identity-in {
+        from { opacity: 0; transform: translateY(8px) scale(.94); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @keyframes glyph-write {
+        to { stroke-dashoffset: 0; }
+      }
+
+      @keyframes glyph-fill-in {
+        to { opacity: 1; }
+      }
+
+      @keyframes page-in {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 480px) {
+        .page { padding: 24px; }
+        .glyph { width: min(76vw, 240px); height: 66px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .identity.is-playing { animation: none; opacity: 1; transform: none; }
+        .glyph-stroke { animation: none !important; stroke-dashoffset: 0; }
+        .glyph-fill { animation: none !important; opacity: 1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: .01ms !important;
+          animation-delay: 0ms !important;
+          transition-duration: .01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="page-content" aria-label="Contoh halaman setelah pre-loader">
+        <p class="eyebrow">Ikatan Alumni Sastra Daerah</p>
+        <h1>Dari akar yang sama,<br />tumbuh jauh bersama.</h1>
+        <p class="description">Pratinjau mandiri pre-loader sederhana untuk IKASADA FIB UI.</p>
+        <button class="replay" type="button">Ulangi animasi</button>
+      </section>
+    </main>
+
+    <div class="loader" id="loader" role="status" aria-label="Memuat IKASADA">
+      <div class="identity is-playing" id="identity" aria-hidden="true">
+        <svg class="glyph" viewBox="0 0 260 72" aria-label="ꦆꦏꦱꦢ">
+          <g fill="none" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round">
+            <text class="glyph-stroke" x="57.55" y="52" text-anchor="middle" font-size="46" style="animation-delay:140ms">ꦆ</text>
+            <text class="glyph-stroke" x="105.85" y="52" text-anchor="middle" font-size="46" style="animation-delay:260ms">ꦏ</text>
+            <text class="glyph-stroke" x="154.15" y="52" text-anchor="middle" font-size="46" style="animation-delay:380ms">ꦱ</text>
+            <text class="glyph-stroke" x="202.45" y="52" text-anchor="middle" font-size="46" style="animation-delay:500ms">ꦢ</text>
+          </g>
+          <g class="glyph-fill" fill="currentColor">
+            <text x="57.55" y="52" text-anchor="middle" font-size="46">ꦆ</text>
+            <text x="105.85" y="52" text-anchor="middle" font-size="46">ꦏ</text>
+            <text x="154.15" y="52" text-anchor="middle" font-size="46">ꦱ</text>
+            <text x="202.45" y="52" text-anchor="middle" font-size="46">ꦢ</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      const loader = document.querySelector("#loader");
+      const replay = document.querySelector(".replay");
+      const identity = document.querySelector("#identity");
+      let exitTimer;
+
+      function playLoader() {
+        window.clearTimeout(exitTimer);
+        loader.classList.remove("is-leaving");
+        identity.classList.remove("is-playing");
+        void identity.offsetWidth;
+        identity.classList.add("is-playing");
+        exitTimer = window.setTimeout(() => loader.classList.add("is-leaving"), 2100);
+      }
+
+      replay.addEventListener("click", playLoader);
+      playLoader();
+    </script>
+  </body>
+</html>

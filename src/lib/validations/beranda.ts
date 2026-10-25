@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HERO_POSTER_BAWAAN, HERO_VIDEO_BAWAAN } from "@/lib/beranda";
 
 /**
  * Validasi input Kelola Beranda (server).
@@ -57,6 +58,7 @@ export const sectionUpdateSchema = z
     deskripsi: teksOpsional(500, "Deskripsi tidak valid"),
     warnaJudul: warnaOpsional,
     warnaEyebrow: warnaOpsional,
+    warnaBackground: warnaOpsional,
     ukuranJudul: ukuranOpsional,
     ukuranEyebrow: ukuranOpsional,
     /** Data khas section; bentuknya divalidasi per-kunci di route. */
@@ -66,7 +68,46 @@ export const sectionUpdateSchema = z
     message: "Tidak ada perubahan yang dikirim",
   });
 
-/** Konfigurasi section "lima-cara": daftar poin (judul + deskripsi). */
+const uuidFile = "[0-9a-f-]{36}";
+const fotoBerandaUrl = z
+  .string()
+  .regex(
+    new RegExp(`^/api/uploads/beranda/${uuidFile}\\.(jpg|jpeg|png|webp)$`, "i"),
+    "Foto harus berasal dari unggahan Portal Admin"
+  );
+
+const videoBerandaUrl = z
+  .string()
+  .regex(
+    new RegExp(`^/api/uploads/hero-video/${uuidFile}\\.(mp4|webm)$`, "i"),
+    "Video harus berasal dari unggahan Portal Admin"
+  );
+
+/** Konfigurasi media section "tentang-kami"; fotoUrl menjaga data lama tetap terbaca. */
+export const tentangKamiKonfigSchema = z
+  .object({
+    fotoUrl: z.union([fotoBerandaUrl, z.literal("")]).optional().default(""),
+    mode: z.enum(["foto", "slideshow", "video"]).optional().default("foto"),
+    fotoUrls: z
+      .array(z.union([fotoBerandaUrl, z.literal("")]))
+      .max(5, "Maksimal 5 foto")
+      .optional()
+      .default([]),
+    videoUrl: z.union([videoBerandaUrl, z.literal("")]).optional().default(""),
+    posterUrl: z.union([fotoBerandaUrl, z.literal("")]).optional().default(""),
+  })
+  .superRefine((nilai, ctx) => {
+    const jumlahFoto = nilai.fotoUrls.filter(Boolean).length || (nilai.fotoUrl ? 1 : 0);
+    if (nilai.mode === "slideshow" && (jumlahFoto < 2 || jumlahFoto > 5)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["fotoUrls"],
+        message: "Slideshow harus memiliki 2 sampai 5 foto",
+      });
+    }
+  });
+
+/** Konfigurasi section "lima-cara": daftar poin (judul + deskripsi + foto). */
 export const limaCaraKonfigSchema = z.object({
   items: z
     .array(
@@ -81,6 +122,11 @@ export const limaCaraKonfigSchema = z.object({
           .trim()
           .max(400, "Deskripsi maksimal 400 karakter")
           .default(""),
+        fotoUrl: z
+          .union([fotoBerandaUrl, z.literal("")])
+          .optional()
+          .default(""),
+        tampilkanFoto: z.boolean().optional().default(true),
       })
     )
     .max(10, "Maksimal 10 poin"),
@@ -115,8 +161,50 @@ export const sebaranKonfigSchema = z.object({
   }),
 });
 
+const fotoHeroUrl = z
+  .string()
+  .regex(
+    new RegExp(`^/api/uploads/hero/${uuidFile}\\.(jpg|jpeg|png|webp)$`, "i"),
+    "Foto Hero harus berasal dari unggahan Portal Admin"
+  );
+const videoHeroUrl = z
+  .string()
+  .regex(
+    new RegExp(`^/api/uploads/hero-video/${uuidFile}\\.(mp4|webm)$`, "i"),
+    "Video Hero harus berasal dari unggahan Portal Admin"
+  );
+
+export const heroKonfigSchema = z
+  .object({
+    mode: z.enum(["video", "foto", "slideshow"]),
+    videoUrl: z.union([videoHeroUrl, z.literal(HERO_VIDEO_BAWAAN)]),
+    posterUrl: z.union([fotoHeroUrl, z.literal(HERO_POSTER_BAWAAN)]),
+    fotoUrls: z.array(fotoHeroUrl).max(5, "Maksimal 5 foto Hero"),
+  })
+  .superRefine((nilai, ctx) => {
+    if (nilai.mode === "foto" && nilai.fotoUrls.length !== 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["fotoUrls"],
+        message: "Mode foto harus memiliki tepat 1 foto",
+      });
+    }
+    if (
+      nilai.mode === "slideshow" &&
+      (nilai.fotoUrls.length < 2 || nilai.fotoUrls.length > 5)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["fotoUrls"],
+        message: "Slideshow harus memiliki 2 sampai 5 foto",
+      });
+    }
+  });
+
 /** Skema konfigurasi untuk satu kunci section, atau `null` bila tidak ada. */
 export function skemaKonfigurasi(kunci: string): z.ZodTypeAny | null {
+  if (kunci === "hero") return heroKonfigSchema;
+  if (kunci === "tentang-kami") return tentangKamiKonfigSchema;
   if (kunci === "lima-cara") return limaCaraKonfigSchema;
   if (kunci === "kontak") return kontakKonfigSchema;
   if (kunci === "sebaran-geografis") return sebaranKonfigSchema;

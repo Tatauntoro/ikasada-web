@@ -3,6 +3,7 @@ import { StatusKegiatan } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { ok } from "@/lib/response";
 import { apiHandlerWithoutParams } from "@/lib/api-handler";
+import { hitungStatistikAlumni } from "@/lib/statistik-alumni";
 
 async function handler(req: NextRequest): Promise<Response> {
   void req;
@@ -13,7 +14,7 @@ async function handler(req: NextRequest): Promise<Response> {
     totalAlumni,
     totalKegiatan,
     totalPengurus,
-    angkatanRows,
+    alumniRows,
     kegiatanTerakhir,
     kegiatanMendatang,
   ] = await prisma.$transaction([
@@ -31,7 +32,13 @@ async function handler(req: NextRequest): Promise<Response> {
     }),
     prisma.alumni.findMany({
       where: { status: "PUBLISHED", deletedAt: null },
-      select: { angkatan: true },
+      select: {
+        angkatan: true,
+        profesi: true,
+        sektorIndustri: {
+          select: { id: true, namaSektor: true, deletedAt: true },
+        },
+      },
     }),
     prisma.kegiatan.findFirst({
       where: {
@@ -54,21 +61,11 @@ async function handler(req: NextRequest): Promise<Response> {
     }),
   ]);
 
-  // Bucket alumni by decade of graduation.
-  const buckets = new Map<number, number>();
-  for (const row of angkatanRows) {
-    const dekade = Math.floor(row.angkatan / 10) * 10;
-    buckets.set(dekade, (buckets.get(dekade) ?? 0) + 1);
-  }
-  const angkatanPerDekade = Array.from(buckets.entries())
-    .map(([dekade, jumlah]) => ({ dekade, jumlah }))
-    .sort((a, b) => a.dekade - b.dekade);
-
   return ok({
     totalAlumni,
     totalKegiatan,
     totalPengurus,
-    angkatanPerDekade,
+    ...hitungStatistikAlumni(alumniRows),
     kegiatanTerakhir,
     kegiatanMendatang,
   });

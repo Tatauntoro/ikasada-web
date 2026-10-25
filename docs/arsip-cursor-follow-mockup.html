@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Mockup section Arsip IKASADA dengan pratinjau sampul yang mengikuti pointer." />
+    <title>Mockup Arsip IKASADA — Cursor Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #101114;
+        --muted: #8b8e93;
+        --line: rgba(16, 17, 20, .13);
+        --blue: #0b5ed7;
+        --gold: #f4c430;
+        --ease: cubic-bezier(.2, .7, .2, 1);
+        font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background: #fff;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      * { box-sizing: border-box; }
+      body { min-width: 320px; margin: 0; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+
+      .preview-note {
+        display: flex;
+        min-height: 58px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 0 clamp(22px, 5vw, 76px);
+        border-bottom: 1px solid var(--line);
+        color: #656a70;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+
+      .preview-note strong { color: var(--ink); letter-spacing: .18em; }
+
+      .archive-section {
+        min-height: min(850px, calc(100svh - 58px));
+        padding: clamp(64px, 8vh, 100px) clamp(22px, 8vw, 120px) 74px;
+      }
+
+      .archive-inner { width: min(100%, 1180px); margin: 0 auto; }
+
+      .eyebrow {
+        display: block;
+        margin-bottom: 13px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(42px, 5.1vw, 68px);
+        font-weight: 400;
+        letter-spacing: -.065em;
+        line-height: .98;
+      }
+
+      .intro {
+        max-width: 480px;
+        margin: 16px 0 48px;
+        color: #666c72;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .archive-list {
+        width: min(100%, 940px);
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--line);
+        list-style: none;
+      }
+
+      .archive-item { border-bottom: 1px solid var(--line); }
+
+      .archive-choice {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-height: 104px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 18px 10px;
+        border: 0;
+        background: transparent;
+        color: #b0b2b5;
+        cursor: pointer;
+        text-align: left;
+        transition: color 280ms ease, padding 350ms var(--ease);
+      }
+
+      .archive-choice::before {
+        position: absolute;
+        z-index: -1;
+        inset: 7px -12px;
+        border-radius: 8px;
+        background: #f5f7f9;
+        content: "";
+        opacity: 0;
+        transform: scale(.985);
+        transition: opacity 280ms ease, transform 350ms var(--ease);
+      }
+
+      .archive-choice:hover,
+      .archive-choice:focus-visible,
+      .archive-choice[aria-pressed="true"] {
+        padding-right: 20px;
+        padding-left: 20px;
+        color: var(--ink);
+      }
+
+      .archive-choice:hover::before,
+      .archive-choice:focus-visible::before,
+      .archive-choice[aria-pressed="true"]::before {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .archive-choice:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+
+      .choice-copy { display: block; min-width: 0; }
+      .choice-meta {
+        display: block;
+        margin-bottom: 7px;
+        color: #7d838a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+        letter-spacing: .13em;
+        line-height: 1.3;
+        text-transform: uppercase;
+        transition: color 280ms ease;
+      }
+
+      .archive-choice:hover .choice-meta,
+      .archive-choice:focus-visible .choice-meta,
+      .archive-choice[aria-pressed="true"] .choice-meta { color: var(--blue); }
+
+      .choice-title {
+        display: inline-block;
+        max-width: 780px;
+        font-size: clamp(25px, 3.1vw, 40px);
+        font-weight: 500;
+        letter-spacing: -.045em;
+        line-height: 1.08;
+        text-wrap: balance;
+      }
+
+      .choice-title::after {
+        display: block;
+        width: 0;
+        height: 1px;
+        margin-top: 3px;
+        background: currentColor;
+        content: "";
+        transition: width 350ms var(--ease);
+      }
+
+      .archive-choice:hover .choice-title::after,
+      .archive-choice:focus-visible .choice-title::after,
+      .archive-choice[aria-pressed="true"] .choice-title::after { width: 100%; }
+
+      .choice-end { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 22px; }
+      .choice-year {
+        color: #8d9298;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        transition: color 280ms ease;
+      }
+      .archive-choice[aria-pressed="true"] .choice-year { color: #626a72; }
+      .choice-arrow {
+        color: var(--blue);
+        font-size: 19px;
+        opacity: 0;
+        transform: translate(-5px, 5px);
+        transition: opacity 280ms ease, transform 350ms var(--ease);
+      }
+      .archive-choice:hover .choice-arrow,
+      .archive-choice:focus-visible .choice-arrow,
+      .archive-choice[aria-pressed="true"] .choice-arrow { opacity: 1; transform: none; }
+
+      .cursor-preview {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        left: 0;
+        width: 278px;
+        height: 186px;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 18px 50px rgba(16, 17, 20, .2);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(.92);
+        transition: opacity 260ms ease, transform 340ms var(--ease);
+        will-change: transform;
+      }
+
+      .cursor-preview.is-visible { opacity: 1; transform: scale(1); }
+
+      .cover {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 16px 18px 14px;
+        background: #f1eee5;
+        color: var(--ink);
+        opacity: 0;
+        transform: scale(1.06);
+        transition: opacity 320ms ease, transform 520ms var(--ease);
+      }
+
+      .cover.is-active { opacity: 1; transform: scale(1); }
+      .cover[data-cover="report"] { background: #142c51; color: #fff; }
+      .cover[data-cover="meeting"] { background: #f4c430; }
+      .cover[data-cover="proposal"] { background: #e7edf5; }
+      .cover[data-cover="constitution"] { background: #eee8d9; }
+
+      .cover::before {
+        position: absolute;
+        right: -35px;
+        bottom: -68px;
+        width: 190px;
+        height: 190px;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        content: "";
+        opacity: .18;
+        box-shadow: 0 0 0 16px rgba(255,255,255,.12), 0 0 0 34px rgba(255,255,255,.08);
+      }
+
+      .cover-top,
+      .cover-bottom { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 12px; }
+      .cover-top { color: currentColor; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; letter-spacing: .13em; opacity: .75; }
+      .cover-title { position: relative; z-index: 1; max-width: 11ch; margin: auto 0 16px; font-size: 26px; font-weight: 500; letter-spacing: -.06em; line-height: .98; }
+      .cover-bottom { color: currentColor; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; letter-spacing: .12em; opacity: .68; text-transform: uppercase; }
+      .cover-tag { position: relative; z-index: 1; display: block; margin-top: auto; margin-bottom: 8px; font-size: 8px; font-weight: 700; letter-spacing: .15em; opacity: .72; text-transform: uppercase; }
+
+      .mobile-preview { display: none; }
+
+      .archive-footer {
+        display: flex;
+        width: min(100%, 940px);
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+      }
+
+      .archive-footer span { color: #747a80; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+      .archive-footer a { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; }
+      .archive-footer a:hover, .archive-footer a:focus-visible { color: var(--blue); }
+
+      .after-section {
+        display: grid;
+        min-height: 72vh;
+        place-items: center;
+        padding: 70px 24px;
+        background: #f7f7f8;
+        text-align: center;
+      }
+      .after-section p { margin: 0; color: #85898e; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+
+      @media (max-width: 760px) {
+        .preview-note { min-height: 52px; padding-inline: 18px; font-size: 9px; }
+        .preview-note span { display: none; }
+        .archive-section { min-height: 0; padding: 56px 20px 64px; }
+        h1 { font-size: clamp(40px, 10vw, 58px); }
+        .intro { margin: 14px 0 30px; font-size: 13px; }
+        .archive-choice { min-height: 90px; gap: 12px; padding-inline: 4px; }
+        .archive-choice:hover, .archive-choice:focus-visible, .archive-choice[aria-pressed="true"] { padding-inline: 12px; }
+        .choice-title { font-size: clamp(23px, 6vw, 32px); }
+        .choice-end { gap: 8px; }
+        .choice-year { font-size: 10px; }
+        .choice-arrow { font-size: 16px; }
+        .cursor-preview { display: none; }
+        .mobile-preview { display: block; margin-top: 28px; }
+        .mobile-preview .cover { position: relative; height: 220px; border-radius: 8px; box-shadow: 0 12px 32px rgba(16,17,20,.12); }
+        .mobile-preview .cover-title { font-size: 34px; }
+        .archive-footer { align-items: flex-start; flex-direction: column; margin-top: 26px; }
+        .after-section { min-height: 48vh; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="preview-note">
+      <strong>IKASADA · Mockup</strong>
+      <span>Layout Arsip dengan pratinjau mengikuti pointer</span>
+    </header>
+
+    <main>
+      <section class="archive-section" id="arsip" aria-labelledby="archive-title">
+        <div class="archive-inner">
+          <span class="eyebrow">Arsip IKASADA</span>
+          <h1 id="archive-title">Dokumen &amp; Laporan.</h1>
+          <p class="intro">Jelajahi catatan kegiatan, keputusan, dan perjalanan IKASADA dari tahun ke tahun.</p>
+
+          <ul class="archive-list" aria-label="Pilih dokumen arsip">
+            <li class="archive-item">
+              <button class="archive-choice" type="button" data-index="0" aria-pressed="true">
+                <span class="choice-copy">
+                  <span class="choice-meta">01 / Laporan · PDF</span>
+                  <span class="choice-title">Laporan Tahunan IKASADA 2025</span>
+                </span>
+                <span class="choice-end"><span class="choice-year">2025</span><span class="choice-arrow" aria-hidden="true">↗</span></span>
+              </button>
+            </li>
+            <li class="archive-item">
+              <button class="archive-choice" type="button" data-index="1" aria-pressed="false">
+                <span class="choice-copy">
+                  <span class="choice-meta">02 / Notulen · PDF</span>
+                  <span class="choice-title">Notulen Rapat Kerja Pengurus 2026</span>
+                </span>
+                <span class="choice-end"><span class="choice-year">2026</span><span class="choice-arrow" aria-hidden="true">↗</span></span>
+              </button>
+            </li>
+            <li class="archive-item">
+              <button class="archive-choice" type="button" data-index="2" aria-pressed="false">
+                <span class="choice-copy">
+                  <span class="choice-meta">03 / Proposal · DOCX</span>
+                  <span class="choice-title">Program Beasiswa Sastra Daerah</span>
+                </span>
+                <span class="choice-end"><span class="choice-year">2026</span><span class="choice-arrow" aria-hidden="true">↗</span></span>
+              </button>
+            </li>
+            <li class="archive-item">
+              <button class="archive-choice" type="button" data-index="3" aria-pressed="false">
+                <span class="choice-copy">
+                  <span class="choice-meta">04 / SK · PDF</span>
+                  <span class="choice-title">AD/ART IKASADA FIB UI</span>
+                </span>
+                <span class="choice-end"><span class="choice-year">2024</span><span class="choice-arrow" aria-hidden="true">↗</span></span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="mobile-preview" aria-live="polite" aria-label="Pratinjau sampul arsip">
+            <article class="cover is-active" data-cover="report">
+              <div class="cover-top"><span>IKASADA FIB UI</span><span>ARSIP / 01</span></div>
+              <span class="cover-tag">Laporan tahunan · 2025</span>
+              <h2 class="cover-title">Laporan Tahunan IKASADA 2025</h2>
+              <div class="cover-bottom"><span>Program &amp; capaian</span><span>FIB UI</span></div>
+            </article>
+          </div>
+
+          <footer class="archive-footer">
+            <span>Pratinjau dokumen pilihan</span>
+            <a href="/arsip">Lihat semua arsip <span aria-hidden="true">↗</span></a>
+          </footer>
+        </div>
+      </section>
+
+      <section class="after-section" aria-label="Section berikutnya">
+        <p>Section berikutnya · Dewan Pengurus</p>
+      </section>
+    </main>
+
+    <div class="cursor-preview" aria-hidden="true">
+      <article class="cover is-active" data-cover="report" data-preview="0">
+        <div class="cover-top"><span>IKASADA FIB UI</span><span>ARSIP / 01</span></div>
+        <span class="cover-tag">Laporan tahunan · 2025</span>
+        <h2 class="cover-title">Laporan Tahunan IKASADA 2025</h2>
+        <div class="cover-bottom"><span>Program &amp; capaian</span><span>FIB UI</span></div>
+      </article>
+      <article class="cover" data-cover="meeting" data-preview="1">
+        <div class="cover-top"><span>IKASADA FIB UI</span><span>ARSIP / 02</span></div>
+        <span class="cover-tag">Notulen rapat · 2026</span>
+        <h2 class="cover-title">Rapat Kerja Pengurus</h2>
+        <div class="cover-bottom"><span>Program prioritas</span><span>FIB UI</span></div>
+      </article>
+      <article class="cover" data-cover="proposal" data-preview="2">
+        <div class="cover-top"><span>IKASADA FIB UI</span><span>ARSIP / 03</span></div>
+        <span class="cover-tag">Proposal · 2026</span>
+        <h2 class="cover-title">Beasiswa Sastra Daerah</h2>
+        <div class="cover-bottom"><span>Rencana program</span><span>FIB UI</span></div>
+      </article>
+      <article class="cover" data-cover="constitution" data-preview="3">
+        <div class="cover-top"><span>IKASADA FIB UI</span><span>ARSIP / 04</span></div>
+        <span class="cover-tag">Surat keputusan · 2024</span>
+        <h2 class="cover-title">AD/ART IKASADA</h2>
+        <div class="cover-bottom"><span>Dasar organisasi</span><span>FIB UI</span></div>
+      </article>
+    </div>
+
+    <script>
+      (() => {
+        const section = document.querySelector(".archive-section");
+        const preview = document.querySelector(".cursor-preview");
+        const rows = [...document.querySelectorAll(".archive-choice")];
+        const covers = [...preview.querySelectorAll("[data-preview]")];
+        const mobileCover = document.querySelector(".mobile-preview .cover");
+        const coarsePointer = window.matchMedia("(hover: none), (pointer: coarse)");
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let activeIndex = 0;
+        let target = { x: 0, y: 0 };
+        let current = { x: 0, y: 0 };
+        let frame = 0;
+        let visible = false;
+
+        const renderCover = (cover, index) => {
+          const source = covers[index];
+          cover.dataset.cover = source.dataset.cover;
+          cover.innerHTML = source.innerHTML;
+          cover.querySelector(".cover-top span:last-child").textContent = `ARSIP / ${String(index + 1).padStart(2, "0")}`;
+        };
+
+        const activate = (index, row) => {
+          activeIndex = index;
+          rows.forEach((item, itemIndex) => item.setAttribute("aria-pressed", String(itemIndex === index)));
+          covers.forEach((cover, itemIndex) => cover.classList.toggle("is-active", itemIndex === index));
+          renderCover(mobileCover, index);
+
+          if (row && coarsePointer.matches) {
+            const rect = row.getBoundingClientRect();
+            target = { x: rect.left + rect.width * .72, y: rect.top + rect.height / 2 };
+          }
+        };
+
+        const moveTo = (event) => {
+          const margin = 16;
+          const width = preview.offsetWidth || 278;
+          const height = preview.offsetHeight || 186;
+          const x = event.clientX + 22;
+          const y = event.clientY - 104;
+          target = {
+            x: Math.max(margin, Math.min(window.innerWidth - width - margin, x)),
+            y: Math.max(margin, Math.min(window.innerHeight - height - margin, y)),
+          };
+        };
+
+        const animate = () => {
+          frame = 0;
+          const ease = reducedMotion.matches ? 1 : .16;
+          current.x += (target.x - current.x) * ease;
+          current.y += (target.y - current.y) * ease;
+          preview.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) scale(${visible ? 1 : .92})`;
+          if (Math.abs(target.x - current.x) > .4 || Math.abs(target.y - current.y) > .4) {
+            frame = requestAnimationFrame(animate);
+          }
+        };
+
+        const scheduleAnimation = () => {
+          if (!frame) frame = requestAnimationFrame(animate);
+        };
+
+        section.addEventListener("pointermove", (event) => {
+          if (coarsePointer.matches) return;
+          moveTo(event);
+          scheduleAnimation();
+        });
+
+        rows.forEach((row, index) => {
+          row.addEventListener("pointerenter", (event) => {
+            if (event.pointerType === "touch") return;
+            activate(index, row);
+            visible = true;
+            preview.classList.add("is-visible");
+            scheduleAnimation();
+          });
+          row.addEventListener("focus", () => {
+            activate(index, row);
+            if (!coarsePointer.matches) {
+              const rect = row.getBoundingClientRect();
+              target = { x: Math.min(window.innerWidth - 294, rect.right - 240), y: Math.max(16, rect.top - 80) };
+              visible = true;
+              preview.classList.add("is-visible");
+              scheduleAnimation();
+            }
+          });
+          row.addEventListener("click", () => activate(index, row));
+        });
+
+        section.addEventListener("pointerleave", (event) => {
+          if (event.pointerType === "touch") return;
+          visible = false;
+          preview.classList.remove("is-visible");
+          scheduleAnimation();
+        });
+
+        window.addEventListener("scroll", () => {
+          if (document.activeElement && rows.includes(document.activeElement)) {
+            const row = document.activeElement;
+            const rect = row.getBoundingClientRect();
+            target = { x: Math.min(window.innerWidth - 294, rect.right - 240), y: Math.max(16, rect.top - 80) };
+            scheduleAnimation();
+          }
+        }, { passive: true });
+
+        activate(activeIndex, rows[activeIndex]);
+      })();
+    </script>
+  </body>
+</html>

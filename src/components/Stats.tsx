@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { m } from "framer-motion";
-import { ArrowRight } from "@phosphor-icons/react";
 import type { PublicStatistik } from "@/lib/types";
 import { reportAssetError } from "@/lib/asset-error";
 import WorldSebaranMap from "./WorldSebaranMap";
-import { useBerandaConfig, gayaSection } from "@/lib/beranda-client";
+import {
+  gayaBackgroundSection,
+  useBerandaConfig,
+  gayaSection,
+} from "@/lib/beranda-client";
 import styles from "./Stats.module.css";
 
 const EASE = [0.22, 0.61, 0.36, 1] as const;
@@ -58,33 +60,9 @@ function AnimatedNumber({ value, aktif }: { value: number; aktif: boolean }) {
   return <span>{displayValue.toLocaleString("id-ID")}</span>;
 }
 
-function formatTanggalMono(iso: string): string {
-  const date = new Date(iso);
-  const day = new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(date);
-  const month = new Intl.DateTimeFormat("id-ID", {
-    month: "short",
-    timeZone: "Asia/Jakarta",
-  })
-    .format(date)
-    .replace(".", "")
-    .toUpperCase();
-  const year = new Intl.DateTimeFormat("id-ID", {
-    year: "numeric",
-    timeZone: "Asia/Jakarta",
-  }).format(date);
-  return `${day} ${month} ${year}`;
-}
-
 /**
- * Statistik beranda.
- *
- * Satu section, latar putih, tanpa blok gelap: angka ringkas, peta sebaran, dan
- * sebaran angkatan semuanya duduk di permukaan yang sama. Sebelumnya angka
- * menduduki kartu setinggi ~420px dan sebaran angkatan terkunci di dalam kotak
- * hitam terpisah — dua-duanya memakan ruang tanpa menambah informasi.
+ * Statistik beranda: angka ringkas, peta, angkatan, sektor, dan relevansi
+ * sementara berdasarkan profesi. Semua angka dihitung dari data publik.
  */
 export default function Stats() {
   const [statistik, setStatistik] = useState<PublicStatistik | null>(null);
@@ -94,6 +72,27 @@ export default function Stats() {
   const barisAngkaRef = useRef<HTMLDivElement>(null);
   const [angkaTerlihat, setAngkaTerlihat] = useState(false);
   const sectionClassName = `${styles.section} ${plusJakartaSans.className}`;
+  const gayaBackgroundStatistik = (() => {
+    const background = beranda?.sections.find((s) => s.kunci === "statistik")?.warnaBackground;
+    const match = background?.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+    let luminance = 1; // Default kanvas putih pada layout terpadu.
+    if (match) {
+      const hex = match[1].length === 3
+        ? match[1].split("").map((digit) => digit + digit).join("")
+        : match[1];
+      const channels = [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255);
+      const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+      luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+    }
+    const terang = luminance > 0.42;
+    return {
+      ...gayaBackgroundSection(beranda, "statistik"),
+      "--stats-ink": terang ? "#0f1012" : "#ffffff",
+      "--stats-muted": terang ? "rgba(15, 16, 18, 0.68)" : "rgba(255, 255, 255, 0.85)",
+      "--stats-rule": terang ? "rgba(15, 16, 18, 0.18)" : "rgba(255, 255, 255, 0.3)",
+      "--stats-blue": terang ? "#0071e3" : "#b7d8ff",
+    } as CSSProperties;
+  })();
 
   /*
    * Pemicu hitungan, dipasang sendiri dengan IntersectionObserver.
@@ -143,18 +142,14 @@ export default function Stats() {
 
   if (isLoading) {
     return (
-      <section id="statistik" className={sectionClassName}>
-        <div className={`${styles.shell} home-section-container`}>
+      <section id="statistik" className={sectionClassName} style={gayaBackgroundStatistik}>
+        <div className={styles.shell}>
           <div className="animate-pulse">
-            <div className="h-3 w-24 bg-[#0f1012]/10" />
-            <div className="mt-5 h-10 w-64 max-w-full bg-[#0f1012]/10" />
-            <div className={`${styles.figureGrid} mt-10`}>
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className={styles.figureCard}>
-                  <div className="h-9 w-24 bg-[#0f1012]/10" />
-                  <div className="mt-3 h-3 w-20 bg-[#0f1012]/10" />
-                </div>
-              ))}
+            <div className="h-3 w-32 bg-[#0f1012]/10" />
+            <div className="mt-7 h-20 w-96 max-w-full bg-[#0f1012]/10" />
+            <div className={`${styles.loadingGrid} mt-10`}>
+              <div className={styles.loadingPanel} />
+              <div className={styles.loadingPanel} />
             </div>
           </div>
         </div>
@@ -164,37 +159,36 @@ export default function Stats() {
 
   if (failed || !statistik) {
     return (
-      <section id="statistik" className={sectionClassName}>
-        <div className={`${styles.shell} ${styles.failure} home-section-container`}>
+      <section id="statistik" className={sectionClassName} style={gayaBackgroundStatistik}>
+        <div className={`${styles.shell} ${styles.failure}`}>
           Statistik sedang tidak tersedia. Silakan coba beberapa saat lagi.
         </div>
       </section>
     );
   }
 
-  const { angkatanPerDekade } = statistik;
-
-  const decadeRange =
-    angkatanPerDekade.length > 0
-      ? `${angkatanPerDekade[0].dekade}-an – ${
-          angkatanPerDekade[angkatanPerDekade.length - 1].dekade
-        }-an`
-      : "—";
+  const { angkatanPerDekade, sebaranSektor, relevansiPekerjaan } = statistik;
 
   const figures = [
-    { label: "Alumni terdaftar", value: statistik.totalAlumni, animated: true },
-    { label: "Kegiatan terselenggara", value: statistik.totalKegiatan, animated: true },
-    { label: "Pengurus inti", value: statistik.totalPengurus, animated: true },
-    { label: "Rentang angkatan", value: decadeRange, animated: false },
+    { label: "Alumni terdaftar", value: statistik.totalAlumni },
+    { label: "Kegiatan terselenggara", value: statistik.totalKegiatan },
+    { label: "Pengurus inti", value: statistik.totalPengurus },
   ];
 
   const sek = (kunci: string) =>
     beranda?.sections.find((s) => s.kunci === kunci);
   const aktif = (kunci: string) => sek(kunci)?.aktif ?? true;
+  const tampilStatistik = aktif("statistik");
+  const tampilGeografis = aktif("sebaran-geografis");
+  const tampilAngkatan = aktif("sebaran-angkatan");
+  // "agenda" tetap menjadi kunci sakelar sektor dan relevansi di admin.
+  const tampilDetailAlumni = aktif("agenda");
   const teks = (nilai: string | null | undefined, fallback: string) =>
     nilai && nilai.trim() ? nilai : fallback;
   const gayaJudulStatistik = gayaSection(beranda, "statistik", "judul");
   const gayaEyebrowStatistik = gayaSection(beranda, "statistik", "eyebrow");
+  const cohortMaksimum = Math.max(1, ...angkatanPerDekade.map((item) => item.jumlah));
+  const sektorMaksimum = Math.max(1, ...sebaranSektor.map((item) => item.jumlah));
 
   // Titik asal busur (almamater) dari Kelola Beranda.
   const asalSebaran = (() => {
@@ -215,193 +209,178 @@ export default function Stats() {
     return undefined;
   })();
 
+  const topGridClass = `${styles.topGrid} ${tampilAngkatan && tampilGeografis ? "" : styles.topGridSingle}`;
+  const persentaseSesuai = relevansiPekerjaan.persenSesuai ?? 0;
+  const gayaBar = (nilai: number, maksimum: number): CSSProperties => ({
+    width: `${maksimum > 0 ? Math.max(0, Math.min(100, (nilai / maksimum) * 100)) : 0}%`,
+  });
+  const formatPersen = (nilai: number | null) =>
+    nilai === null
+      ? "—"
+      : `${nilai.toLocaleString("id-ID", { maximumFractionDigits: 1 })}%`;
+
   return (
-    <section id="statistik" className={sectionClassName}>
-      <div className={`${styles.shell} home-section-container`}>
-        {aktif("statistik") && (
-          <>
-            {/* Header */}
-            <m.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.6, ease: EASE }}
-              className={styles.intro}
-            >
-              <div>
-                <span
-                  className={`${styles.eyebrow} section-label`}
-                  style={gayaEyebrowStatistik}
-                >
-                  {teks(sek("statistik")?.eyebrow, "Statistik")}
-                </span>
-                <h2
-                  className={`${styles.heading} section-title`}
-                  style={gayaJudulStatistik}
-                >
-                  {teks(sek("statistik")?.judul, "Sejauh ini")}
-                </h2>
+    <section id="statistik" className={sectionClassName} style={gayaBackgroundStatistik}>
+      <div className={styles.shell}>
+        {tampilStatistik && (
+          <m.header
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            className={styles.intro}
+          >
+            <span className={`${styles.eyebrow} section-label`} style={gayaEyebrowStatistik}>
+              {teks(sek("statistik")?.eyebrow, "IKASADA / Data Alumni")}
+            </span>
+            <h2 className={`${styles.heading} section-title`} style={gayaJudulStatistik}>
+              {teks(sek("statistik")?.judul, "Sejauh ini.")}
+            </h2>
+            <p className={styles.introCopy}>
+              {teks(
+                sek("statistik")?.deskripsi,
+                "Statistik alumni, sebaran jejaring, dan perjalanan angkatan."
+              )}
+            </p>
+          </m.header>
+        )}
+
+        {(tampilAngkatan || tampilGeografis) && (
+          <div className={topGridClass}>
+            {tampilAngkatan && (
+              <section className={styles.panel} aria-labelledby="angkatan-title">
+                <p className={styles.panelLabel} style={gayaSection(beranda, "sebaran-angkatan", "eyebrow")}>
+                  01 / {teks(sek("sebaran-angkatan")?.judul, "Sebaran Angkatan")}
+                </p>
+                <h3 id="angkatan-title" className={styles.panelHeading}>
+                  Alumni per dekade
+                </h3>
+                {angkatanPerDekade.length > 0 ? (
+                  <div className={styles.cohorts} aria-label="Jumlah alumni menurut dekade angkatan">
+                    {angkatanPerDekade.map((item) => (
+                      <div className={styles.cohortRow} key={item.dekade}>
+                        <span>{item.dekade}-an</span>
+                        <span className={styles.track} aria-hidden="true">
+                          <span className={styles.fill} style={gayaBar(item.jumlah, cohortMaksimum)} />
+                        </span>
+                        <strong aria-label={`${item.jumlah} alumni`}>
+                          {item.jumlah.toLocaleString("id-ID")}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.empty}>Data angkatan belum tersedia.</p>
+                )}
+              </section>
+            )}
+
+            {tampilGeografis && (
+              <section className={`${styles.panel} ${styles.mapPanel}`} aria-labelledby="geografis-title">
+                <p className={styles.panelLabel} style={gayaSection(beranda, "sebaran-geografis", "eyebrow")}>
+                  02 / {[sek("sebaran-geografis")?.eyebrow, sek("sebaran-geografis")?.judul]
+                    .filter((nilai): nilai is string => Boolean(nilai?.trim()))
+                    .join(" ") || "Sebaran Geografis"}
+                </p>
+                <h3 id="geografis-title" className={styles.panelHeading}>
+                  Titik jejaring lintas wilayah
+                </h3>
+                <WorldSebaranMap titik={beranda?.sebaran} asal={asalSebaran} />
+              </section>
+            )}
+          </div>
+        )}
+
+        {tampilDetailAlumni && (
+          <div className={styles.detailGrid}>
+            <section className={styles.panel} aria-labelledby="sektor-title">
+              <p className={styles.panelLabel}>03 / Sebaran Sektor</p>
+              <h3 id="sektor-title" className={styles.panelHeading}>
+                {statistik.totalAlumni.toLocaleString("id-ID")} alumni menurut sektor industri
+              </h3>
+              {sebaranSektor.length > 0 ? (
+                <div className={styles.sectors} aria-label="Jumlah alumni menurut sektor industri">
+                  {sebaranSektor.map((sektor) => (
+                    <div className={styles.sectorRow} key={sektor.id ?? "belum-diketahui"}>
+                      <span>{sektor.nama}</span>
+                      <span className={styles.track} aria-hidden="true">
+                        <span className={styles.fill} style={gayaBar(sektor.jumlah, sektorMaksimum)} />
+                      </span>
+                      <strong aria-label={`${sektor.jumlah} alumni`}>
+                        {sektor.jumlah.toLocaleString("id-ID")}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.empty}>Data sektor belum tersedia.</p>
+              )}
+            </section>
+
+            <section className={styles.panel} aria-labelledby="relevansi-title">
+              <p className={styles.panelLabel}>04 / Relevansi Pekerjaan</p>
+              <h3 id="relevansi-title" className={styles.panelHeading}>
+                Klasifikasi sementara berdasarkan profesi
+              </h3>
+              <div className={styles.relevanceNumbers}>
+                <div className={styles.suitable}>
+                  <strong>{formatPersen(relevansiPekerjaan.persenSesuai)}</strong>
+                  <span>
+                    Sesuai{relevansiPekerjaan.totalDinilai > 0 && ` · ${relevansiPekerjaan.sesuai.toLocaleString("id-ID")} alumni`}
+                  </span>
+                </div>
+                <div>
+                  <strong>{formatPersen(relevansiPekerjaan.persenTidakSesuai)}</strong>
+                  <span>
+                    Tidak sesuai{relevansiPekerjaan.totalDinilai > 0 && ` · ${relevansiPekerjaan.tidakSesuai.toLocaleString("id-ID")} alumni`}
+                  </span>
+                </div>
               </div>
-              <p className={styles.introCopy}>
-                {teks(
-                  sek("statistik")?.deskripsi,
-                  "Jejak alumni kami yang terus bertambah, dan apa yang sedang kami siapkan."
+              <div
+                className={styles.relevanceTrack}
+                role="img"
+                aria-label={
+                  relevansiPekerjaan.totalDinilai > 0
+                    ? `${formatPersen(relevansiPekerjaan.persenSesuai)} sesuai, ${formatPersen(relevansiPekerjaan.persenTidakSesuai)} tidak sesuai`
+                    : "Data profesi belum tersedia"
+                }
+              >
+                <span style={{ width: `${persentaseSesuai}%` }} />
+              </div>
+              <p className={styles.relevanceNote}>
+                Sesuai: dosen, guru, atau pengajar. Klasifikasi sementara, belum berdasarkan survei.
+                {relevansiPekerjaan.belumDiketahui > 0 && (
+                  <> {relevansiPekerjaan.belumDiketahui.toLocaleString("id-ID")} alumni tanpa profesi belum dihitung.</>
                 )}
               </p>
-            </m.div>
+              {relevansiPekerjaan.totalDinilai === 0 && (
+                <p className={styles.empty}>Data profesi belum tersedia.</p>
+              )}
+            </section>
+          </div>
+        )}
 
-            {/* Angka ringkas — satu baris, bukan kartu setinggi layar */}
-            <m.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-              ref={barisAngkaRef}
-              className={styles.figureGrid}
-            >
-              {figures.map((figure) => (
-                <div key={figure.label} className={styles.figureCard}>
-                  <div className={styles.figureValue}>
-                    {figure.animated ? (
-                      <AnimatedNumber
-                        value={figure.value as number}
-                        aktif={angkaTerlihat}
-                      />
-                    ) : (
-                      figure.value
-                    )}
-                  </div>
-                  <div className={styles.figureLabel}>{figure.label}</div>
-                </div>
-              ))}
-            </m.div>
-          </>
+        {tampilStatistik && (
+          <m.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
+            ref={barisAngkaRef}
+            className={styles.metrics}
+            aria-label="Angka utama"
+          >
+            {figures.map((figure) => (
+              <div key={figure.label} className={styles.metric}>
+                <strong>
+                  <AnimatedNumber value={figure.value} aktif={angkaTerlihat} />
+                </strong>
+                <span>{figure.label}</span>
+              </div>
+            ))}
+          </m.div>
         )}
       </div>
-
-      {aktif("sebaran-geografis") && (
-        <m.div
-          className={styles.geoSection}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
-        >
-          <div className={`${styles.shell} home-section-container`}>
-            {/* Peta sebaran */}
-            <WorldSebaranMap
-              titik={beranda?.sebaran}
-              asal={asalSebaran}
-              eyebrow={sek("sebaran-geografis")?.eyebrow}
-              judul={sek("sebaran-geografis")?.judul}
-              deskripsi={sek("sebaran-geografis")?.deskripsi}
-            />
-          </div>
-        </m.div>
-      )}
-
-      {(aktif("sebaran-angkatan") || aktif("agenda")) && (
-        <m.div
-          className={styles.detailsSection}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-        >
-          <div className={`${styles.shell} home-section-container`}>
-            <div className={styles.details}>
-              {/* Sebaran angkatan */}
-              {aktif("sebaran-angkatan") && (
-                <div>
-                  <h3 className={styles.detailTitle}>
-                    {teks(sek("sebaran-angkatan")?.judul, "Sebaran angkatan")}
-                  </h3>
-                  {angkatanPerDekade.length === 0 ? (
-                    <p className={styles.detailEmpty}>
-                      Data angkatan belum tersedia.
-                    </p>
-                  ) : (
-                    <table className={styles.tabel}>
-                      <caption className="sr-only">
-                        Sebaran alumni per dekade angkatan
-                      </caption>
-                      <tbody>
-                        {angkatanPerDekade.map((d) => (
-                          <tr key={d.dekade}>
-                            <th scope="row">{d.dekade}-an</th>
-                            <td>{d.jumlah}</td>
-                          </tr>
-                        ))}
-                        <tr className={styles.tabelTotal}>
-                          <th scope="row">Total</th>
-                          <td>{statistik.totalAlumni}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-
-              {/* Agenda */}
-              {aktif("agenda") && (
-                <div className={styles.agenda}>
-                  <div>
-                    <h3 className={styles.detailTitle}>Terakhir</h3>
-                    {statistik.kegiatanTerakhir ? (
-                      <Link
-                        href={`/kegiatan/${statistik.kegiatanTerakhir.slug}`}
-                        className={styles.agendaLink}
-                      >
-                        <div className={styles.agendaDate}>
-                          {formatTanggalMono(
-                            statistik.kegiatanTerakhir.tanggalMulai
-                          )}
-                        </div>
-                        <div className={styles.agendaJudul}>
-                          {statistik.kegiatanTerakhir.judul}
-                        </div>
-                      </Link>
-                    ) : (
-                      <p className={styles.detailEmpty}>Belum ada kegiatan.</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className={styles.detailTitle}>Akan datang</h3>
-                    {statistik.kegiatanMendatang.length === 0 ? (
-                      <p className={styles.detailEmpty}>
-                        Belum ada agenda terjadwal.
-                      </p>
-                    ) : (
-                      <ul className={styles.agendaList}>
-                        {statistik.kegiatanMendatang.map((k) => (
-                          <li key={k.id}>
-                            <Link
-                              href={`/kegiatan/${k.slug}`}
-                              className={styles.agendaItem}
-                            >
-                              <span className={styles.agendaDate}>
-                                {formatTanggalMono(k.tanggalMulai)}
-                              </span>
-                              <span className={styles.agendaJudul}>
-                                {k.judul}
-                              </span>
-                              <ArrowRight
-                                weight="bold"
-                                className={styles.agendaArrow}
-                              />
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </m.div>
-      )}
     </section>
   );
 }

@@ -1,14 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, CalendarBlank, MapPin } from "@phosphor-icons/react";
 import type { PublicKegiatan } from "@/lib/types";
-import { formatTanggalWIB } from "@/lib/format";
-import { keTeksBiasa } from "@/lib/rich-text";
 import { StateCrossfade } from "./motion/StateCrossfade";
-import { rekamAsalMorphDari } from "./motion/ImageMorph";
 import Pagination from "./Pagination";
+import EventCard from "./EventCard";
+import styles from "./AllEventsGrid.module.css";
 
 const DEFAULT_PER_PAGE = 4;
 
@@ -33,7 +30,6 @@ export default function AllEventsGrid({
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   const fetchData = useCallback(async () => {
@@ -64,7 +60,6 @@ export default function AllEventsGrid({
   }, [fetchData]);
 
   const changePage = (next: number) => {
-    setOpenId(null);
     setPage(next);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -78,14 +73,14 @@ export default function AllEventsGrid({
     : "ready";
 
   return (
-    <div ref={topRef}>
+    <div ref={topRef} className={styles.list}>
       <StateCrossfade stateKey={stateKey}>
       {isLoading && (
-        <div className="flex flex-col gap-4 md:flex-row">
+        <div className={styles.grid} aria-label="Memuat kegiatan">
           {Array.from({ length: perPage }).map((_, i) => (
             <div
               key={i}
-              className="h-72 w-full animate-pulse rounded-2xl bg-black/10 md:h-[420px] md:flex-1"
+              className={styles.skeleton}
             />
           ))}
         </div>
@@ -111,91 +106,10 @@ export default function AllEventsGrid({
 
       {!isLoading && !error && data.length > 0 && (
         <>
-          <div className="flex flex-col gap-4 md:flex-row">
-            {data.map((item, i) => {
-              const open = openId === item.id;
-              return (
-                <article
-                  key={item.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={open}
-                  aria-label={`${item.judul} — buka detail`}
-                  onClick={() =>
-                    setOpenId((cur) => (cur === item.id ? null : item.id))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setOpenId((cur) => (cur === item.id ? null : item.id));
-                    }
-                  }}
-                  className="event-card group relative w-full min-w-0 overflow-hidden rounded-2xl bg-black ring-1 ring-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white"
-                  style={{
-                    animation: `fadeSlideIn 0.6s ease-out ${0.1 + i * 0.1}s both`,
-                  }}
-                >
-                  {item.gambarThumbnailUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={item.gambarThumbnailUrl}
-                      alt={item.judul}
-                      className="h-72 w-full object-cover transition duration-500 group-hover:scale-[1.02] md:h-[420px]"
-                    />
-                  ) : (
-                    <div className="h-72 w-full bg-gradient-to-br from-neutral-700 to-black md:h-[420px]" />
-                  )}
-
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-
-                  {/* Judul selalu tampil */}
-                  <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
-                    <span className="line-clamp-3 font-display text-lg font-normal leading-tight text-[#fdfdfd] sm:text-xl">
-                      {item.judul}
-                    </span>
-                    <span className="hidden flex-none rounded-full bg-[#F4C430] px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#0f1012] sm:inline-flex">
-                      {item.kategori}
-                    </span>
-                  </div>
-
-                  {/* Panel reveal: hover (desktop) / tap (mobile) */}
-                  <div
-                    className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-500 sm:p-6 ${
-                      open
-                        ? "translate-y-0 opacity-100 pointer-events-auto"
-                        : "translate-y-4 opacity-0 pointer-events-none"
-                    } md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-hover:pointer-events-auto`}
-                  >
-                    <div className="rounded-xl bg-black/70 p-4 ring-1 ring-white/10 backdrop-blur sm:p-5">
-                      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.1em] text-neutral-300">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarBlank weight="bold" />
-                          {formatTanggalWIB(item.tanggalMulai)}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 text-white/60">
-                          <MapPin weight="bold" />
-                          {item.lokasi}
-                        </span>
-                      </div>
-                      <p className="mb-4 text-sm leading-relaxed text-white/75 line-clamp-3 sm:text-base">
-                        {keTeksBiasa(item.deskripsiSingkat)}
-                      </p>
-                      <Link
-                        href={`/kegiatan/${item.slug}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          rekamAsalMorphDari(e.currentTarget);
-                        }}
-                        className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-normal text-white ring-1 ring-inset ring-white/20 transition hover:bg-white/20"
-                      >
-                        Detail
-                        <ArrowRight weight="bold" />
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className={styles.grid}>
+            {data.map((item) => (
+              <EventCard key={item.id} item={item} headingLevel={2} />
+            ))}
           </div>
 
           <Pagination

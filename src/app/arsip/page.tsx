@@ -66,10 +66,7 @@ export default async function ArsipPage() {
               items={[{ label: "Beranda", href: "/" }, { label: "Arsip Dokumen" }]}
             />
 
-            <div
-              className="mb-12"
-              style={{ animation: "fadeSlideIn 0.8s ease-out 0.1s both" }}
-            >
+            <div className="mb-12">
               <h1 className="page-title page-title--single">
                 Arsip <span className="text-black/25">Dokumen.</span>
               </h1>
