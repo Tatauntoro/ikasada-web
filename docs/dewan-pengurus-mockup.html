@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Mockup Dewan Pengurus Inti — IKASADA</title>
+  <style>
+    @font-face {
+      font-family: "PP Neue Montreal";
+      src: url("../src/app/fonts/ppneuemontreal-book.woff") format("woff");
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "PP Neue Montreal";
+      src: url("../src/app/fonts/ppneuemontreal-medium.woff") format("woff");
+      font-weight: 500;
+      font-display: swap;
+    }
+    :root {
+      color-scheme: light;
+      --ink: #111111;
+      --muted: #5e5a55;
+      --soft: #f2f2f4;
+      --line: rgba(17, 17, 17, .15);
+      --accent: #5b7cff;
+      font-family: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: white;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; }
+    ::selection { color: white; background: var(--accent); }
+    .section {
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      padding: clamp(56px, 7vw, 108px) clamp(20px, 5vw, 72px);
+      background: var(--soft);
+    }
+    .wrap { width: min(100%, 1160px); margin: 0 auto; }
+    .section-heading { margin-bottom: clamp(44px, 6vw, 76px); }
+    .section-heading h1 {
+      max-width: 840px;
+      margin: 0;
+      font-size: clamp(46px, 6.3vw, 86px);
+      font-weight: 400;
+      letter-spacing: -.035em;
+      line-height: .98;
+      text-wrap: balance;
+    }
+    .section-heading p {
+      max-width: 620px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: clamp(15px, 1.3vw, 18px);
+      line-height: 1.55;
+      text-wrap: pretty;
+    }
+    .testimonial {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, .95fr);
+      align-items: center;
+      gap: clamp(40px, 6vw, 86px);
+      max-width: 1024px;
+      margin: 0 auto;
+    }
+    .photo-stage {
+      position: relative;
+      height: clamp(320px, 34vw, 430px);
+      perspective: 1100px;
+      isolation: isolate;
+    }
+    .photo {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 24px;
+      opacity: .66;
+      transform: translateZ(-100px) rotate(var(--tilt)) scale(.95);
+      transform-origin: center bottom;
+      transition: opacity .4s ease-in-out, transform .4s ease-in-out;
+      backface-visibility: hidden;
+      pointer-events: none;
+    }
+    .photo:nth-child(1) { --tilt: -8deg; z-index: 4; }
+    .photo:nth-child(2) { --tilt: 7deg; z-index: 3; }
+    .photo:nth-child(3) { --tilt: -5deg; z-index: 2; }
+    .photo:nth-child(4) { --tilt: 9deg; z-index: 1; }
+    .photo.is-active {
+      z-index: 10;
+      opacity: 1;
+      transform: translateZ(0) rotate(0) scale(1);
+      animation: photo-enter .52s ease-in-out both;
+    }
+    .photo.is-leaving {
+      z-index: 11;
+      animation: photo-exit .4s ease-in-out both;
+    }
+    .photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .photo:nth-child(4) img { object-position: center 38%; }
+    @keyframes photo-enter {
+      0% { opacity: 0; transform: translateZ(-100px) rotate(var(--tilt)) scale(.9) translateY(0); }
+      50% { opacity: 1; transform: translateZ(0) rotate(0) scale(1) translateY(-72px); }
+      100% { opacity: 1; transform: translateZ(0) rotate(0) scale(1) translateY(0); }
+    }
+    @keyframes photo-exit {
+      0% { opacity: 1; transform: translateZ(0) rotate(0) scale(1); }
+      100% { opacity: 0; transform: translateZ(100px) rotate(var(--tilt)) scale(.9); }
+    }
+    .copy-column {
+      display: flex;
+      min-height: clamp(320px, 34vw, 430px);
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 0;
+    }
+    .copy.is-exiting { animation: copy-exit .15s ease-in both; }
+    .copy.is-entering { animation: copy-enter .24s ease-out both; }
+    @keyframes copy-exit {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+    @keyframes copy-enter {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .copy h2 {
+      margin: 0;
+      font-size: clamp(28px, 2.8vw, 40px);
+      font-weight: 500;
+      letter-spacing: -.03em;
+      line-height: 1.05;
+    }
+    .role {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .quote {
+      max-width: 470px;
+      margin: 38px 0 0;
+      color: #343331;
+      font-size: clamp(18px, 1.7vw, 24px);
+      line-height: 1.5;
+      text-wrap: pretty;
+    }
+    .quote span {
+      display: inline-block;
+      animation: word-enter .2s ease-in-out both;
+    }
+    @keyframes word-enter {
+      from { opacity: 0; filter: blur(10px); transform: translateY(5px); }
+      to { opacity: 1; filter: blur(0); transform: translateY(0); }
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-top: 46px;
+    }
+    .controls button {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: #e6e6e8;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background-color .2s ease, color .2s ease;
+    }
+    .controls button:hover { background: var(--ink); color: white; }
+    .controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .controls svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: transform .3s ease;
+    }
+    #prev:hover svg { transform: rotate(12deg); }
+    #next:hover svg { transform: rotate(-12deg); }
+    .count {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .count strong { color: var(--ink); font-weight: 500; }
+    .prototype-note {
+      margin: clamp(46px, 6vw, 70px) 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    @media (max-width: 760px) {
+      .section { display: block; padding: 64px 20px 48px; }
+      .section-heading { margin-bottom: 42px; }
+      .section-heading h1 { font-size: clamp(44px, 11vw, 66px); }
+      .testimonial { grid-template-columns: 1fr; gap: 38px; max-width: 500px; }
+      .photo-stage { height: min(92vw, 390px); }
+      .copy-column { min-height: 260px; padding: 0; }
+      .quote { margin-top: 24px; }
+      .controls { padding-top: 36px; }
+      .prototype-note { margin-top: 50px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .photo, .controls, .controls svg { transition: none; }
+      .photo.is-active, .photo.is-leaving, .copy.is-exiting, .copy.is-entering, .quote span {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="section" aria-labelledby="board-title">
+      <div class="wrap">
+        <header class="section-heading">
+          <h1 id="board-title">Dewan Pengurus Inti</h1>
+          <p>Kenali orang-orang yang menjaga ruang temu, jejaring, dan kontribusi antar alumni Sastra Daerah FIB UI.</p>
+        </header>
+
+        <div class="testimonial" id="testimonial" aria-label="Profil pengurus inti">
+          <div class="photo-stage" id="photo-stage">
+            <div class="photo is-active" aria-hidden="false">
+              <img src="../public/images/beranda/alumni-discussion.png" alt="Ilustrasi suasana diskusi alumni" draggable="false" />
+            </div>
+            <div class="photo" aria-hidden="true">
+              <img src="../public/images/beranda/mentoring.png" alt="Ilustrasi percakapan antar alumni" draggable="false" />
+            </div>
+            <div class="photo" aria-hidden="true">
+              <img src="../public/images/beranda/collaboration.png" alt="Ilustrasi kolaborasi alumni" draggable="false" />
+            </div>
+            <div class="photo" aria-hidden="true">
+              <img src="../public/images/beranda/seminar.png" alt="Ilustrasi kegiatan bersama alumni" draggable="false" />
+            </div>
+          </div>
+
+          <div class="copy-column">
+            <div class="copy" id="copy" aria-live="polite" aria-atomic="true">
+              <h2 id="name">Nama Pengurus</h2>
+              <p class="role" id="role">Ketua Umum</p>
+              <p class="quote" id="quote"></p>
+            </div>
+            <div class="controls">
+              <button id="prev" type="button" aria-label="Pengurus sebelumnya">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg>
+              </button>
+              <button id="next" type="button" aria-label="Pengurus berikutnya">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" /></svg>
+              </button>
+              <span class="count" aria-hidden="true"><strong id="current">01</strong> / 04</span>
+            </div>
+          </div>
+        </div>
+        <p class="prototype-note">Mockup interaksi. Nama dan gambar masih placeholder; foto pengurus serta teks resmi akan digunakan saat konsep ini diterapkan.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var profiles = [
+        {
+          name: "Nama Pengurus",
+          role: "Ketua Umum",
+          quote: "Menjaga arah gerak organisasi dan menyatukan gagasan dari berbagai angkatan."
+        },
+        {
+          name: "Nama Pengurus",
+          role: "Wakil Ketua",
+          quote: "Mendampingi kerja bersama agar hubungan alumni terus hidup dan bermanfaat."
+        },
+        {
+          name: "Nama Pengurus",
+          role: "Sekretaris",
+          quote: "Merawat komunikasi dan koordinasi agar setiap langkah organisasi terdokumentasi."
+        },
+        {
+          name: "Nama Pengurus",
+          role: "Bendahara",
+          quote: "Mengelola dukungan organisasi dengan tertib untuk menjaga keberlanjutan kegiatan."
+        }
+      ];
+      var active = 0;
+      var copyTimer = 0;
+      var photos = Array.from(document.querySelectorAll(".photo"));
+      var copy = document.getElementById("copy");
+      var name = document.getElementById("name");
+      var role = document.getElementById("role");
+      var quote = document.getElementById("quote");
+      var count = document.getElementById("current");
+      var carousel = document.getElementById("testimonial");
+      var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      function fillCopy(profile) {
+        name.textContent = profile.name;
+        role.textContent = profile.role;
+        quote.replaceChildren();
+        profile.quote.split(" ").forEach(function (word, index, words) {
+          var span = document.createElement("span");
+          span.textContent = word + (index < words.length - 1 ? "\u00a0" : "");
+          span.style.animationDelay = (index * .02) + "s";
+          quote.appendChild(span);
+        });
+      }
+      function show(nextIndex) {
+        if (nextIndex === active) return;
+        var previous = active;
+        active = (nextIndex + profiles.length) % profiles.length;
+        clearTimeout(copyTimer);
+        photos.forEach(function (photo) {
+          photo.classList.remove("is-leaving");
+          photo.classList.remove("is-active");
+          photo.setAttribute("aria-hidden", "true");
+        });
+        if (!reducedMotion.matches) {
+          photos[previous].classList.add("is-leaving");
+          window.setTimeout(function () {
+            photos[previous].classList.remove("is-leaving");
+          }, 400);
+        }
+        photos[active].classList.add("is-active");
+        photos[active].setAttribute("aria-hidden", "false");
+        count.textContent = String(active + 1).padStart(2, "0");
+        copy.classList.remove("is-entering");
+        if (reducedMotion.matches) {
+          fillCopy(profiles[active]);
+          return;
+        }
+        copy.classList.add("is-exiting");
+        copyTimer = window.setTimeout(function () {
+          fillCopy(profiles[active]);
+          copy.classList.remove("is-exiting");
+          void copy.offsetWidth;
+          copy.classList.add("is-entering");
+        }, 150);
+      }
+      document.getElementById("prev").addEventListener("click", function () { show(active - 1); });
+      document.getElementById("next").addEventListener("click", function () { show(active + 1); });
+      carousel.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft") { event.preventDefault(); show(active - 1); }
+        if (event.key === "ArrowRight") { event.preventDefault(); show(active + 1); }
+      });
+      fillCopy(profiles[active]);
+    }());
+  </script>
+</body>
+</html>

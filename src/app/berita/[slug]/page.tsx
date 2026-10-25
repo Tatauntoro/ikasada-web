@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CalendarBlank, User } from "@phosphor-icons/react/dist/ssr";
 import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import ScrollReveal from "@/components/ScrollReveal";
 import { ambilBeritaPublik, ambilMediaBeritaPublik } from "@/lib/berita-publik";
 import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
+import styles from "./berita-detail.module.css";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -34,16 +36,17 @@ export default async function BeritaDetailPage({ params }: Params) {
 
   if (!berita) notFound();
 
-  const isi = berita.deskripsiLengkap?.trim() || berita.deskripsiSingkat;
+  const ringkasan = berita.deskripsiSingkat?.trim();
+  const isi = berita.deskripsiLengkap?.trim();
 
   return (
     <>
       <div className="public-page relative z-10 min-h-screen">
-        <section className="relative min-h-screen overflow-hidden bg-white py-24">
-          <div className="relative z-10 mx-auto w-full max-w-3xl px-6">
+        <section className={styles.section}>
+          <article className={styles.article}>
             <BackButton fallback="/berita" forceFallback />
             <Breadcrumb
-              className="mb-10"
+              className={styles.breadcrumb}
               items={[
                 { label: "Beranda", href: "/" },
                 { label: "Berita", href: "/berita" },
@@ -55,26 +58,38 @@ export default async function BeritaDetailPage({ params }: Params) {
               {berita.tipe}
             </span>
 
-            <h1 className="page-title mt-6 font-semibold text-pretty">{berita.judul}</h1>
+            <h1 className={styles.title}>{berita.judul}</h1>
 
-            <p className="mt-4 text-[13px] text-black/55">
-              {formatTanggalWIB(berita.tanggal)} · {formatWaktuWIB(berita.tanggal)} WIB
-            </p>
+            <div className={styles.metadata}>
+              <div className={styles.date}>
+                <CalendarBlank size={18} aria-hidden="true" />
+                <time dateTime={berita.tanggal}>
+                  {formatTanggalWIB(berita.tanggal)} · {formatWaktuWIB(berita.tanggal)} WIB
+                </time>
+              </div>
+              <span className={styles.metadataDivider} aria-hidden="true" />
+              <span className={styles.author}>
+                <User size={17} aria-hidden="true" />
+                <span>Penulis: {berita.penulis}</span>
+              </span>
+            </div>
 
             {berita.gambarUrl && (
-              <div className="mt-10 overflow-hidden rounded-[16px] bg-[#e7e7ec]">
+              <div className={styles.cover}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={berita.gambarUrl}
                   alt={berita.judul}
-                  className="h-auto w-full object-cover"
+                  className={styles.coverImage}
                 />
               </div>
             )}
 
+            {ringkasan && <p className={styles.summary}>{ringkasan}</p>}
+
             <RichText
               teks={isi}
-              className="mt-10 space-y-5 text-[15px] leading-relaxed text-black/68 sm:text-base"
+              className={styles.body}
             />
 
             {media.length > 0 && (
@@ -82,7 +97,7 @@ export default async function BeritaDetailPage({ params }: Params) {
                 <h2 className="text-[10px] uppercase tracking-[0.18em] text-black/50">
                   Galeri ({media.length})
                 </h2>
-                <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {media.map((item) => {
                     const sumber = `/api/berita/${berita.slug}/media/${item.id}`;
                     return (
@@ -95,13 +110,13 @@ export default async function BeritaDetailPage({ params }: Params) {
                             className="w-full rounded-[12px] border border-[#0B5ED7]/15 bg-black"
                           />
                         ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-[#0B5ED7]/15">
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-[#0B5ED7]/15 bg-[#f3f4f6]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={sumber}
                               alt={item.caption ?? berita.judul}
                               loading="lazy"
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-contain"
                             />
                           </div>
                         )}
@@ -116,7 +131,7 @@ export default async function BeritaDetailPage({ params }: Params) {
                 </ul>
               </section>
             )}
-          </div>
+          </article>
         </section>
       </div>
       <ScrollReveal />

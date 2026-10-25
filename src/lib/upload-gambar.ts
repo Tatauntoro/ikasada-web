@@ -1,10 +1,17 @@
 import crypto from "node:crypto";
 import { bacaDariR2, isR2Configured, unggahKeR2 } from "@/lib/r2";
 
-export type TipeUploadGambar = "kegiatan" | "alumni" | "kerjasama" | "arsip" | "berita";
+export type TipeUploadGambar =
+  | "kegiatan"
+  | "alumni"
+  | "kerjasama"
+  | "arsip"
+  | "berita"
+  | "hero"
+  | "beranda";
 
 /**
- * Gambar sampul (kegiatan/alumni/kerjasama/arsip), selalu disimpan di R2
+ * Gambar sampul publik, selalu disimpan di R2
  * (bucket privat) dan dibaca lewat `GET /api/uploads/[tipe]/[filename]`
  * (server yang fetch ke R2, browser tidak pernah tahu endpoint R2-nya).
  *

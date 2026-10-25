@@ -19,7 +19,7 @@ export const metadata = {
 export default function GlyphPreviewPage() {
   return (
     <LoaderProvider>
-      <Preloader latar="#ffffff" tintaTerang="#0f1012" />
+      <Preloader />
       <main className="public-page relative z-10">
         <GlyphHero />
 

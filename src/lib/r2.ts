@@ -5,6 +5,7 @@ import {
   HeadObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 /**
  * Klien object storage Cloudflare R2 (API-nya kompatibel S3). Dipakai untuk
@@ -62,6 +63,70 @@ export async function unggahKeR2(
       ContentType: contentType,
     })
   );
+}
+
+export async function urlUnggahBertandaTanganR2(
+  key: string,
+  contentType: string
+): Promise<string> {
+  const command = new PutObjectCommand({
+    Bucket: bucketName(),
+    Key: key,
+    ContentType: contentType,
+  });
+  return getSignedUrl(getClient(), command, { expiresIn: 300 });
+}
+
+export async function infoObjekR2(
+  key: string
+): Promise<{ ukuran: number; contentType: string | null } | null> {
+  try {
+    const hasil = await getClient().send(
+      new HeadObjectCommand({ Bucket: bucketName(), Key: key })
+    );
+    return {
+      ukuran: hasil.ContentLength ?? 0,
+      contentType: hasil.ContentType ?? null,
+    };
+  } catch (error) {
+    const kode =
+      (error as { name?: string } | null)?.name ??
+      (error as { Code?: string } | null)?.Code;
+    if (kode === "NoSuchKey" || kode === "NotFound") return null;
+    throw error;
+  }
+}
+
+export async function bacaObjekR2(
+  key: string,
+  range?: string
+): Promise<{
+  stream: ReadableStream<Uint8Array> | null;
+  ukuran: number;
+  contentType: string | null;
+  contentRange: string | null;
+} | null> {
+  try {
+    const hasil = await getClient().send(
+      new GetObjectCommand({
+        Bucket: bucketName(),
+        Key: key,
+        ...(range ? { Range: range } : {}),
+      })
+    );
+    return {
+      stream: hasil.Body?.transformToWebStream() ?? null,
+      ukuran: hasil.ContentLength ?? 0,
+      contentType: hasil.ContentType ?? null,
+      contentRange: hasil.ContentRange ?? null,
+    };
+  } catch (error) {
+    const kode =
+      (error as { name?: string } | null)?.name ??
+      (error as { Code?: string } | null)?.Code;
+    if (kode === "NoSuchKey" || kode === "NotFound") return null;
+    throw error;
+  }
 }
 
 /**

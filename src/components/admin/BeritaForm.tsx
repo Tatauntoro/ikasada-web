@@ -48,6 +48,7 @@ function mediaDari(list: MediaAwal[] | undefined): MediaGaleri[] {
 
 export type BeritaFormData = {
   judul: string;
+  penulis: string;
   jenisBeritaId: string;
   tanggal: string;
   deskripsiSingkat: string;
@@ -58,6 +59,7 @@ export type BeritaFormData = {
 function emptyForm(): BeritaFormData {
   return {
     judul: "",
+    penulis: "Redaksi IKASADA",
     jenisBeritaId: "",
     tanggal: "",
     deskripsiSingkat: "",
@@ -77,6 +79,7 @@ function toDatetimeLocal(value: string | Date): string {
 function beritaToFormData(berita: Berita): BeritaFormData {
   return {
     judul: berita.judul,
+    penulis: berita.penulis,
     jenisBeritaId: berita.jenisBeritaId,
     tanggal: toDatetimeLocal(berita.tanggal),
     deskripsiSingkat: berita.deskripsiSingkat,
@@ -297,6 +300,27 @@ export function BeritaForm({
               value={form.judul}
               onChange={(e) => updateField("judul", e.target.value)}
               placeholder="Judul berita"
+              className="w-full px-4 py-3 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
+            />
+          </FormField>
+
+          <FormField
+            label="Nama Penulis"
+            htmlFor="penulis"
+            berubah={ubah("penulis")}
+            error={errors.penulis}
+            hint="Nama yang ditampilkan pada halaman berita. Bisa nama individu atau tim redaksi."
+            required
+          >
+            <input
+              id="penulis"
+              name="penulis"
+              type="text"
+              value={form.penulis}
+              onChange={(e) => updateField("penulis", e.target.value)}
+              maxLength={120}
+              required
+              placeholder="Contoh: Redaksi IKASADA"
               className="w-full px-4 py-3 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
             />
           </FormField>

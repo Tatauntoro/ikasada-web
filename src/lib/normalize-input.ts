@@ -148,6 +148,7 @@ export function normalizeBeritaInput(
 ): Omit<Prisma.BeritaUncheckedCreateInput, "createdById" | "slug" | "media"> {
   return {
     judul: input.judul.trim(),
+    ...(input.penulis !== undefined ? { penulis: input.penulis.trim() } : {}),
     jenisBeritaId: input.jenisBeritaId,
     tanggal: input.tanggal,
     deskripsiSingkat: input.deskripsiSingkat.trim(),

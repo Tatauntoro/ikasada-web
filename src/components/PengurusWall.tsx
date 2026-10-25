@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { CaretLeft, CaretRight, Users } from "@phosphor-icons/react";
 
-/**
- * Dewan Pengurus Inti — coverflow 3D dengan tombol prev/next sebagai fokus.
- */
 export type PengurusItem = {
   id: string;
   nama: string;
@@ -15,166 +13,165 @@ export type PengurusItem = {
   fotoUrl: string | null;
 };
 
-/*
- * Kedalaman kartu dibawa oleh `filter: brightness()` dan opacity, BUKAN shadow —
- * Augen melarang drop shadow sepenuhnya ("zero-shadow philosophy") dan
- * menyatakan elevasi datang dari beda tone. brightness() adalah perubahan nada,
- * bukan hue, jadi ia tetap aman di sistem monokrom ini.
- */
-function cardStyle(rel: number): CSSProperties {
-  if (rel === 0) {
-    return {
-      transform: "translateX(0) scale(1) rotateY(0deg)",
-      opacity: 1,
-      zIndex: 10,
-      filter: "brightness(1)",
-    };
-  }
-  if (rel === -1) {
-    return {
-      transform: "translateX(-180px) scale(0.9) rotateY(10deg)",
-      opacity: 0.6,
-      zIndex: 5,
-      filter: "brightness(0.75)",
-    };
-  }
-  if (rel === 1) {
-    return {
-      transform: "translateX(180px) scale(0.9) rotateY(-10deg)",
-      opacity: 0.6,
-      zIndex: 5,
-      filter: "brightness(0.75)",
-    };
-  }
-  if (rel === -2) {
-    return {
-      transform: "translateX(-360px) scale(0.85) rotateY(20deg)",
-      opacity: 0.4,
-      zIndex: 2,
-      filter: "brightness(0.6)",
-    };
-  }
-  if (rel === 2) {
-    return {
-      transform: "translateX(360px) scale(0.85) rotateY(-20deg)",
-      opacity: 0.4,
-      zIndex: 2,
-      filter: "brightness(0.6)",
-    };
-  }
-  return {
-    transform: `translateX(${rel * 180}px) scale(0.75) rotateY(${-rel * 15}deg)`,
-    opacity: 0,
-    zIndex: 1,
-    filter: "brightness(0.5)",
-  };
-}
+const rotasiKartu = [-8, 7, -5, 9];
 
-/** Coverflow 3D dengan tombol navigasi. */
 export function PengurusCarousel({ pengurus }: { pengurus: PengurusItem[] }) {
-  const [index, setIndex] = useState(0);
-  const n = pengurus.length;
+  const [active, setActive] = useState(0);
+  const reducedMotion = useReducedMotion();
+  const jumlah = pengurus.length;
 
-  if (n === 0) return null;
+  if (jumlah === 0) {
+    return (
+      <p role="status" className="py-16 text-center text-[#5e5e5e]">
+        Belum ada pengurus yang ditampilkan.
+      </p>
+    );
+  }
 
-  const go = (delta: number) => setIndex((i) => (i + delta + n) % n);
-  const half = Math.floor(n / 2);
+  const indexAktif = active % jumlah;
+  const pengurusAktif = pengurus[indexAktif];
+  const keterangan = [pengurusAktif.angkatan, pengurusAktif.ket]
+    .filter(Boolean)
+    .join(" · ");
+  const ganti = (arah: number) => {
+    setActive((index) => (index + arah + jumlah) % jumlah);
+  };
 
-  const buttonClass =
-    "absolute top-1/2 z-20 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[#0B5ED7] text-white ring-1 ring-[#0B5ED7]/20 transition-colors hover:bg-[#084BAA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]";
+  const tombolClass =
+    "group grid h-11 w-11 place-items-center rounded-full bg-[#e6e6e8] text-[#0f1012] transition-colors hover:bg-[#0f1012] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5ed7] disabled:cursor-default disabled:opacity-40";
 
   return (
     <div
-      className="relative flex items-center justify-center"
-      style={{ perspective: 1200 }}
       role="group"
       aria-roledescription="carousel"
       aria-label="Dewan pengurus inti"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowLeft") go(-1);
-        if (e.key === "ArrowRight") go(1);
+      tabIndex={jumlah > 1 ? 0 : -1}
+      onKeyDown={(event) => {
+        if (jumlah < 2) return;
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          ganti(-1);
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          ganti(1);
+        }
       }}
+      className="mx-0 grid max-w-5xl grid-cols-1 items-center gap-8 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0b5ed7] md:grid-cols-2 md:gap-10 lg:gap-12"
     >
-      <button
-        type="button"
-        onClick={() => go(-1)}
-        aria-label="Pengurus sebelumnya"
-        className={`${buttonClass} left-2 sm:left-6`}
-      >
-        <CaretLeft weight="bold" className="h-5 w-5" />
-      </button>
+      <div className="relative isolate h-[280px] w-full [perspective:1100px] sm:h-[320px] lg:h-[360px]">
+        {pengurus.map((item, index) => {
+          const isActive = index === indexAktif;
+          const rotate = rotasiKartu[index % rotasiKartu.length];
 
-      <div className="relative flex h-[500px] w-full max-w-md items-center justify-center">
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {pengurus.map((item, i) => {
-            let rel = i - index;
-            if (rel > half) rel -= n;
-            if (rel < -half) rel += n;
-            const center = rel === 0;
-
-            return (
-              <article
-                key={item.id}
-                aria-hidden={!center}
-                className={`absolute h-[460px] w-80 overflow-hidden rounded-2xl transition-all duration-500 ${
-                  center
-                    ? "bg-white/10 ring-2 ring-white/40"
-                    : "ring-1 ring-white/10"
-                }`}
-                style={cardStyle(rel)}
-              >
-                {item.fotoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={item.fotoUrl}
-                    alt={item.nama}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-[#e7e7ec]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1012]/95 via-[#0f1012]/35 to-transparent" />
-
-                <div
-                  className={`absolute ${
-                    center ? "bottom-8 left-8 right-8" : "bottom-6 left-6 right-6"
-                  }`}
-                >
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs ring-1 ring-white/20 backdrop-blur-md">
-                    <Users weight="bold" className="h-3 w-3 text-neutral-300" />
-                    <span className="text-white">{item.jabatan}</span>
-                  </span>
-                  <p
-                    className={`tracking-tight text-white ${
-                      center ? "text-3xl font-semibold" : "text-xl font-medium"
-                    }`}
-                  >
-                    {item.nama}
-                  </p>
-                  {center && (
-                    <p className="mt-1 text-sm text-white/70">
-                      {[item.angkatan, item.ket].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
+          return (
+            <m.div
+              key={item.id}
+              aria-hidden={!isActive}
+              initial={false}
+              animate={
+                reducedMotion
+                  ? { opacity: isActive ? 1 : 0.65 }
+                  : {
+                      opacity: isActive ? 1 : 0.65,
+                      scale: isActive ? 1 : 0.95,
+                      z: isActive ? 0 : -100,
+                      rotate: isActive ? 0 : rotate,
+                      y: isActive ? [0, -72, 0] : 0,
+                    }
+              }
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              style={{
+                zIndex: isActive ? jumlah + 1 : jumlah - index,
+                transformOrigin: "center bottom",
+              }}
+              className="absolute inset-0 overflow-hidden rounded-3xl bg-[#e7e7ec]"
+            >
+              {item.fotoUrl ? (
+                /* Foto pengurus dapat berasal dari upload privat; URL publiknya sudah dilayani route aplikasi. */
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={item.fotoUrl}
+                  alt=""
+                  draggable={false}
+                  className="h-full w-full object-cover object-center"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center text-[#5e5e5e]">
+                  <Users aria-hidden="true" size={64} weight="thin" />
                 </div>
-              </article>
-            );
-          })}
-        </div>
+              )}
+            </m.div>
+          );
+        })}
       </div>
 
-      <button
-        type="button"
-        onClick={() => go(1)}
-        aria-label="Pengurus selanjutnya"
-        className={`${buttonClass} right-2 sm:right-6`}
-      >
-        <CaretRight weight="bold" className="h-5 w-5" />
-      </button>
+      <div className="flex min-h-[220px] flex-col justify-between py-1 md:min-h-[320px] lg:min-h-[360px] lg:py-2">
+        <AnimatePresence mode="wait" initial={false}>
+          <m.div
+            key={pengurusAktif.id}
+            aria-live="polite"
+            aria-atomic="true"
+            initial={reducedMotion ? { opacity: 0 } : { y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={reducedMotion ? { opacity: 0 } : { y: -20, opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0.01 : 0.2, ease: "easeInOut" }}
+          >
+            <h3 className="text-[28px] leading-[1.08] font-medium tracking-[-0.03em] text-[#0f1012] sm:text-[34px]">
+              {pengurusAktif.nama}
+            </h3>
+            <p className="mt-2 text-[15px] leading-normal text-[#5e5e5e]">
+              {pengurusAktif.jabatan}
+            </p>
+            {keterangan && (
+              <p className="mt-8 max-w-[470px] text-[18px] leading-relaxed text-[#343331] sm:text-[21px]">
+                <span className="sr-only">{keterangan}</span>
+                <span aria-hidden="true">
+                  {reducedMotion
+                    ? keterangan
+                    : keterangan.split(/\s+/).map((word, index) => (
+                        <m.span
+                          key={`${pengurusAktif.id}-${index}`}
+                          initial={{ filter: "blur(10px)", opacity: 0, y: 5 }}
+                          animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, ease: "easeInOut", delay: 0.02 * index }}
+                          className="inline-block"
+                        >
+                          {word}&nbsp;
+                        </m.span>
+                      ))}
+                </span>
+              </p>
+            )}
+          </m.div>
+        </AnimatePresence>
+
+        <div className="flex items-center gap-3 pt-10">
+          <button
+            type="button"
+            onClick={() => ganti(-1)}
+            disabled={jumlah < 2}
+            aria-label="Pengurus sebelumnya"
+            className={tombolClass}
+          >
+            <CaretLeft aria-hidden="true" size={21} className="transition-transform duration-300 group-hover:rotate-12" />
+          </button>
+          <button
+            type="button"
+            onClick={() => ganti(1)}
+            disabled={jumlah < 2}
+            aria-label="Pengurus berikutnya"
+            className={tombolClass}
+          >
+            <CaretRight aria-hidden="true" size={21} className="transition-transform duration-300 group-hover:-rotate-12" />
+          </button>
+          <span aria-hidden="true" className="ml-2 text-[13px] text-[#5e5e5e] tabular-nums">
+            <span className="font-medium text-[#0f1012]">{String(indexAktif + 1).padStart(2, "0")}</span>
+            {" / "}
+            {String(jumlah).padStart(2, "0")}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

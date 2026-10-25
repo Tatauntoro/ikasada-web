@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { useBerandaConfig } from "@/lib/beranda-client";
 import OverviewSection from "@/components/OverviewSection";
 import Stats from "@/components/Stats";
@@ -40,6 +40,50 @@ const BLOK: { id: string; kunci: string; urutan: number; node: React.ReactNode }
 
 export default function BerandaIsi() {
   const beranda = useBerandaConfig();
+
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>("main.home-page");
+    if (!root) return;
+
+    const sinkronkanDivider = () => {
+      const sections = Array.from(
+        root.querySelectorAll<HTMLElement>("section")
+      );
+
+      sections.forEach((section) => {
+        section.classList.remove(
+          "home-section-white-before",
+          "home-section-white-after"
+        );
+      });
+
+      for (let index = 1; index < sections.length; index += 1) {
+        const sebelumnya = sections[index - 1];
+        const sekarang = sections[index];
+        const latarSebelumnya = window.getComputedStyle(sebelumnya).backgroundColor;
+        const latarSekarang = window.getComputedStyle(sekarang).backgroundColor;
+
+        if (
+          latarSebelumnya === "rgb(255, 255, 255)" &&
+          latarSekarang === "rgb(255, 255, 255)"
+        ) {
+          sebelumnya.classList.add("home-section-white-after");
+          sekarang.classList.add("home-section-white-before");
+        }
+      }
+    };
+
+    sinkronkanDivider();
+    const observer = new MutationObserver(sinkronkanDivider);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["style"],
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const urutanBlok = (kunci: string, fallback: number) =>
     beranda?.sections.find((s) => s.kunci === kunci)?.urutan ?? fallback;

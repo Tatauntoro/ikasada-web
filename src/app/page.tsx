@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <LoaderProvider>
       {/* Pemutar video baru dimuat setelah preloader membuka beranda. */}
-      <Preloader latar="#ffffff" tintaTerang="#0f1012" />
+      <Preloader />
       <Navbar />
       <ScrollExperience />
       <main className="public-page home-page relative z-10">

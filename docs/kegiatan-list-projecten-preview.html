@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#dcecff" />
+    <base href="http://localhost:3000/" />
+    <title>Daftar Kegiatan — Preview IKASADA</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --blue: #0b5ed7;
+        --hero: #dcecff;
+        --ink: #101820;
+        --muted: #4c5764;
+        --font: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a { color: inherit; }
+      a:focus-visible { outline: 2px solid var(--blue); outline-offset: 5px; }
+
+      .hero {
+        min-height: clamp(570px, 85svh, 720px);
+        background: var(--hero);
+      }
+
+      .hero-inner {
+        display: flex;
+        min-height: inherit;
+        width: min(100% - 100px, 1180px);
+        flex-direction: column;
+        margin: 0 auto;
+        padding: 42px 0 58px;
+      }
+
+      .utility {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid currentColor;
+        text-decoration: none;
+      }
+
+      .back span { font-size: 20px; line-height: .8; }
+      .breadcrumb { display: flex; align-items: center; gap: 11px; color: #33465b; }
+      .breadcrumb a { text-decoration: none; }
+      .breadcrumb a:hover { text-decoration: underline; text-underline-offset: 3px; }
+      .breadcrumb .slash { opacity: .5; }
+
+      h1 {
+        max-width: 1100px;
+        margin: clamp(60px, 8vh, 110px) 0 auto;
+        font-size: clamp(56px, 7.3vw, 102px);
+        font-weight: 600;
+        letter-spacing: -.075em;
+        line-height: .9;
+        text-wrap: balance;
+      }
+
+      .lead {
+        max-width: 680px;
+        margin: 0;
+        font-size: clamp(18px, 1.75vw, 22px);
+        font-weight: 600;
+        letter-spacing: -.025em;
+        line-height: 1.28;
+        text-wrap: pretty;
+      }
+
+      .catalog {
+        width: min(100% - 100px, 1180px);
+        margin: 0 auto;
+        padding: 82px 0 124px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 68px 40px;
+      }
+
+      .event { min-width: 0; }
+      .event a { display: block; height: 100%; text-decoration: none; }
+
+      .image {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 1.5;
+        background: #e8edf3;
+      }
+
+      .image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(1.06) saturate(1.04);
+        transition: transform 450ms cubic-bezier(.2,.7,.2,1);
+      }
+
+      .event a:hover .image img,
+      .event a:focus-visible .image img { transform: scale(1.035); }
+
+      .event h2 {
+        margin: 18px 0 0;
+        font-size: clamp(20px, 1.8vw, 23px);
+        font-weight: 600;
+        letter-spacing: -.045em;
+        line-height: 1.05;
+        text-wrap: pretty;
+      }
+
+      .event a:hover h2,
+      .event a:focus-visible h2 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+      .event-meta {
+        margin: 11px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.45;
+        text-wrap: pretty;
+      }
+
+      .event-meta span { color: var(--blue); font-weight: 600; }
+
+      @media (max-width: 900px) {
+        .hero-inner,
+        .catalog { width: min(100% - 64px, 1180px); }
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 58px 28px; }
+        .catalog { padding-top: 64px; }
+      }
+
+      @media (max-width: 600px) {
+        .hero { min-height: 550px; }
+        .hero-inner,
+        .catalog { width: calc(100% - 36px); }
+        .hero-inner { padding: 28px 0 36px; }
+        .utility { align-items: flex-start; flex-direction: column; gap: 18px; font-size: 12px; }
+        h1 { margin-top: 58px; font-size: clamp(48px, 12vw, 72px); }
+        .lead { font-size: 18px; }
+        .catalog { padding: 48px 0 80px; }
+        .grid { grid-template-columns: 1fr; gap: 44px; }
+        .event h2 { font-size: 23px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .image img { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-inner">
+          <nav class="utility" aria-label="Navigasi halaman">
+            <a class="back" href="/"><span aria-hidden="true">←</span> Kembali</a>
+            <div class="breadcrumb"><a href="/">Beranda</a><span class="slash" aria-hidden="true">/</span><span>Kegiatan</span></div>
+          </nav>
+          <h1 id="page-title">Hadiri Kegiatan Kami.</h1>
+          <p class="lead">Ikuti berbagai agenda kebudayaan, diskusi ilmiah, dan ajang kumpul alumni mendatang.</p>
+        </div>
+      </section>
+
+      <section class="catalog" aria-label="Daftar kegiatan IKASADA">
+        <div class="grid">
+          <article class="event">
+            <a href="/kegiatan/pameran-manuskrip-artefak-sastra-daerah">
+              <span class="image"><img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&amp;fit=crop&amp;q=85&amp;w=1000" alt="Buku terbuka untuk pameran manuskrip" /></span>
+              <h2>Pameran Manuskrip &amp; Artefak Sastra Daerah</h2>
+              <p class="event-meta"><span>25 Februari 2027</span> · Perpustakaan Pusat UI Depok</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/diskusi-publik-masa-depan-bahasa-daerah-di-era-ai">
+              <span class="image"><img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&amp;fit=crop&amp;q=85&amp;w=1000" alt="Peserta mengikuti diskusi" /></span>
+              <h2>Diskusi Publik: Masa Depan Bahasa Daerah di Era AI</h2>
+              <p class="event-meta"><span>18 Januari 2027</span> · Daring (Zoom Webinar)</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/kongres-tahunan-gathering-alumni">
+              <span class="image"><img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&amp;fit=crop&amp;q=85&amp;w=1000" alt="Suasana kongres dan pertemuan alumni" /></span>
+              <h2>Kongres Tahunan &amp; Gathering Alumni</h2>
+              <p class="event-meta"><span>20 Desember 2026</span> · Auditorium FIB UI</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/malam-seni-pertunjukan-sastra-nusantara">
+              <span class="image"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&amp;fit=crop&amp;q=85&amp;w=1000" alt="Komunitas berkumpul untuk pertunjukan seni" loading="lazy" /></span>
+              <h2>Malam Seni Pertunjukan Sastra Nusantara</h2>
+              <p class="event-meta"><span>13 November 2026</span> · Makara Art Center UI</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/workshop-filologi-digitalisasi-aksara-kuno">
+              <span class="image"><img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&amp;fit=crop&amp;q=85&amp;w=1000" alt="Kegiatan lokakarya bersama" loading="lazy" /></span>
+              <h2>Workshop Filologi &amp; Digitalisasi Aksara Kuno</h2>
+              <p class="event-meta"><span>15 Oktober 2026</span> · Gedung IX FIB UI</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/mabar-vip">
+              <span class="image"><img src="http://localhost:3000/api/uploads/kegiatan/f3346084-580f-4bbd-9c1c-df8c2424feed.jpg" alt="Dokumentasi kegiatan Mabar VIP" loading="lazy" /></span>
+              <h2>Mabar VIP</h2>
+              <p class="event-meta"><span>11 Oktober 2026</span> · GOR SOEMANTRI</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/kegiatan-test-lokal">
+              <span class="image"><img src="http://localhost:3000/uploads/kegiatan/82283ff8-8b19-4472-93dc-e7f46ef94b61.jpg" alt="Gambar Kegiatan Test Lokal" loading="lazy" /></span>
+              <h2>Kegiatan Test Lokal</h2>
+              <p class="event-meta"><span>10 Oktober 2026</span> · Jakarta</p>
+            </a>
+          </article>
+
+          <article class="event">
+            <a href="/kegiatan/ini-judul">
+              <span class="image"><img src="http://localhost:3000/uploads/kegiatan/45f606cb-5a25-48b1-bb40-a686dfed889e.png" alt="Gambar kegiatan Ini Judul" loading="lazy" /></span>
+              <h2>Ini Judul</h2>
+              <p class="event-meta"><span>2 September 2026</span> · FIB UI</p>
+            </a>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

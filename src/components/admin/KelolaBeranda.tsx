@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
+  ArrowDown,
+  ArrowUp,
   GlobeHemisphereWest,
   Pencil,
   Plus,
@@ -21,10 +23,18 @@ import {
 import { EmptyState } from "./EmptyState";
 import { TableSkeleton } from "./TableSkeleton";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { ImageUpload } from "./ImageUpload";
+import { invalidasiBerandaConfig } from "@/lib/beranda-client";
+import {
+  HERO_POSTER_BAWAAN,
+  HERO_VIDEO_BAWAAN,
+  type KonfigurasiHero,
+  type ModeHero,
+} from "@/lib/beranda";
 
 /**
- * Kelola Beranda: atur section beranda (tampil/tidak, urutan, teks) dan titik
- * sebaran geografis pada peta. Penegakan izin sebenarnya di server
+ * Kelola Beranda: atur section beranda (tampil/tidak, urutan, teks, foto) dan
+ * titik sebaran geografis pada peta. Penegakan izin sebenarnya di server
  * (`requirePermission(MODUL.BERANDA, ...)`); halaman ini hanya UX.
  */
 
@@ -38,6 +48,7 @@ type SectionItem = {
   deskripsi: string | null;
   warnaJudul: string | null;
   warnaEyebrow: string | null;
+  warnaBackground: string | null;
   ukuranJudul: number | null;
   ukuranEyebrow: number | null;
   konfigurasi: unknown;
@@ -61,17 +72,38 @@ type DraftSection = {
   deskripsi: string;
   warnaJudul: string;
   warnaEyebrow: string;
+  warnaBackground: string;
   ukuranJudul: string;
   ukuranEyebrow: string;
   konfigurasi: Record<string, unknown>;
 };
 
-type ItemLima = { judul: string; deskripsi: string };
+type ItemLima = { judul: string; deskripsi: string; fotoUrl: string; tampilkanFoto: boolean };
+type ModeMediaTentang = "foto" | "slideshow" | "video";
+type MediaTentang = { mode: ModeMediaTentang; fotoUrls: string[]; videoUrl: string; posterUrl: string };
 
 const inputClass =
-  "w-full rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-3 py-2 text-sm text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3]";
+  "w-full min-w-0 rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-3 py-2.5 text-sm text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] sm:py-2";
 const tombolKecil =
-  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors disabled:opacity-60";
+  "inline-flex min-h-11 items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-bold transition-colors disabled:opacity-60 sm:min-h-0 sm:px-2.5 sm:py-1.5";
+const PALET_WARNA_BACKGROUND = [
+  { nama: "Putih", nilai: "#ffffff" },
+  { nama: "Abu muda", nilai: "#f2f2f4" },
+  { nama: "Biru muda", nilai: "#eaf4ff" },
+  { nama: "Hijau muda", nilai: "#e8f5ec" },
+  { nama: "Kuning muda", nilai: "#fff5cc" },
+  { nama: "Biru", nilai: "#0b5ed7" },
+  { nama: "Gelap", nilai: "#0f1012" },
+];
+const KUNCI_STATISTIK_TERPADU = [
+  "statistik",
+  "sebaran-geografis",
+  "sebaran-angkatan",
+  "agenda",
+] as const;
+const KUNCI_PANEL_STATISTIK = KUNCI_STATISTIK_TERPADU.filter(
+  (kunci) => kunci !== "statistik"
+);
 
 function labelSection(kunci: string): string {
   return kunciValid(kunci) ? DEFAULT_PER_KUNCI[kunci].label : kunci;
@@ -84,13 +116,69 @@ function konfigurasiDari(nilai: unknown): Record<string, unknown> {
   return {};
 }
 
+function konfigurasiHero(konfig: Record<string, unknown>): KonfigurasiHero {
+  const value = konfig as Partial<KonfigurasiHero>;
+  const mode: ModeHero =
+    value.mode === "foto" || value.mode === "slideshow" ? value.mode : "video";
+  return {
+    mode,
+    videoUrl:
+      typeof value.videoUrl === "string" ? value.videoUrl : HERO_VIDEO_BAWAAN,
+    posterUrl:
+      typeof value.posterUrl === "string"
+        ? value.posterUrl
+        : HERO_POSTER_BAWAAN,
+    fotoUrls: Array.isArray(value.fotoUrls)
+      ? value.fotoUrls.filter((url): url is string => typeof url === "string")
+      : [],
+  };
+}
+
 function itemsLima(konfig: Record<string, unknown>): ItemLima[] {
   const items = konfig.items;
   if (!Array.isArray(items)) return [];
   return items.map((x) => {
-    const o = (x ?? {}) as { judul?: unknown; deskripsi?: unknown };
-    return { judul: String(o.judul ?? ""), deskripsi: String(o.deskripsi ?? "") };
+    const o = (x ?? {}) as {
+      judul?: unknown;
+      deskripsi?: unknown;
+      fotoUrl?: unknown;
+      tampilkanFoto?: unknown;
+    };
+    return {
+      judul: String(o.judul ?? ""),
+      deskripsi: String(o.deskripsi ?? ""),
+      fotoUrl: String(o.fotoUrl ?? ""),
+      tampilkanFoto: o.tampilkanFoto !== false,
+    };
   });
+}
+
+function itemsLimaUntukEditor(konfig: Record<string, unknown>): ItemLima[] {
+  if (Array.isArray(konfig.items)) return itemsLima(konfig);
+  const itemsDefault = DEFAULT_PER_KUNCI["lima-cara"].konfigurasi?.items;
+  if (!Array.isArray(itemsDefault)) return [];
+  return itemsDefault.map((item) => {
+    const o = item as { judul?: unknown; deskripsi?: unknown };
+    return {
+      judul: String(o.judul ?? ""),
+      deskripsi: String(o.deskripsi ?? ""),
+      fotoUrl: "",
+      tampilkanFoto: true,
+    };
+  });
+}
+
+function mediaTentang(konfig: Record<string, unknown>): MediaTentang {
+  const legacyFoto = typeof konfig.fotoUrl === "string" ? konfig.fotoUrl : "";
+  const fotoUrls = Array.isArray(konfig.fotoUrls)
+    ? konfig.fotoUrls.filter((url): url is string => typeof url === "string")
+    : legacyFoto ? [legacyFoto] : [];
+  return {
+    mode: konfig.mode === "slideshow" || konfig.mode === "video" ? konfig.mode : "foto",
+    fotoUrls,
+    videoUrl: typeof konfig.videoUrl === "string" ? konfig.videoUrl : "",
+    posterUrl: typeof konfig.posterUrl === "string" ? konfig.posterUrl : legacyFoto,
+  };
 }
 
 function emailKontak(konfig: Record<string, unknown>): string {
@@ -120,6 +208,7 @@ function draftDari(s: SectionItem): DraftSection {
     deskripsi: s.deskripsi ?? "",
     warnaJudul: s.warnaJudul ?? "",
     warnaEyebrow: s.warnaEyebrow ?? "",
+    warnaBackground: s.warnaBackground ?? "",
     ukuranJudul: s.ukuranJudul == null ? "" : String(s.ukuranJudul),
     ukuranEyebrow: s.ukuranEyebrow == null ? "" : String(s.ukuranEyebrow),
     konfigurasi: konfigurasiDari(s.konfigurasi),
@@ -136,10 +225,12 @@ function KontrolWarna({
   label,
   nilai,
   onUbah,
+  palet = PALET_WARNA,
 }: {
   label: string;
   nilai: string;
   onUbah: (nilaiBaru: string) => void;
+  palet?: { nama: string; nilai: string }[];
 }) {
   const aktif = (hex: string) => nilai.trim().toLowerCase() === hex.toLowerCase();
 
@@ -149,7 +240,7 @@ function KontrolWarna({
         {label}
       </label>
       <div className="flex flex-wrap items-center gap-2">
-        {PALET_WARNA.map((w) => (
+        {palet.map((w) => (
           <button
             key={w.nilai}
             type="button"
@@ -279,6 +370,9 @@ export function KelolaBeranda() {
 
   const [draft, setDraft] = useState<Record<string, DraftSection>>({});
   const [menyimpanSection, setMenyimpanSection] = useState<string | null>(null);
+  const [mengunggahVideo, setMengunggahVideo] = useState(false);
+  const [galatVideo, setGalatVideo] = useState<string | null>(null);
+  const [sectionUnggahVideo, setSectionUnggahVideo] = useState<string | null>(null);
 
   const [titikBuka, setTitikBuka] = useState(false);
   const [titikEdit, setTitikEdit] = useState<TitikItem | null>(null);
@@ -346,7 +440,7 @@ export function KelolaBeranda() {
   function ubahItemLima(id: string, index: number, patch: Partial<ItemLima>) {
     setDraft((prev) => {
       const d = prev[id];
-      const items = itemsLima(d.konfigurasi).map((x, i) =>
+      const items = itemsLimaUntukEditor(d.konfigurasi).map((x, i) =>
         i === index ? { ...x, ...patch } : x
       );
       return { ...prev, [id]: { ...d, konfigurasi: { ...d.konfigurasi, items } } };
@@ -358,7 +452,7 @@ export function KelolaBeranda() {
   function tambahItemLima(id: string) {
     setDraft((prev) => {
       const d = prev[id];
-      const items = itemsLima(d.konfigurasi);
+      const items = itemsLimaUntukEditor(d.konfigurasi);
       if (items.length >= 10) return prev;
       return {
         ...prev,
@@ -376,7 +470,7 @@ export function KelolaBeranda() {
   function hapusItemLima(id: string, index: number) {
     setDraft((prev) => {
       const d = prev[id];
-      const items = itemsLima(d.konfigurasi).filter((_, i) => i !== index);
+      const items = itemsLimaUntukEditor(d.konfigurasi).filter((_, i) => i !== index);
       return { ...prev, [id]: { ...d, konfigurasi: { ...d.konfigurasi, items } } };
     });
   }
@@ -390,24 +484,35 @@ export function KelolaBeranda() {
 
     const hasil = await panggilApi(`/api/admin/beranda/${s.id}`, {
       method: "PATCH",
-      body: {
-        aktif: d.aktif,
-        urutan: Number(d.urutan) || 0,
-        eyebrow: d.eyebrow.trim() || null,
-        judul: d.judul.trim() || null,
-        deskripsi: d.deskripsi.trim() || null,
-        warnaJudul: d.warnaJudul.trim() || null,
-        warnaEyebrow: d.warnaEyebrow.trim() || null,
-        ukuranJudul: d.ukuranJudul.trim() ? Number(d.ukuranJudul) : null,
-        ukuranEyebrow: d.ukuranEyebrow.trim() ? Number(d.ukuranEyebrow) : null,
-        // Section dengan data khas (lima-cara / kontak / sebaran-geografis)
-        // ikut menyimpan config.
-        ...(s.kunci === "lima-cara" ||
-        s.kunci === "kontak" ||
-        s.kunci === "sebaran-geografis"
-          ? { konfigurasi: d.konfigurasi }
-          : {}),
-      },
+      body:
+        s.kunci === "hero"
+          ? {
+              judul: d.judul.trim() || null,
+              deskripsi: d.deskripsi.trim() || null,
+              warnaBackground: d.warnaBackground.trim() || null,
+              konfigurasi: d.konfigurasi,
+            }
+          : {
+              aktif: d.aktif,
+              urutan: Number(d.urutan) || 0,
+              eyebrow: d.eyebrow.trim() || null,
+              judul: d.judul.trim() || null,
+              deskripsi: d.deskripsi.trim() || null,
+              warnaJudul: d.warnaJudul.trim() || null,
+              warnaEyebrow: d.warnaEyebrow.trim() || null,
+              warnaBackground: d.warnaBackground.trim() || null,
+              ukuranJudul: d.ukuranJudul.trim() ? Number(d.ukuranJudul) : null,
+              ukuranEyebrow: d.ukuranEyebrow.trim()
+                ? Number(d.ukuranEyebrow)
+                : null,
+              // Section dengan data khas ikut menyimpan konfigurasi.
+              ...(s.kunci === "tentang-kami" ||
+              s.kunci === "lima-cara" ||
+              s.kunci === "kontak" ||
+              s.kunci === "sebaran-geografis"
+                ? { konfigurasi: d.konfigurasi }
+                : {}),
+            },
     });
     setMenyimpanSection(null);
 
@@ -415,8 +520,76 @@ export function KelolaBeranda() {
       setError(hasil.error.message);
       return;
     }
+    invalidasiBerandaConfig();
     setSukses(`Section "${labelSection(s.kunci)}" disimpan.`);
     muat();
+  }
+
+  async function unggahVideo(file: File, sectionId: string) {
+    setGalatVideo(null);
+    setSectionUnggahVideo(sectionId);
+    const typeValid = file.type === "video/mp4" || file.type === "video/webm";
+    if (!typeValid) {
+      setGalatVideo("Format video harus MP4 atau WebM.");
+      return;
+    }
+    if (file.size < 1 || file.size > 30 * 1024 * 1024) {
+      setGalatVideo("Ukuran video maksimal 30 MB.");
+      return;
+    }
+
+    setMengunggahVideo(true);
+    try {
+      const signResponse = await fetch("/api/admin/upload/hero-video/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType: file.type, size: file.size }),
+      });
+      const signed = await signResponse.json();
+      if (!signResponse.ok || !signed?.data?.uploadUrl) {
+        throw new Error(signed?.error?.message || "Gagal menyiapkan unggahan video.");
+      }
+
+      let uploadResponse: Response;
+      try {
+        uploadResponse = await fetch(signed.data.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+      } catch {
+        throw new Error(
+          "Tidak dapat mengunggah ke R2. Pastikan CORS bucket mengizinkan PUT dari domain situs."
+        );
+      }
+      if (!uploadResponse.ok) {
+        throw new Error(
+          "Unggahan video gagal. Pastikan CORS bucket R2 mengizinkan PUT dari domain situs."
+        );
+      }
+
+      const completeResponse = await fetch(
+        "/api/admin/upload/hero-video/complete",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: signed.data.filename }),
+        }
+      );
+      const complete = await completeResponse.json();
+      if (!completeResponse.ok || !complete?.data?.url) {
+        throw new Error(complete?.error?.message || "Video gagal diverifikasi.");
+      }
+
+      ubahKonfig(sectionId, { videoUrl: complete.data.url });
+      setSukses("Video berhasil diunggah. Simpan section untuk menerapkan.");
+    } catch (error) {
+      setGalatVideo(
+        error instanceof Error ? error.message : "Unggahan video gagal."
+      );
+    } finally {
+      setMengunggahVideo(false);
+    }
   }
 
   function bukaTitikBaru() {
@@ -504,15 +677,21 @@ export function KelolaBeranda() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 sm:space-y-6">
       <div>
         <h1 className="font-serif text-2xl font-normal text-[#0f1012] lg:text-3xl">
           Kelola Beranda
         </h1>
         <p className="mt-1 text-sm text-[#5e5e5e]">
-          Atur section beranda (tampil/tidak, urutan, teks) dan titik sebaran
-          geografis pada peta. Angka statistik &amp; sebaran angkatan mengikuti
-          data alumni/kegiatan secara otomatis.
+          Atur teks dan media Hero/section beranda, serta titik sebaran geografis.
+          Angka statistik &amp; sebaran angkatan mengikuti data alumni/kegiatan
+          secara otomatis.
+        </p>
+        <p className="mt-2 max-w-4xl rounded-xl border border-[#0071e3]/15 bg-[#0071e3]/[0.04] px-3 py-2.5 text-xs leading-relaxed text-[#5e5e5e]">
+          Statistik publik tampil sebagai satu section terpadu. Atur judul,
+          pengantar, urutan, dan warna latar bersama di <strong className="text-[#0f1012]">Statistik “Sejauh Ini”</strong>;
+          gunakan sakelar panel untuk mengatur sebaran angkatan, geografis, dan
+          sektor &amp; relevansi pekerjaan.
         </p>
       </div>
 
@@ -538,31 +717,53 @@ export function KelolaBeranda() {
       {isLoading ? (
         <TableSkeleton rows={4} />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {section.map((s) => {
             const d = draft[s.id] ?? draftDari(s);
+            const bagianStatistik = KUNCI_STATISTIK_TERPADU.some((kunci) => kunci === s.kunci);
+            const panelStatistik = KUNCI_PANEL_STATISTIK.some((kunci) => kunci === s.kunci);
+            const panelGeografis = s.kunci === "sebaran-geografis";
             return (
               <div
                 key={s.id}
-                className="space-y-4 rounded-2xl border border-black/[0.08] bg-[#fdfdfd] p-5"
+                className={`min-w-0 space-y-4 rounded-2xl border bg-[#fdfdfd] p-4 sm:p-5 ${
+                  bagianStatistik
+                    ? "border-[#0071e3]/20 border-l-4 border-l-[#0071e3]"
+                    : "border-black/[0.08]"
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-lg font-bold text-[#0f1012]">
-                    {labelSection(s.kunci)}
-                  </h2>
-                  <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#0f1012]">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-[#0071e3]"
-                      checked={d.aktif}
-                      onChange={(e) => ubahDraft(s.id, { aktif: e.target.checked })}
-                    />
-                    Tampilkan di beranda
-                  </label>
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0f1012]">
+                      {s.kunci === "statistik" ? "Statistik “Sejauh Ini”" : labelSection(s.kunci)}
+                    </h2>
+                    {bagianStatistik && (
+                      <p className="mt-0.5 text-xs text-[#737373]">
+                        {s.kunci === "statistik"
+                          ? "Pengaturan utama untuk seluruh section publik"
+                          : "Panel dalam section Statistik terpadu"}
+                      </p>
+                    )}
+                  </div>
+                  {s.kunci === "hero" ? (
+                    <span className="text-xs font-semibold text-[#5e5e5e]">
+                      Selalu tampil paling atas
+                    </span>
+                  ) : (
+                    <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#0f1012]">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[#0071e3]"
+                        checked={d.aktif}
+                        onChange={(e) => ubahDraft(s.id, { aktif: e.target.checked })}
+                      />
+                      Tampilkan di beranda
+                    </label>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {SECTION_POSISI.some((k) => k === s.kunci) && (
+                  {SECTION_POSISI.some((k) => k === s.kunci) && (!bagianStatistik || s.kunci === "statistik") && (
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
                         Posisi (urutan)
@@ -582,7 +783,7 @@ export function KelolaBeranda() {
                       </p>
                     </div>
                   )}
-                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (
+                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (!panelStatistik || panelGeografis || s.kunci === "statistik") && (
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
                         Label kecil (eyebrow)
@@ -597,9 +798,9 @@ export function KelolaBeranda() {
                       />
                     </div>
                   )}
-                  <div className="sm:col-span-2">
+                  {(!panelStatistik || panelGeografis || s.kunci === "sebaran-angkatan" || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                      Judul
+                      {s.kunci === "hero" ? "Judul utama" : "Judul"}
                     </label>
                     <input
                       type="text"
@@ -607,11 +808,11 @@ export function KelolaBeranda() {
                       onChange={(e) => ubahDraft(s.id, { judul: e.target.value })}
                       className={inputClass}
                     />
-                  </div>
-                  {SECTION_PAKAI_DESKRIPSI.some((k) => k === s.kunci) && (
+                  </div>}
+                  {SECTION_PAKAI_DESKRIPSI.some((k) => k === s.kunci) && (!bagianStatistik || s.kunci === "statistik") && (
                     <div className="sm:col-span-2">
                       <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                        Deskripsi
+                        {s.kunci === "hero" ? "Teks pengantar" : "Deskripsi"}
                       </label>
                       <textarea
                         rows={2}
@@ -623,14 +824,27 @@ export function KelolaBeranda() {
                       />
                     </div>
                   )}
-                  <div className="sm:col-span-2">
+                  {(!bagianStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
+                    <KontrolWarna
+                      label={bagianStatistik ? "Warna latar seluruh section statistik" : `Warna latar seluruh blok · ${labelSection(s.kunci)}`}
+                      nilai={d.warnaBackground}
+                      palet={PALET_WARNA_BACKGROUND}
+                      onUbah={(v) => ubahDraft(s.id, { warnaBackground: v })}
+                    />
+                    <p className="mt-1 text-xs text-[#8f8f8f]">
+                      {bagianStatistik
+                        ? "Warna ini mencakup judul, peta, sebaran angkatan, sektor, relevansi, dan angka utama. Kosongkan untuk memakai warna bawaan."
+                        : "Warna ini diterapkan ke seluruh blok section. Kosongkan untuk memakai warna bawaan."}
+                    </p>
+                  </div>}
+                  {s.kunci !== "hero" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <KontrolWarna
                       label="Warna judul"
                       nilai={d.warnaJudul}
                       onUbah={(v) => ubahDraft(s.id, { warnaJudul: v })}
                     />
-                  </div>
-                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (
+                  </div>}
+                  {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (!panelStatistik || panelGeografis || s.kunci === "statistik") && (
                     <div className="sm:col-span-2">
                       <KontrolWarna
                         label="Warna eyebrow"
@@ -639,13 +853,13 @@ export function KelolaBeranda() {
                       />
                     </div>
                   )}
-                  <div className="sm:col-span-2">
+                  {s.kunci !== "hero" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <KontrolUkuran
                       label="Ukuran judul (%)"
                       nilai={d.ukuranJudul}
                       onUbah={(v) => ubahDraft(s.id, { ukuranJudul: v })}
                     />
-                  </div>
+                  </div>}
                   {SECTION_PAKAI_EYEBROW.some((k) => k === s.kunci) && (
                     <div className="sm:col-span-2">
                       <KontrolUkuran
@@ -657,6 +871,288 @@ export function KelolaBeranda() {
                   )}
                 </div>
 
+                {s.kunci === "hero" && (() => {
+                  const hero = konfigurasiHero(d.konfigurasi);
+                  const fotoYangDitampilkan = hero.fotoUrls.length
+                    ? hero.fotoUrls
+                    : [""];
+                  const ubahFoto = (index: number, url: string | null) => {
+                    const fotoUrls = [...hero.fotoUrls];
+                    if (url) {
+                      fotoUrls[index] = url;
+                    } else {
+                      fotoUrls.splice(index, 1);
+                    }
+                    ubahKonfig(s.id, { fotoUrls });
+                  };
+                  const geserFoto = (index: number, arah: -1 | 1) => {
+                    const tujuan = index + arah;
+                    if (tujuan < 0 || tujuan >= hero.fotoUrls.length) return;
+                    const fotoUrls = [...hero.fotoUrls];
+                    [fotoUrls[index], fotoUrls[tujuan]] = [
+                      fotoUrls[tujuan],
+                      fotoUrls[index],
+                    ];
+                    ubahKonfig(s.id, { fotoUrls });
+                  };
+
+                  return (
+                    <div className="space-y-4 border-t border-black/[0.08] pt-4">
+                      <div className="max-w-sm">
+                        <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
+                          Latar Hero
+                        </label>
+                        <select
+                          value={hero.mode}
+                          onChange={(e) => {
+                            const mode = e.target.value as ModeHero;
+                            ubahKonfig(s.id, {
+                              mode,
+                              fotoUrls:
+                                mode === "foto" ? hero.fotoUrls.slice(0, 1) : hero.fotoUrls,
+                            });
+                          }}
+                          className={inputClass}
+                        >
+                          <option value="video">Video</option>
+                          <option value="foto">Satu foto</option>
+                          <option value="slideshow">Slideshow foto</option>
+                        </select>
+                      </div>
+
+                      {hero.mode === "video" ? (
+                        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+                          <div className="order-2 min-w-0 space-y-3 lg:order-1">
+                            <label className="block text-xs font-semibold text-[#5e5e5e]">
+                              Video latar (MP4 atau WebM, maksimal 30 MB)
+                            </label>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm"
+                              disabled={mengunggahVideo}
+                              onChange={(e) => {
+                                const file = e.currentTarget.files?.[0];
+                                if (file) void unggahVideo(file, s.id);
+                                e.currentTarget.value = "";
+                              }}
+                              className={inputClass}
+                            />
+                            {mengunggahVideo && sectionUnggahVideo === s.id && (
+                              <p role="status" className="text-xs text-[#5e5e5e]">
+                                Mengunggah dan memverifikasi video…
+                              </p>
+                            )}
+                            {galatVideo && sectionUnggahVideo === s.id && (
+                              <p role="alert" className="text-xs text-red-600">
+                                {galatVideo}
+                              </p>
+                            )}
+                            <p className="text-xs text-[#8f8f8f]">
+                              Video diputar tanpa suara. Unggahan baru aktif setelah Hero disimpan.
+                            </p>
+                            <ImageUpload
+                              label="Poster / gambar cadangan"
+                              tipe="hero"
+                              value={hero.posterUrl}
+                              hint="Tampil jika video tidak dapat diputar."
+                              onChange={(url) => ubahKonfig(s.id, { posterUrl: url ?? "" })}
+                            />
+                          </div>
+                          <div className="order-1 min-w-0 lg:order-2">
+                            <p className="mb-2 text-xs font-semibold text-[#5e5e5e]">
+                              Pratinjau video
+                            </p>
+                            <video
+                              key={hero.videoUrl}
+                              src={hero.videoUrl}
+                              poster={hero.posterUrl || HERO_POSTER_BAWAAN}
+                              controls
+                              muted
+                              playsInline
+                              className="aspect-video w-full rounded-xl bg-black object-cover"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm font-semibold text-[#0f1012]">
+                              {hero.mode === "foto" ? "Foto latar" : "Urutan foto slideshow"}
+                            </p>
+                            <p className="mt-1 text-xs text-[#8f8f8f]">
+                              {hero.mode === "foto"
+                                ? "Gunakan satu foto lanskap yang tetap tampil."
+                                : "Foto berganti otomatis dengan transisi lembut setiap 6 detik. Maksimal 5 foto."}
+                            </p>
+                          </div>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            {fotoYangDitampilkan.map((url, index) => (
+                              <div key={`${url || "kosong"}-${index}`} className="space-y-2">
+                                <ImageUpload
+                                  label={`Foto ${index + 1}`}
+                                  tipe="hero"
+                                  value={url || null}
+                                  onChange={(nilai) => ubahFoto(index, nilai)}
+                                />
+                                {url && hero.mode === "slideshow" && (
+                                  <div className="flex flex-wrap justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      title="Geser foto ke kiri"
+                                      aria-label={`Naikkan foto ${index + 1}`}
+                                      disabled={index === 0}
+                                      onClick={() => geserFoto(index, -1)}
+                                      className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
+                                    >
+                                      <ArrowUp weight="bold" />
+                                      Naik
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Geser foto ke kanan"
+                                      aria-label={`Turunkan foto ${index + 1}`}
+                                      disabled={index === hero.fotoUrls.length - 1}
+                                      onClick={() => geserFoto(index, 1)}
+                                      className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
+                                    >
+                                      <ArrowDown weight="bold" />
+                                      Turun
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {hero.mode === "slideshow" &&
+                            hero.fotoUrls.length > 0 &&
+                            hero.fotoUrls.length < 5 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  ubahKonfig(s.id, {
+                                    fotoUrls: [...hero.fotoUrls, ""],
+                                  })
+                                }
+                                className={`${tombolKecil} bg-[#0071e3]/10 text-[#0071e3] hover:bg-[#0071e3]/[0.18]`}
+                              >
+                                <Plus weight="bold" />
+                                Tambah foto
+                              </button>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {s.kunci === "tentang-kami" && (() => {
+                  const media = mediaTentang(d.konfigurasi);
+                  const fotoYangDitampilkan = media.fotoUrls.length ? media.fotoUrls : [""];
+                  const ubahFoto = (index: number, url: string | null) => {
+                    const fotoUrls = [...media.fotoUrls];
+                    if (url) fotoUrls[index] = url;
+                    else fotoUrls.splice(index, 1);
+                    ubahKonfig(s.id, { fotoUrl: fotoUrls[0] ?? "", fotoUrls });
+                  };
+                  const geserFoto = (index: number, arah: -1 | 1) => {
+                    const tujuan = index + arah;
+                    if (tujuan < 0 || tujuan >= media.fotoUrls.length) return;
+                    const fotoUrls = [...media.fotoUrls];
+                    [fotoUrls[index], fotoUrls[tujuan]] = [fotoUrls[tujuan], fotoUrls[index]];
+                    ubahKonfig(s.id, { fotoUrl: fotoUrls[0] ?? "", fotoUrls });
+                  };
+
+                  return (
+                    <div className="space-y-4 border-t border-black/[0.08] pt-4">
+                      <div className="max-w-sm">
+                        <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
+                          Media Tentang Kami
+                        </label>
+                        <select
+                          value={media.mode}
+                          onChange={(e) => {
+                            const mode = e.target.value as ModeMediaTentang;
+                            const fotoUrls = mode === "foto" ? media.fotoUrls.slice(0, 1) : media.fotoUrls;
+                            ubahKonfig(s.id, { mode, fotoUrls, fotoUrl: fotoUrls[0] ?? "" });
+                          }}
+                          className={inputClass}
+                        >
+                          <option value="foto">Satu foto</option>
+                          <option value="slideshow">Slideshow foto</option>
+                          <option value="video">Video</option>
+                        </select>
+                      </div>
+
+                      {media.mode === "video" ? (
+                        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+                          <div className="order-2 min-w-0 space-y-3 lg:order-1">
+                            <label className="block text-xs font-semibold text-[#5e5e5e]">
+                              Video (MP4 atau WebM, maksimal 30 MB)
+                            </label>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm"
+                              disabled={mengunggahVideo}
+                              onChange={(e) => {
+                                const file = e.currentTarget.files?.[0];
+                                if (file) void unggahVideo(file, s.id);
+                                e.currentTarget.value = "";
+                              }}
+                              className={inputClass}
+                            />
+                            {mengunggahVideo && sectionUnggahVideo === s.id && <p role="status" className="text-xs text-[#5e5e5e]">Mengunggah dan memverifikasi video…</p>}
+                            {galatVideo && sectionUnggahVideo === s.id && <p role="alert" className="text-xs text-red-600">{galatVideo}</p>}
+                            <p className="text-xs text-[#8f8f8f]">Video diputar tanpa suara dan berulang. Simpan section untuk menerapkan.</p>
+                            <ImageUpload
+                              label="Poster / gambar cadangan"
+                              tipe="beranda"
+                              value={media.posterUrl || null}
+                              hint="Ditampilkan saat video dimuat atau jika gerakan dikurangi."
+                              onChange={(url) => ubahKonfig(s.id, { posterUrl: url ?? "" })}
+                            />
+                          </div>
+                          <div className="order-1 min-w-0 lg:order-2">
+                            <p className="mb-2 text-xs font-semibold text-[#5e5e5e]">Pratinjau video</p>
+                            {media.videoUrl ? (
+                              <video key={media.videoUrl} src={media.videoUrl} poster={media.posterUrl || undefined} controls muted playsInline className="aspect-video w-full rounded-xl bg-black object-cover" />
+                            ) : (
+                              <div className="flex aspect-video items-center justify-center rounded-xl bg-black/[0.05] text-sm text-[#8f8f8f]">Belum ada video</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-xs text-[#8f8f8f]">
+                            {media.mode === "foto" ? "Gunakan satu foto yang tetap tampil." : "Foto berganti otomatis setiap 6 detik. Slideshow memerlukan 2 sampai 5 foto."}
+                          </p>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            {fotoYangDitampilkan.map((url, index) => (
+                              <div key={`${url || "kosong"}-${index}`} className="space-y-2">
+                                <ImageUpload
+                                  label={media.mode === "foto" ? "Foto Tentang Kami" : `Foto ${index + 1}`}
+                                  tipe="beranda"
+                                  value={url || null}
+                                  hint={media.mode === "foto" ? "Kosongkan untuk memakai foto bawaan." : undefined}
+                                  onChange={(nilai) => ubahFoto(index, nilai)}
+                                />
+                                {url && media.mode === "slideshow" && (
+                                  <div className="flex flex-wrap justify-end gap-2">
+                                    <button type="button" aria-label={`Naikkan foto ${index + 1}`} disabled={index === 0} onClick={() => geserFoto(index, -1)} className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}><ArrowUp weight="bold" />Naik</button>
+                                    <button type="button" aria-label={`Turunkan foto ${index + 1}`} disabled={index === media.fotoUrls.length - 1} onClick={() => geserFoto(index, 1)} className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}><ArrowDown weight="bold" />Turun</button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {media.mode === "slideshow" && media.fotoUrls.length > 0 && media.fotoUrls.length < 5 && (
+                            <button type="button" onClick={() => ubahKonfig(s.id, { fotoUrls: [...media.fotoUrls, ""] })} className={`${tombolKecil} bg-[#0071e3]/10 text-[#0071e3] hover:bg-[#0071e3]/[0.18]`}><Plus weight="bold" />Tambah foto</button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {s.kunci === "lima-cara" && (
                   <div className="space-y-3 border-t border-black/[0.08] pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -666,7 +1162,7 @@ export function KelolaBeranda() {
                       <button
                         type="button"
                         onClick={() => tambahItemLima(s.id)}
-                        disabled={itemsLima(d.konfigurasi).length >= 10}
+                        disabled={itemsLimaUntukEditor(d.konfigurasi).length >= 10}
                         className={`${tombolKecil} bg-[#0071e3]/10 text-[#0071e3] hover:bg-[#0071e3]/[0.18]`}
                       >
                         <Plus weight="bold" />
@@ -674,42 +1170,64 @@ export function KelolaBeranda() {
                       </button>
                     </div>
 
-                    {itemsLima(d.konfigurasi).length === 0 ? (
+                    {itemsLimaUntukEditor(d.konfigurasi).length === 0 ? (
                       <p className="text-xs text-[#5e5e5e]">
                         Belum ada poin — beranda memakai daftar bawaan.
                       </p>
                     ) : (
-                      itemsLima(d.konfigurasi).map((it, i) => (
+                      itemsLimaUntukEditor(d.konfigurasi).map((it, i) => (
                         <div
                           key={i}
-                          className="flex flex-col gap-2 sm:flex-row sm:items-start"
+                          className="grid min-w-0 gap-3 rounded-xl border border-black/[0.06] bg-white p-3 sm:grid-cols-[minmax(180px,0.8fr)_minmax(0,1.2fr)]"
                         >
-                          <input
-                            type="text"
-                            value={it.judul}
-                            onChange={(e) =>
-                              ubahItemLima(s.id, i, { judul: e.target.value })
+                          <div className="space-y-2">
+                            <label className="flex min-h-11 items-center gap-2 text-sm font-medium text-[#0f1012]">
+                              <input
+                                type="checkbox"
+                                checked={it.tampilkanFoto}
+                                onChange={(e) => ubahItemLima(s.id, i, { tampilkanFoto: e.target.checked })}
+                                className="size-4 accent-[#0071e3]"
+                              />
+                              Tampilkan foto di beranda
+                            </label>
+                            {it.tampilkanFoto && <ImageUpload
+                            label={`Foto panel ${i + 1}`}
+                            tipe="beranda"
+                            value={it.fotoUrl || null}
+                            hint="Kosongkan untuk memakai foto bawaan."
+                            onChange={(url) =>
+                              ubahItemLima(s.id, i, { fotoUrl: url ?? "" })
                             }
-                            placeholder={`Judul poin ${i + 1}`}
-                            className={`${inputClass} sm:w-56`}
-                          />
-                          <textarea
-                            rows={2}
-                            value={it.deskripsi}
-                            onChange={(e) =>
-                              ubahItemLima(s.id, i, { deskripsi: e.target.value })
-                            }
-                            placeholder="Deskripsi"
-                            className={`${inputClass} flex-1`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => hapusItemLima(s.id, i)}
-                            className={`${tombolKecil} bg-red-50 text-red-600 hover:bg-red-100`}
-                            aria-label={`Hapus poin ${i + 1}`}
-                          >
-                            <Trash weight="bold" />
-                          </button>
+                          />}
+                          </div>
+                          <div className="flex min-w-0 flex-col gap-2">
+                            <input
+                              type="text"
+                              value={it.judul}
+                              onChange={(e) =>
+                                ubahItemLima(s.id, i, { judul: e.target.value })
+                              }
+                              placeholder={`Judul poin ${i + 1}`}
+                              className={inputClass}
+                            />
+                            <textarea
+                              rows={2}
+                              value={it.deskripsi}
+                              onChange={(e) =>
+                                ubahItemLima(s.id, i, { deskripsi: e.target.value })
+                              }
+                              placeholder="Deskripsi"
+                              className={inputClass}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => hapusItemLima(s.id, i)}
+                              className={`${tombolKecil} self-end bg-red-50 text-red-600 hover:bg-red-100`}
+                              aria-label={`Hapus poin ${i + 1}`}
+                            >
+                              <Trash weight="bold" /> Hapus poin
+                            </button>
+                          </div>
                         </div>
                       ))
                     )}
@@ -785,8 +1303,11 @@ export function KelolaBeranda() {
                   <button
                     type="button"
                     onClick={() => simpanSection(s)}
-                    disabled={menyimpanSection === s.id}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#0071e3] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005fc1] disabled:opacity-60"
+                    disabled={
+                      menyimpanSection === s.id ||
+                      ((s.kunci === "hero" || s.kunci === "tentang-kami") && mengunggahVideo)
+                    }
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005fc1] disabled:opacity-60 sm:w-auto"
                   >
                     <Check weight="bold" />
                     {menyimpanSection === s.id ? "Menyimpan..." : "Simpan"}
@@ -799,7 +1320,7 @@ export function KelolaBeranda() {
       )}
 
       {/* Titik sebaran geografis */}
-      <div className="space-y-4 rounded-2xl border border-black/[0.08] bg-[#fdfdfd] p-5">
+      <div className="min-w-0 space-y-4 rounded-2xl border border-black/[0.08] bg-[#fdfdfd] p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold">

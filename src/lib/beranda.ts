@@ -22,6 +22,7 @@
 import { KONTAK } from "@/data/kontak";
 
 export const KUNCI_SECTION = [
+  "hero",
   "tentang-kami",
   "lima-cara",
   "statistik",
@@ -49,8 +50,36 @@ export type DefaultSection = {
   konfigurasi?: Record<string, unknown>;
 };
 
+export type ModeHero = "video" | "foto" | "slideshow";
+
+export type KonfigurasiHero = {
+  mode: ModeHero;
+  videoUrl: string;
+  posterUrl: string;
+  fotoUrls: string[];
+};
+
+export const HERO_VIDEO_BAWAAN =
+  "/Drone_sweeping_university_campus_20260919064355.mp4";
+export const HERO_POSTER_BAWAAN = "/decoration/hero-arc-blue-green.webp";
+
+export const KONFIGURASI_HERO_DEFAULT: KonfigurasiHero = {
+  mode: "video",
+  videoUrl: HERO_VIDEO_BAWAAN,
+  posterUrl: HERO_POSTER_BAWAAN,
+  fotoUrls: [],
+};
+
 /** Nilai awal tiap section — sengaja sama dengan tampilan beranda sekarang. */
 export const SECTION_DEFAULT: DefaultSection[] = [
+  {
+    kunci: "hero",
+    label: "Hero Beranda",
+    urutan: 0,
+    judul: "Dari Akar Yang Sama, Tumbuh Jauh Bersama",
+    deskripsi: "Ruang jejaring dan kontribusi antar alumni",
+    konfigurasi: KONFIGURASI_HERO_DEFAULT as unknown as Record<string, unknown>,
+  },
   {
     kunci: "tentang-kami",
     label: "Tentang Kami",
@@ -127,9 +156,10 @@ export const SECTION_DEFAULT: DefaultSection[] = [
   },
   {
     kunci: "agenda",
-    label: "Agenda (Terakhir & Akan datang)",
+    // Kunci lama dipertahankan agar sakelar admin existing tetap berlaku.
+    label: "Sebaran sektor & relevansi pekerjaan",
     urutan: 6,
-    judul: "Agenda",
+    judul: "Statistik alumni",
   },
   {
     kunci: "direktori-alumni",
@@ -240,6 +270,7 @@ export const SECTION_PAKAI_EYEBROW: KunciSection[] = [
 
 /** Kunci yang section-nya menampilkan field "Deskripsi". */
 export const SECTION_PAKAI_DESKRIPSI: KunciSection[] = [
+  "hero",
   "tentang-kami",
   "statistik",
   "sebaran-geografis",

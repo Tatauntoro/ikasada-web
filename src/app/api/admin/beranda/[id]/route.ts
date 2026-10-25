@@ -40,6 +40,12 @@ async function handler(
   if (!existing) {
     return notFound("Section tidak ditemukan");
   }
+  if (
+    existing.kunci === "hero" &&
+    (data.aktif !== undefined || data.urutan !== undefined)
+  ) {
+    return badRequest("Hero selalu tampil pada posisi pertama.");
+  }
 
   // Konfigurasi khas section divalidasi sesuai kuncinya (lima-cara / kontak).
   let konfigurasiBaru: Prisma.InputJsonValue | undefined;
@@ -70,6 +76,9 @@ async function handler(
         ...(data.warnaEyebrow !== undefined
           ? { warnaEyebrow: data.warnaEyebrow }
           : {}),
+        ...(data.warnaBackground !== undefined
+          ? { warnaBackground: data.warnaBackground }
+          : {}),
         ...(data.ukuranJudul !== undefined
           ? { ukuranJudul: data.ukuranJudul }
           : {}),
@@ -96,6 +105,7 @@ async function handler(
           deskripsi: existing.deskripsi,
           warnaJudul: existing.warnaJudul,
           warnaEyebrow: existing.warnaEyebrow,
+          warnaBackground: existing.warnaBackground,
           ukuranJudul: existing.ukuranJudul,
           ukuranEyebrow: existing.ukuranEyebrow,
           konfigurasi: existing.konfigurasi,
@@ -108,6 +118,7 @@ async function handler(
           deskripsi: hasil.deskripsi,
           warnaJudul: hasil.warnaJudul,
           warnaEyebrow: hasil.warnaEyebrow,
+          warnaBackground: hasil.warnaBackground,
           ukuranJudul: hasil.ukuranJudul,
           ukuranEyebrow: hasil.ukuranEyebrow,
           konfigurasi: hasil.konfigurasi,

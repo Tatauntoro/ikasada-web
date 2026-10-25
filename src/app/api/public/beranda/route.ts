@@ -27,7 +27,7 @@ async function handler(req: NextRequest): Promise<Response> {
     }),
   ]);
 
-  const sections =
+  const sectionsAda =
     section.length > 0
       ? section.map((s) => ({
           kunci: s.kunci,
@@ -38,6 +38,7 @@ async function handler(req: NextRequest): Promise<Response> {
           deskripsi: s.deskripsi,
           warnaJudul: s.warnaJudul,
           warnaEyebrow: s.warnaEyebrow,
+          warnaBackground: s.warnaBackground,
           ukuranJudul: s.ukuranJudul,
           ukuranEyebrow: s.ukuranEyebrow,
           konfigurasi: s.konfigurasi,
@@ -51,10 +52,33 @@ async function handler(req: NextRequest): Promise<Response> {
           deskripsi: s.deskripsi ?? null,
           warnaJudul: null,
           warnaEyebrow: null,
+          warnaBackground: null,
           ukuranJudul: null,
           ukuranEyebrow: null,
           konfigurasi: s.konfigurasi ?? null,
         }));
+
+  const defaultHero = SECTION_DEFAULT.find((s) => s.kunci === "hero");
+  const sections =
+    sectionsAda.some((s) => s.kunci === "hero") || !defaultHero
+      ? sectionsAda
+      : [
+          ...sectionsAda,
+          {
+            kunci: "hero",
+            aktif: true,
+            urutan: defaultHero.urutan,
+            judul: defaultHero.judul ?? null,
+            eyebrow: defaultHero.eyebrow ?? null,
+            deskripsi: defaultHero.deskripsi ?? null,
+            warnaJudul: null,
+            warnaEyebrow: null,
+            warnaBackground: null,
+            ukuranJudul: null,
+            ukuranEyebrow: null,
+            konfigurasi: defaultHero.konfigurasi ?? null,
+          },
+        ];
 
   return ok({ sections, sebaran });
 }
