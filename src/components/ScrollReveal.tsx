@@ -82,7 +82,7 @@ export default function ScrollReveal() {
 
     daftarkan(document);
     document
-      .querySelectorAll(".reveal-section")
+      .querySelectorAll<HTMLElement>(".reveal-section")
       .forEach((el) => {
         if (lewatiAnimasiMasuk) {
           el.classList.add("revealed");
