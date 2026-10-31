@@ -1,0 +1,378 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Preview Kegiatan × WaysStory — IKASADA</title><style>.intro {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(48px, 5vw, 72px) 24px clamp(60px, 5vw, 80px);
+  background: #fff;
+  color: #17191c;
+  text-align: center;
+}
+
+.kicker {
+  margin: 0 0 12px;
+  color: #0068d6;
+  font-size: calc(clamp(16px, 1.35vw, 20px) * var(--skala-eyebrow, 1));
+  letter-spacing: -0.035em;
+}
+
+.introTitle {
+  max-width: 950px;
+  margin: 0;
+  font-size: calc(clamp(45px, 5vw, 72px) * var(--skala-judul, 1));
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 1.12;
+  padding-bottom: 0.08em;
+  text-wrap: balance;
+}
+
+.scrollHint {
+  width: min(640px, 100%);
+  margin-top: 34px;
+  border-top: 1px solid #17191c36;
+  padding-top: 14px;
+  color: #5e5e5e;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.story {
+  position: relative;
+  height: var(--ways-desktop-height);
+}
+
+.pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 580px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #076bda;
+}
+
+.stepNav {
+  position: absolute;
+  z-index: 20;
+  top: 108px;
+  right: clamp(22px, 3vw, 42px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 100px;
+  background: #fff;
+  box-shadow: 0 4px 20px #17191c16;
+}
+
+.stepNav button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #70757b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 200ms, color 200ms;
+}
+
+.stepNav button[aria-current="step"],
+.stepNav button:hover {
+  background: #17191c;
+  color: #fff;
+}
+
+.stepNav button:focus-visible {
+  outline: 2px solid #17191c;
+  outline-offset: 3px;
+}
+
+.panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 34%);
+  align-items: center;
+  gap: clamp(20px, 3vw, 54px);
+  overflow: hidden;
+  padding: clamp(120px, 12vh, 150px) clamp(34px, 5vw, 84px) clamp(35px, 6vh, 72px);
+  background: var(--surface);
+  color: var(--ink);
+  will-change: transform;
+}
+
+.panel ~ .panel {
+  transform: translate3d(110vw, 0, 0);
+}
+
+.panel0 { --surface: var(--ways-first-surface); --ink: var(--ways-first-ink); }
+.panel1 { --surface: #f4c430; --ink: #17191c; }
+.panel2 { --surface: #087e59; --ink: #fff; }
+.panel3 { --surface: #f27b65; --ink: #17191c; }
+.panel4 { --surface: #b8d9f4; --ink: #17191c; }
+
+.number {
+  display: block;
+  width: 100%;
+  align-self: center;
+  justify-self: start;
+  font-size: clamp(270px, 72vh, 680px);
+  font-weight: 500;
+  letter-spacing: -0.13em;
+  line-height: 0.76;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 410px;
+  max-height: calc(100svh - 155px);
+  justify-self: end;
+  align-self: end;
+  overflow-y: auto;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  margin-bottom: 22px;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+.index {
+  display: block;
+  margin-bottom: 26px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.copy h3 {
+  margin: 0 0 15px;
+  font-size: clamp(25px, 2.2vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 1.08;
+}
+
+.copy p {
+  margin: 0;
+  font-size: clamp(17px, 1.5vw, 23px);
+  letter-spacing: -0.045em;
+  line-height: 1.25;
+}
+
+.photo {
+  position: relative;
+  width: 100%;
+  height: clamp(125px, 20vh, 205px);
+  margin-top: clamp(20px, 4vh, 38px);
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.photo img {
+  object-fit: cover;
+  filter: saturate(0.86);
+}
+
+@media (max-width: 900px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr) minmax(215px, 38%);
+    padding-inline: 34px;
+  }
+
+  .number { font-size: clamp(260px, 58vh, 500px); }
+  .photo { height: 160px; }
+}
+
+@media (max-width: 700px) {
+  .intro {
+    min-height: 0;
+    padding: 46px 20px 58px;
+  }
+
+  .introTitle { font-size: calc(clamp(37px, 8.8vw, 48px) * var(--skala-judul, 1)); }
+  .story { height: var(--ways-mobile-height); }
+  .pin { min-height: 0; }
+  .stepNav { display: none; }
+
+  .panel {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: 47% 53%;
+    gap: 0;
+    padding: 78px 0 28px;
+  }
+
+  .panel ~ .panel { transform: translate3d(0, 100%, 0); }
+
+  .panel::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 47%;
+    width: 1px;
+    background: currentColor;
+    content: "";
+    opacity: 0.5;
+  }
+
+  .number {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    align-items: center;
+    overflow: hidden;
+    font-size: clamp(450px, 154vw, 680px);
+    line-height: 1;
+    text-indent: 0;
+  }
+
+  .copy {
+    width: 100%;
+    max-width: none;
+    max-height: calc(100svh - 106px);
+    align-self: end;
+    padding: 0 clamp(11px, 4vw, 20px);
+  }
+
+  .rule { margin-bottom: 14px; }
+  .index { margin-bottom: 13px; font-size: 9px; letter-spacing: 0.08em; }
+  .copy h3 { font-size: clamp(19px, 5.5vw, 25px); }
+  .copy p { font-size: clamp(14px, 3.8vw, 17px); line-height: 1.26; letter-spacing: -0.025em; }
+  .photo { height: clamp(90px, 13svh, 130px); margin-top: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story { height: auto; }
+  .pin { position: relative; height: auto; min-height: 0; overflow: visible; }
+  .stepNav { display: none; }
+  .panel, .panel ~ .panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    min-height: 540px;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+@media (max-width: 700px) and (prefers-reduced-motion: reduce) {
+  .panel, .panel ~ .panel { min-height: 100svh; }
+}
+
+
+*{box-sizing:border-box}body{margin:0;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;color:#17191c;background:#fff;-webkit-font-smoothing:antialiased}button,input{font:inherit}a{color:inherit}button,a,input{ -webkit-tap-highlight-color:transparent}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid currentColor;outline-offset:5px}.preview-bar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:15px 4vw;border-bottom:1px solid #dde3eb;font-size:12px;line-height:1.5}.motion-control{display:flex;gap:9px;align-items:center;white-space:nowrap}.motion-control input{width:18px;height:18px;accent-color:#0b5ed7}.event-meta{display:grid;gap:5px;margin:0 0 16px;font-size:12px;line-height:1.5;letter-spacing:0}.event-meta time{font-weight:600}.event-meta span{opacity:.85}.photo img{position:absolute;inset:0;display:block;width:100%;height:100%}.photo-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;text-align:center}.photo img[hidden],.photo-fallback[hidden]{display:none}.detail{display:inline-flex;align-items:center;gap:20px;min-height:44px;padding:7px 0;background:none;border:0;border-bottom:1px solid currentColor;color:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:18px}.detail span{font-size:21px}.copy h3{line-height:1.13;padding-bottom:.04em}.after{padding:65px 4vw 85px;background:white;position:relative;min-height:55svh;display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}.after h2{font-size:clamp(32px,4vw,50px);font-weight:400;letter-spacing:-.055em;line-height:1.15;margin:0 0 22px}.after p{font-size:13px;line-height:1.7;max-width:60ch;color:#566477}.all{display:inline-flex;align-items:center;gap:20px;align-self:start;background:#0b5ed7;color:white;border-radius:99px;padding:19px 26px;text-decoration:none;font-size:13px;font-weight:600}.after .back{display:inline-block;margin-top:15px;text-underline-offset:5px}.preview-note{font-size:11px!important}.stepNav button{min-width:36px;min-height:36px}
+dialog{width:min(600px,calc(100% - 32px));max-height:88svh;padding:28px;border:0;border-radius:8px;color:#17191c;background:white}dialog::backdrop{background:#10182099}.dialog-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;color:#0b5ed7;text-transform:uppercase}.close{border:1px solid #dce1e6;border-radius:50%;width:44px;height:44px;background:white;font-size:25px;cursor:pointer}dialog h2{font-size:32px;font-weight:500;letter-spacing:-.05em;line-height:1.15}dialog p{font-size:15px;line-height:1.6}.dialog-meta{color:#566477;border-block:1px solid #dce1e6;padding-block:16px}
+html[data-reduced] .story{height:auto}html[data-reduced] .pin{position:relative;height:auto;min-height:0;overflow:visible}html[data-reduced] .stepNav{display:none}html[data-reduced] .panel,html[data-reduced] .panel ~ .panel{position:relative;inset:auto;width:100%;min-height:540px;transform:none!important;will-change:auto}html[data-reduced] .copy{max-height:none;overflow:visible}
+@media(max-width:700px){.preview-bar{flex-wrap:wrap;gap:9px;padding:14px 20px;font-size:11px}.event-meta{font-size:10px;gap:3px;margin-bottom:12px}.detail{font-size:11px;gap:12px;margin-top:12px}.copy h3{font-size:clamp(19px,5.5vw,25px)}.after{padding:48px 24px 70px}.after h2{font-size:34px}.photo{margin-top:16px}html[data-reduced] .panel,html[data-reduced] .panel ~ .panel{min-height:100svh}}
+@media(prefers-reduced-motion:reduce){.copy{max-height:none;overflow:visible}}
+</style></head><body><div class="preview-bar"><span>IKASADA / Kegiatan dengan pola WaysStory existing</span><label class="motion-control"><input id="reduce-motion" type="checkbox">Kurangi gerakan</label><a href="#preview-info">Tentang preview ↗</a></div><main><header class="intro" id="awal"><p class="kicker">Kegiatan</p><h1 class="introTitle">Hadiri Kegiatan Kami.</h1><div class="scrollHint">Gulir untuk menjelajah ↓</div></header><section class="story" style="--ways-desktop-height:550svh;--ways-mobile-height:430svh;--ways-first-surface:#0b5ed7;--ways-first-ink:#fff" aria-label="Jelajahi kegiatan IKASADA"><div class="pin"><nav class="stepNav" aria-label="Pilih kegiatan"><button type="button" aria-label="Lihat kegiatan 1: Pameran Manuskrip &amp; Artefak Sastra Daerah">1</button><button type="button" aria-label="Lihat kegiatan 2: Diskusi Publik: Masa Depan Bahasa Daerah di Era AI">2</button><button type="button" aria-label="Lihat kegiatan 3: Kongres Tahunan &amp; Gathering Alumni">3</button><button type="button" aria-label="Lihat kegiatan 4: Malam Seni Pertunjukan Sastra Nusantara">4</button></nav><article class="panel panel0" aria-label="Kegiatan 1: Pameran Manuskrip &amp; Artefak Sastra Daerah" aria-hidden="false" style="z-index:1;--surface:#0b5ed7;--ink:#fff"><span class="number" aria-hidden="true">1</span><div class="copy"><div class="rule"></div><span class="index">01 / 04 · Lainnya</span><div class="event-meta"><time datetime="2027-02-25T10:00:00.000Z">25 Februari 2027</time><span>Perpustakaan Pusat UI Depok</span></div><h3>Pameran Manuskrip &amp; Artefak Sastra Daerah</h3><p>Pameran artefak tulisan kuno koleksi dosen dan alumni Sastra Daerah FIB UI.</p><div class="photo"><img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&amp;fit=crop&amp;q=80&amp;w=800" alt="" width="800" height="600"><span class="photo-fallback" hidden>Gambar tidak tersedia</span></div><button class="detail" data-detail="0">Lihat kegiatan <span aria-hidden="true">↗</span></button></div></article><article class="panel panel1" aria-label="Kegiatan 2: Diskusi Publik: Masa Depan Bahasa Daerah di Era AI" aria-hidden="true" style="z-index:2;--surface:#f4c430;--ink:#101820"><span class="number" aria-hidden="true">2</span><div class="copy"><div class="rule"></div><span class="index">02 / 04 · Seminar</span><div class="event-meta"><time datetime="2027-01-18T13:00:00.000Z">18 Januari 2027</time><span>Daring (Zoom Webinar)</span></div><h3>Diskusi Publik: Masa Depan Bahasa Daerah di Era AI</h3><p>Webinar interaktif membahas peran generasi muda dan teknologi AI dalam pelestarian dialek Nusantara.</p><div class="photo"><img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&amp;fit=crop&amp;q=80&amp;w=800" alt="" width="800" height="600"><span class="photo-fallback" hidden>Gambar tidak tersedia</span></div><button class="detail" data-detail="1">Lihat kegiatan <span aria-hidden="true">↗</span></button></div></article><article class="panel panel2" aria-label="Kegiatan 3: Kongres Tahunan &amp; Gathering Alumni" aria-hidden="true" style="z-index:3;--surface:#eaf4ff;--ink:#101820"><span class="number" aria-hidden="true">3</span><div class="copy"><div class="rule"></div><span class="index">03 / 04 · Gathering</span><div class="event-meta"><time datetime="2026-12-20T09:00:00.000Z">20 Desember 2026</time><span>Auditorium FIB UI</span></div><h3>Kongres Tahunan &amp; Gathering Alumni</h3><p>Penyampaian laporan kepengurusan dan jejaring karir alumni muda Sastra Daerah FIB UI.</p><div class="photo"><img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&amp;fit=crop&amp;q=80&amp;w=800" alt="" width="800" height="600"><span class="photo-fallback" hidden>Gambar tidak tersedia</span></div><button class="detail" data-detail="2">Lihat kegiatan <span aria-hidden="true">↗</span></button></div></article><article class="panel panel3" aria-label="Kegiatan 4: Malam Seni Pertunjukan Sastra Nusantara" aria-hidden="true" style="z-index:4;--surface:#164caa;--ink:#fff"><span class="number" aria-hidden="true">4</span><div class="copy"><div class="rule"></div><span class="index">04 / 04 · Gathering</span><div class="event-meta"><time datetime="2026-11-12T18:00:00.000Z">13 November 2026</time><span>Makara Art Center UI</span></div><h3>Malam Seni Pertunjukan Sastra Nusantara</h3><p>Pagelaran Macapat, Tembang Sunda, dan Kolaborasi Teater Tradisional antar-angkatan.</p><div class="photo"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&amp;fit=crop&amp;q=80&amp;w=800" alt="" width="800" height="600"><span class="photo-fallback" hidden>Gambar tidak tersedia</span></div><button class="detail" data-detail="3">Lihat kegiatan <span aria-hidden="true">↗</span></button></div></article></div></section><footer class="after" id="preview-info"><div><h2>Masih banyak ruang<br>untuk bertemu.</h2><p>Preview Kegiatan dengan layout, sticky, dan rumus transisi dari WaysStory.tsx serta WaysStory.module.css di project. Desktop: panel masuk dari kanan dan menyisakan strip sebelumnya. Mobile: panel masuk dari bawah, dengan angka di kiri dan informasi di kanan.</p><p class="preview-note">Empat kegiatan dari API publik localhost, snapshot 31 Oktober 2026. Foto mengikuti sumber publik dan dapat berupa ilustrasi. Belum diterapkan ke beranda.</p><a class="back" href="#awal">Kembali ke awal ↑</a></div><a class="all" href="http://localhost:3000/event" target="_blank" rel="noopener">Lihat semua agenda <span aria-hidden="true">↗</span></a></footer></main><dialog aria-labelledby="detail-title"><div class="dialog-top"><span>Detail kegiatan · preview</span><button class="close" aria-label="Tutup detail">×</button></div><h2 id="detail-title"></h2><p class="dialog-meta" id="detail-meta"></p><p id="detail-description"></p><p class="preview-note">Detail ini hanya untuk meninjau desain. Pendaftaran tidak dilakukan dari preview.</p></dialog><script id="snapshot" type="application/json">[{"id": "212fe4b3-d65a-498e-ae77-8b94ed7cc372", "slug": "pameran-manuskrip-artefak-sastra-daerah", "judul": "Pameran Manuskrip & Artefak Sastra Daerah", "deskripsiSingkat": "Pameran artefak tulisan kuno koleksi dosen dan alumni Sastra Daerah FIB UI.", "deskripsiLengkap": null, "tanggalMulai": "2027-02-25T10:00:00.000Z", "tanggalSelesai": null, "lokasi": "Perpustakaan Pusat UI Depok", "kategori": "LAINNYA", "gambarThumbnailUrl": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=800", "videoYoutubeUrl": null, "videoYoutubeId": null, "linkPendaftaran": null}, {"id": "adf2be96-2c57-4835-82d4-c6ccc9897b83", "slug": "diskusi-publik-masa-depan-bahasa-daerah-di-era-ai", "judul": "Diskusi Publik: Masa Depan Bahasa Daerah di Era AI", "deskripsiSingkat": "Webinar interaktif membahas peran generasi muda dan teknologi AI dalam pelestarian dialek Nusantara.", "deskripsiLengkap": null, "tanggalMulai": "2027-01-18T13:00:00.000Z", "tanggalSelesai": null, "lokasi": "Daring (Zoom Webinar)", "kategori": "SEMINAR", "gambarThumbnailUrl": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800", "videoYoutubeUrl": null, "videoYoutubeId": null, "linkPendaftaran": null}, {"id": "16dd08ca-c14a-46c6-8af5-97030efca949", "slug": "kongres-tahunan-gathering-alumni", "judul": "Kongres Tahunan & Gathering Alumni", "deskripsiSingkat": "Penyampaian laporan kepengurusan dan jejaring karir alumni muda Sastra Daerah FIB UI.", "deskripsiLengkap": null, "tanggalMulai": "2026-12-20T09:00:00.000Z", "tanggalSelesai": null, "lokasi": "Auditorium FIB UI", "kategori": "GATHERING", "gambarThumbnailUrl": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800", "videoYoutubeUrl": null, "videoYoutubeId": null, "linkPendaftaran": null}, {"id": "592eac3e-ef64-4d4d-9c08-af22eb261c10", "slug": "malam-seni-pertunjukan-sastra-nusantara", "judul": "Malam Seni Pertunjukan Sastra Nusantara", "deskripsiSingkat": "Pagelaran Macapat, Tembang Sunda, dan Kolaborasi Teater Tradisional antar-angkatan.", "deskripsiLengkap": null, "tanggalMulai": "2026-11-12T18:00:00.000Z", "tanggalSelesai": null, "lokasi": "Makara Art Center UI", "kategori": "GATHERING", "gambarThumbnailUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800", "videoYoutubeUrl": null, "videoYoutubeId": null, "linkPendaftaran": null}]</script><script>(() => {
+const story=document.querySelector('.story'),pin=document.querySelector('.pin');
+const panels=Array.from(story.querySelectorAll('.panel'));
+const buttons=Array.from(story.querySelectorAll('.stepNav button'));
+const mobile=matchMedia('(max-width: 700px)'),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const toggle=document.querySelector('#reduce-motion');
+const isReduced=()=>reduced.matches||toggle.checked;
+const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+let frame=0;
+    function render() {
+      frame = 0;
+      if (!story || !pin) return;
+
+      if (isReduced()) {
+        panels.forEach((panel) => {
+          panel.style.removeProperty("left");
+          panel.style.removeProperty("width");
+          panel.style.removeProperty("transform");
+          panel.removeAttribute("aria-hidden");
+          panel.inert = false;
+        });
+        return;
+      }
+
+      const start = story.getBoundingClientRect().top + window.scrollY;
+      const range = Math.max(1, story.offsetHeight - pin.offsetHeight);
+      const progress = clamp((window.scrollY - start) / range, 0, 1) * Math.max(0, panels.length - 1);
+      const width = pin.clientWidth;
+      const strip = Math.min(width * 0.092, 135);
+
+      panels.forEach((panel, index) => {
+        if (mobile.matches) {
+          panel.style.removeProperty("left");
+          panel.style.removeProperty("width");
+          const entry = index === 0 ? 1 : clamp(progress - (index - 1), 0, 1);
+          panel.style.transform = `translate3d(0, ${(1 - entry) * 100}%, 0)`;
+        } else {
+          const offset = index * strip;
+          const entry = index === 0 ? 1 : clamp((progress - (index - 1) - 0.22) / 0.68, 0, 1);
+          const movement = (1 - entry) ** 3 * (width - offset);
+          panel.style.left = `${offset}px`;
+          panel.style.width = `${width - offset}px`;
+          panel.style.transform = `translate3d(${movement}px, 0, 0)`;
+        }
+        panel.setAttribute(
+          "aria-hidden",
+          index === Math.floor(progress) || index === Math.ceil(progress) ? "false" : "true"
+        );
+      });
+
+      panels.forEach(panel => { panel.inert = panel.getAttribute("aria-hidden") === "true"; });
+      const current = clamp(Math.round(progress), 0, buttons.length - 1);
+      buttons.forEach((button, index) => {
+        if (index === current) button.setAttribute("aria-current", "step");
+        else button.removeAttribute("aria-current");
+      });
+    }
+
+    function schedule() {
+      if (!frame) frame = window.requestAnimationFrame(render);
+    }
+
+    const jump = (index) => {
+      if (!story || !pin) return;
+      const start = story.getBoundingClientRect().top + window.scrollY;
+      const range = Math.max(0, story.offsetHeight - pin.offsetHeight);
+      window.scrollTo({
+        top: start + (buttons.length > 1 ? (range * index) / (buttons.length - 1) : 0),
+        behavior: isReduced() ? "auto" : "smooth",
+      });
+    };
+
+    const buttonHandlers = buttons.map((button, index) => {
+      const handler = () => jump(index);
+      button.addEventListener("click", handler);
+      return handler;
+    });
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    mobile.addEventListener("change", schedule);
+    reduced.addEventListener("change", schedule);
+    schedule();
+
+
+function syncMotion(){toggle.disabled=reduced.matches;if(reduced.matches)toggle.checked=true;document.documentElement.toggleAttribute('data-reduced',isReduced());schedule()}
+toggle.addEventListener('change',syncMotion);reduced.addEventListener('change',syncMotion);syncMotion();
+const dialog=document.querySelector('dialog');let restoreFocus;
+const items=JSON.parse(document.querySelector('#snapshot').textContent);
+const formatter=new Intl.DateTimeFormat('id-ID',{dateStyle:'long',timeZone:'Asia/Jakarta'});
+document.querySelectorAll('[data-detail]').forEach(button=>button.addEventListener('click',()=>{const item=items[Number(button.dataset.detail)];restoreFocus=button;document.querySelector('#detail-title').textContent=item.judul;document.querySelector('#detail-meta').textContent=formatter.format(new Date(item.tanggalMulai))+' · '+item.lokasi;document.querySelector('#detail-description').textContent=item.deskripsiSingkat;dialog.showModal()}));
+document.querySelector('.close').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>restoreFocus?.focus());
+document.querySelectorAll('.photo img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;img.nextElementSibling.hidden=false}));
+})();
+</script></body></html>

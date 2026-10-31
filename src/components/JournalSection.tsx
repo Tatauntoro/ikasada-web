@@ -1,5 +1,7 @@
 "use client";
 
+import { bacaDataBeranda, simpanDataBeranda } from "@/lib/home-data-cache";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
@@ -133,11 +135,13 @@ function KerjasamaCards({ items }: { items: PublicKerjasama[] }) {
 
 export default function JournalSection() {
   const beranda = useBerandaConfig();
-  const [items, setItems] = useState<PublicKerjasama[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [items, setItems] = useState<PublicKerjasama[]>(() => bacaDataBeranda<PublicKerjasama[]>("kerjasama") ?? []);
+  const [isLoading, setIsLoading] = useState(() => bacaDataBeranda("kerjasama") === undefined);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    const cached = bacaDataBeranda<PublicKerjasama[]>("kerjasama");
+    if (cached !== undefined) { setItems(cached); setIsLoading(false); return; }
     setIsLoading(true);
     setError(null);
 
@@ -150,6 +154,7 @@ export default function JournalSection() {
       return;
     }
 
+    simpanDataBeranda("kerjasama", hasil.data);
     setItems(hasil.data);
     setIsLoading(false);
   }, []);

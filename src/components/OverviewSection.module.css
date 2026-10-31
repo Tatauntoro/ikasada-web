@@ -94,7 +94,12 @@
   isolation: isolate;
 }
 
-.aboutVisual > img {
+.aboutMedia {
+  position: absolute;
+  inset: 0 0 -20%;
+}
+
+.aboutMedia img {
   object-fit: cover;
   object-position: center 44%;
 }

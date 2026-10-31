@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DownloadSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
+import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import { PratinjauArsip } from "@/components/arsip/PratinjauArsip";
@@ -80,6 +81,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
   return (
     <div className="public-page relative z-10 min-h-screen bg-white">
       <section className="mx-auto w-full max-w-[900px] px-6 py-24">
+        <BackButton fallback="/arsip" />
         <Breadcrumb
           className="mb-10"
           items={[

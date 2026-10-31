@@ -365,7 +365,8 @@ html.light body {
   font-size: clamp(64px, 5.9vw, 94px);
   font-weight: 400;
   letter-spacing: -0.055em;
-  line-height: 1;
+  line-height: 1.12;
+  padding-bottom: 0.08em;
   white-space: normal;
 }
 
@@ -591,6 +592,13 @@ html.light body {
   transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
     transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+.reveal-item.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-item.revealed[data-reveal-instant="true"] {
+  transition: none;
+}
 .reveal-section.revealed .reveal-item {
   opacity: 1;
   transform: translateY(0);
@@ -607,6 +615,14 @@ html.light body {
 /* Saat browser mengembalikan halaman dari riwayat, tampilkan isi langsung;
    animasi masuk yang diputar ulang bersamaan dengan pemulihan scroll terasa
    seperti halaman bergeser atau bergetar. */
+html[data-scroll-return-pending="true"] .public-page {
+  visibility: hidden;
+}
+
+html[data-history-restoring="true"] {
+  overflow-anchor: none;
+}
+
 html[data-history-restoring="true"] .public-page .reveal-section,
 html[data-history-restoring="true"] .public-page .reveal-item,
 html[data-history-restoring="true"] .public-page [data-editorial-heading],

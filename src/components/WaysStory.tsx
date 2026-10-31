@@ -12,6 +12,11 @@ export type WayStoryItem = {
   showImage?: boolean;
   backgroundColor?: string;
   inkColor?: string;
+  label?: string;
+  metadata?: ReactNode;
+  action?: ReactNode;
+  subtitle?: ReactNode;
+  media?: ReactNode;
 };
 
 type Props = {
@@ -22,6 +27,10 @@ type Props = {
   firstBackground?: string;
   firstInk: string;
   items: WayStoryItem[];
+  sectionId?: string;
+  showIntro?: boolean;
+  itemNoun?: string;
+  variant?: "default" | "archive";
 };
 
 const labels = ["Bertemu", "Berkolaborasi", "Berkegiatan", "Bertumbuh", "Terhubung"];
@@ -38,6 +47,10 @@ export default function WaysStory({
   firstBackground,
   firstInk,
   items,
+  sectionId = "lima-cara",
+  showIntro = true,
+  itemNoun = "cara",
+  variant = "default",
 }: Props) {
   const storyRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -70,6 +83,7 @@ export default function WaysStory({
           panel.style.removeProperty("width");
           panel.style.removeProperty("transform");
           panel.removeAttribute("aria-hidden");
+          panel.inert = false;
         });
         return;
       }
@@ -99,6 +113,8 @@ export default function WaysStory({
           index === Math.floor(progress) || index === Math.ceil(progress) ? "false" : "true"
         );
       });
+
+      panels.forEach(panel => { panel.inert = panel.getAttribute("aria-hidden") === "true"; });
 
       const current = clamp(Math.round(progress), 0, buttons.length - 1);
       buttons.forEach((button, index) => {
@@ -144,26 +160,26 @@ export default function WaysStory({
 
   return (
     <>
-      <header id="tiga-cara" className={styles.intro} aria-labelledby="ways-title">
+      {showIntro && <header id={`${sectionId}-intro`} className={styles.intro} aria-labelledby={`${sectionId}-title`}>
         <p className={styles.kicker} style={kickerStyle}>{kicker}</p>
-        <h2 id="ways-title" className={styles.introTitle} style={titleStyle}>{title}</h2>
+        <h2 id={`${sectionId}-title`} className={styles.introTitle} style={titleStyle}>{title}</h2>
         <div className={styles.scrollHint}>Gulir untuk menjelajah ↓</div>
-      </header>
+      </header>}
 
       <section
-        id="lima-cara"
+        id={sectionId}
         ref={storyRef}
-        className={styles.story}
+        className={`${styles.story} ${variant === "archive" ? styles.archive : ""}`}
         style={storyStyle}
-        aria-label="Lima cara kami menyambung"
+        aria-label={`Jelajahi ${itemNoun} IKASADA`}
       >
         <div ref={pinRef} className={styles.pin}>
-          <nav className={styles.stepNav} aria-label="Pilih cara menyambung">
+          <nav className={styles.stepNav} aria-label={`Pilih ${itemNoun}`}>
             {items.map((item, index) => (
               <button
                 key={index}
                 type="button"
-                aria-label={`Lihat cara ${index + 1}: ${item.title}`}
+                aria-label={`Lihat ${itemNoun} ${index + 1}: ${item.title}`}
                 aria-current={index === 0 ? "step" : undefined}
               >
                 {index + 1}
@@ -174,7 +190,7 @@ export default function WaysStory({
             <article
               key={index}
               className={`${styles.panel} ${styles[`panel${index % 5}`]}`}
-              aria-label={`Cara ${index + 1}: ${item.title}`}
+              aria-label={`${itemNoun} ${index + 1}: ${item.title}`}
               aria-hidden={index > 0}
               style={{
                 zIndex: index + 1,
@@ -191,11 +207,14 @@ export default function WaysStory({
                 <div className={styles.rule} />
                 <span className={styles.index}>
                   {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
-                  {labels[index] ? ` · ${labels[index]}` : ""}
+                  {(item.label ?? labels[index]) ? ` · ${item.label ?? labels[index]}` : ""}
                 </span>
+                {item.metadata && <div className={styles.metadata}>{item.metadata}</div>}
                 <h3>{item.title}</h3>
+                {item.subtitle}
                 <p>{item.description}</p>
-                {item.showImage !== false && (
+                {item.media}
+                {item.media == null && item.showImage !== false && item.image && (
                   <div className={styles.photo}>
                     <Image
                       src={item.image}
@@ -206,6 +225,7 @@ export default function WaysStory({
                     />
                   </div>
                 )}
+                {item.action && <div className={styles.action}>{item.action}</div>}
               </div>
             </article>
           ))}

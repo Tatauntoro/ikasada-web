@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 import SplitType from "split-type";
-import WaysStory from "./WaysStory";
+import FlowWaysStory from "./FlowWaysStory";
 import AboutMedia from "./AboutMedia";
 import {
   sectionAktif,
@@ -269,6 +272,25 @@ export default function OverviewSection() {
     };
   }, [judulTentang, bodyTentang, tentangAktif]);
 
+  useEffect(() => {
+    if (!tentangAktif || !ref.current) return;
+    const match = gsap.matchMedia();
+    match.add({
+      mobile: "(max-width: 700px)",
+      desktop: "(min-width: 701px)",
+      reduced: "(prefers-reduced-motion: reduce)",
+    }, (context) => {
+      if (context.conditions?.reduced) return;
+      const media = ref.current?.querySelector(`.${styles.aboutMedia}`);
+      if (!media) return;
+      gsap.fromTo(media, { yPercent: context.conditions?.mobile ? -6 : -8 }, {
+        yPercent: 0, ease: "none",
+        scrollTrigger: { trigger: ref.current?.querySelector("#overview"), start: "top bottom", end: "bottom top", scrub: true },
+      });
+    }, ref);
+    return () => match.revert();
+  }, [tentangAktif]);
+
   if (!tentangAktif && !limaAktif) return null;
 
   return (
@@ -301,10 +323,12 @@ export default function OverviewSection() {
                   <p className={styles.body}>{bodyTentang}</p>
                 </div>
                 <figure className={styles.aboutVisual}>
+                  <div className={styles.aboutMedia}>
                   <AboutMedia
                     {...mediaTentang}
                     fallback="/images/beranda/alumni-discussion.png"
                   />
+                  </div>
                   <figcaption className={styles.aboutCaption}>
                     Jejaring yang terus hidup lintas angkatan
                   </figcaption>
@@ -316,7 +340,7 @@ export default function OverviewSection() {
       )}
 
       {limaAktif && (
-        <WaysStory
+        <FlowWaysStory
           kicker={kickerLima}
           title={limaKustom ? judulLimaRaw : JUDUL_LIMA_DEFAULT}
           kickerStyle={gayaEyebrowLima}

@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
+import { KUNCI_PEMULIHAN_GULIR } from "@/lib/scroll-return";
 
 const KUNCI_RUTE_AKTIF = "ikasada:rute-aktif";
 const KUNCI_RUTE_SEBELUMNYA = "ikasada:rute-sebelumnya";
@@ -27,6 +28,11 @@ export default function BackButton({
         let targetTersimpan = false;
         try {
           window.sessionStorage.setItem(KUNCI_TUJUAN_GULIR, section);
+          const peta = JSON.parse(sessionStorage.getItem(KUNCI_POSISI_GULIR) ?? "{}") as Record<string, number>;
+          const posisi = peta[tujuan.pathname + tujuan.search];
+          if (typeof posisi === "number" && Number.isFinite(posisi)) {
+            sessionStorage.setItem(KUNCI_PEMULIHAN_GULIR, String(posisi));
+          }
           targetTersimpan = true;
         } catch {
           // Navigasi tetap dilanjutkan tanpa target gulir jika storage diblokir.
@@ -55,21 +61,6 @@ export default function BackButton({
         ruteSebelumnya &&
         ruteSebelumnya !== pathname
       ) {
-        if (ruteSebelumnya === "/") {
-          try {
-            const peta = JSON.parse(
-              window.sessionStorage.getItem(KUNCI_POSISI_GULIR) ?? "{}"
-            ) as Record<string, number>;
-            if ((peta["/"] ?? 0) > window.innerHeight) {
-              document.documentElement.dataset.historyHideHero = "true";
-              window.setTimeout(() => {
-                delete document.documentElement.dataset.historyHideHero;
-              }, 1800);
-            }
-          } catch {
-            // Pemulihan tetap berjalan tanpa menyembunyikan hero lebih awal.
-          }
-        }
         router.back();
         return;
       }

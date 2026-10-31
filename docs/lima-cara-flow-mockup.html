@@ -1,0 +1,100 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Preview Flow Lima Cara — IKASADA</title><style>
+*{box-sizing:border-box} html{color-scheme:light} body{margin:0;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;color:#101820;background:#fff;-webkit-font-smoothing:antialiased}
+button,a{-webkit-tap-highlight-color:transparent} button{font:inherit} button:focus-visible,a:focus-visible{outline:3px solid currentColor;outline-offset:6px}
+.preview-bar{padding:16px 4vw;display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #dce3ed;font-size:12px;line-height:1.5}.motion-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}.motion-toggle input{accent-color:#0b5ed7;width:17px;height:17px}.preview-bar a{color:inherit;text-underline-offset:4px}
+.heading{padding:70px 4vw 50px;min-height:340px;display:flex;flex-direction:column;justify-content:end}.eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;color:#0b5ed7;margin:0 0 18px}h1{font-size:clamp(45px,7vw,92px);font-weight:500;letter-spacing:-.075em;line-height:.98;max-width:950px;margin:0;text-wrap:balance}.hint{margin:28px 0 0;font-size:13px;color:#566477}
+.flow{isolation:isolate;overflow:clip}.flow-section{position:relative;min-height:100svh;overflow:hidden}.flow-inner{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:100svh;background:var(--panel);color:var(--ink);transform-origin:bottom left}
+.copy{display:flex;flex-direction:column;justify-content:space-between;padding:40px clamp(24px,4vw,64px);min-width:0}.index,.meta,.panel-footer{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.index{display:flex;justify-content:space-between;gap:15px}.index span{opacity:.8}.body{padding:70px 0}.meta{display:flex;flex-wrap:wrap;gap:12px 22px;line-height:1.7}h2{font-size:clamp(36px,4.15vw,62px);font-weight:500;letter-spacing:-.065em;line-height:1.04;text-wrap:balance;margin:24px 0 0}.body p{font-size:clamp(16px,1.45vw,18px);line-height:1.55;max-width:47ch;margin:26px 0 0}.detail{display:inline-flex;align-items:center;gap:26px;margin-top:30px;background:none;border:0;border-bottom:1px solid currentColor;padding:8px 0;color:inherit;cursor:pointer;font-size:14px;font-weight:700}.detail span{font-size:23px}.panel-footer{display:flex;justify-content:space-between;gap:20px;padding-top:18px;border-top:1px solid currentColor;line-height:1.6}
+figure{position:relative;min-width:0;margin:0;overflow:hidden;background:#dceafa}figure img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}figcaption{position:absolute;bottom:20px;left:20px;right:20px;width:fit-content;max-width:calc(100% - 40px);padding:9px 12px;background:#fff;color:#101820;font-size:11px;line-height:1.5}
+.after{position:relative;z-index:10;padding:72px 4vw 100px;background:#fff;min-height:52svh;display:flex;align-items:start;justify-content:space-between;gap:30px;flex-wrap:wrap}.after h2{margin:0;font-size:clamp(28px,4vw,48px)}.after p{font-size:14px;color:#566477;max-width:48ch;line-height:1.7}.all{background:#0b5ed7;color:#fff;border:0;border-radius:999px;padding:20px 28px;font-weight:700;cursor:pointer}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;max-width:calc(100% - 32px);width:max-content;background:#101820;color:#fff;border-radius:8px;padding:14px 20px;font-size:13px;line-height:1.5}.toast:empty{display:none}
+@media(min-width:801px) and (min-height:650px){.flow-inner{height:100svh}.body{padding:35px 0}}
+@media(max-width:800px){.preview-bar{padding:14px 24px;flex-direction:column;gap:5px}.heading{padding:48px 24px 36px;min-height:280px}h1{font-size:clamp(43px,10vw,70px)}.flow-inner{grid-template-columns:1fr;min-height:0}.flow-section{min-height:0}.copy{padding:30px 24px}.body{padding:58px 0}h2{font-size:clamp(37px,9vw,58px)}figure{height:90vw;max-height:620px}figcaption{bottom:16px;left:16px}.after{padding:52px 24px 76px}.index{font-size:10px}}
+/* Compact mobile poster: natural height remains available when text cannot fit. */
+@media(max-width:800px){
+ .flow-inner{display:flex;flex-direction:column;min-height:100svh}
+ .flow-inner>figure{order:-1;flex:none;height:clamp(170px,28svh,270px);max-height:none}
+ .copy{flex:1;padding:20px 24px;gap:18px}
+ .body{padding:14px 0}
+ .meta{font-size:10px;gap:4px 12px}
+ .body h2{font-size:clamp(30px,8.2vw,44px);margin-top:15px}
+ .body p{font-size:15px;line-height:1.45;margin-top:16px}
+ .detail{min-height:44px;margin-top:16px;padding:4px 0}
+ .panel-footer{font-size:9px;padding-top:12px;gap:12px}
+ figcaption{font-size:9px;padding:6px 9px;bottom:12px;left:12px}
+ .flow.mobile-motion .flow-section:not(:last-child){min-height:135svh}
+ .flow.mobile-motion .flow-inner{height:100svh}
+}
+@media(prefers-reduced-motion:reduce){.flow-inner{transform:none!important;will-change:auto!important}.hint-motion{display:none}}
+
+/* The public section's saved media visibility and panel colors are preserved. */
+h1{line-height:1.12;padding-bottom:.08em}.heading{align-items:center;text-align:center}.hint{line-height:1.6}.body h2{line-height:1.12;padding-bottom:.06em}.body{padding:35px 0}.way-tag{font-size:12px;letter-spacing:.12em;text-transform:uppercase}.visual-number{display:grid;place-items:center;font-size:clamp(200px,32vw,540px);font-weight:500;letter-spacing:-.09em;line-height:1;user-select:none;background:var(--panel);color:var(--ink);border-left:1px solid color-mix(in srgb,currentColor 18%,transparent)}.image-error{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;background:var(--panel);color:var(--ink);font-size:20px}.image-error[hidden]{display:none}.all{display:inline-block;text-decoration:none}.preview-bar input:focus-visible{outline:3px solid #0b5ed7;outline-offset:4px}
+@media(max-width:800px){.flow-inner>.visual-number{order:-1;flex:none;height:clamp(170px,28svh,270px);font-size:clamp(150px,24svh,230px);border-left:0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.body{padding:14px 0}.heading{min-height:300px}.body h2{font-size:clamp(29px,8vw,42px)}.copy{gap:14px}.way-tag{font-size:10px}.after{min-height:55svh}}
+</style></head><body>
+<div class="preview-bar"><span>IKASADA / Preview Flow · Lima Cara Kami Menyambung</span><label class="motion-toggle"><input id="reduce-motion" type="checkbox"> Kurangi gerakan</label><a href="#preview-info">Tentang preview ini ↗</a></div>
+<main><header class="heading" id="awal"><p class="eyebrow">Jejaring Ikasada FIB UI</p><h1>Lima cara kami menyambung.</h1><p class="hint"><span class="hint-motion">Gulir untuk menjelajah ↓ · </span>Lima cara untuk kembali terhubung.</p></header><div class="flow" aria-label="Lima cara kami menyambung"><section class="flow-section" aria-labelledby="way-1"><article class="flow-inner" style="--panel:#076bda;--ink:#ffffff"><div class="copy"><div class="index">IKASADA / 01 <span>Lima cara menyambung</span></div><div class="body"><div class="way-tag">Bertemu</div><h2 id="way-1">Ruang Terhubung</h2><p>IKASADA membuka ruang bagi alumni lintas angkatan untuk bertemu, berbagi cerita, dan kembali terhubung.</p></div><div class="panel-footer"><span>Jejaring IKASADA FIB UI</span><span>01 / 05</span></div></div><figure><img src="http://localhost:3000/api/uploads/beranda/a312b042-d822-4901-b4a7-36277ed603a5.webp" alt="Ilustrasi Ruang Terhubung" width="1024" height="1024"><span class="image-error" hidden>Gambar tidak tersedia.<br>Pastikan localhost:3000 berjalan.</span><figcaption>Ilustrasi dari section publik</figcaption></figure></article></section><section class="flow-section" aria-labelledby="way-2"><article class="flow-inner" style="--panel:#ffffff;--ink:#17191c"><div class="copy"><div class="index">IKASADA / 02 <span>Lima cara menyambung</span></div><div class="body"><div class="way-tag">Berkolaborasi</div><h2 id="way-2">Koneksi Jadi Kolaborasi</h2><p>Koneksi antaralumni bisa berkembang menjadi ruang berbagi gagasan dan kerja sama.</p></div><div class="panel-footer"><span>Jejaring IKASADA FIB UI</span><span>02 / 05</span></div></div><div class="visual-number" aria-hidden="true">02</div></article></section><section class="flow-section" aria-labelledby="way-3"><article class="flow-inner" style="--panel:#087e59;--ink:#ffffff"><div class="copy"><div class="index">IKASADA / 03 <span>Lima cara menyambung</span></div><div class="body"><div class="way-tag">Berkegiatan</div><h2 id="way-3">Kegiatan yang Terus Tumbuh</h2><p>Ragam kegiatan IKASADA terus berkembang mengikuti semangat dan kebutuhan komunitas.</p></div><div class="panel-footer"><span>Jejaring IKASADA FIB UI</span><span>03 / 05</span></div></div><figure><img src="http://localhost:3000/api/uploads/beranda/11d16fce-3571-49a5-b4c7-4ba781cb1f99.webp" alt="Ilustrasi Kegiatan yang Terus Tumbuh" width="1024" height="1024"><span class="image-error" hidden>Gambar tidak tersedia.<br>Pastikan localhost:3000 berjalan.</span><figcaption>Ilustrasi dari section publik</figcaption></figure></article></section><section class="flow-section" aria-labelledby="way-4"><article class="flow-inner" style="--panel:#f4c430;--ink:#17191c"><div class="copy"><div class="index">IKASADA / 04 <span>Lima cara menyambung</span></div><div class="body"><div class="way-tag">Bertumbuh</div><h2 id="way-4">Ruang Tumbuh Bersama</h2><p>Mahasiswa aktif, terutama tingkat akhir, bertemu alumni, bertukar pengalaman, dan mencari bekal untuk langkah setelah kampus.</p></div><div class="panel-footer"><span>Jejaring IKASADA FIB UI</span><span>04 / 05</span></div></div><figure><img src="http://localhost:3000/api/uploads/beranda/7e33c09a-ed28-43c9-aa1e-ed8de6d1e3e8.webp" alt="Ilustrasi Ruang Tumbuh Bersama" width="1024" height="1024"><span class="image-error" hidden>Gambar tidak tersedia.<br>Pastikan localhost:3000 berjalan.</span><figcaption>Ilustrasi dari section publik</figcaption></figure></article></section><section class="flow-section" aria-labelledby="way-5"><article class="flow-inner" style="--panel:#0b5ed7;--ink:#ffffff"><div class="copy"><div class="index">IKASADA / 05 <span>Lima cara menyambung</span></div><div class="body"><div class="way-tag">Terhubung</div><h2 id="way-5">Dosen dan Prodi Terhubung</h2><p>Dosen yang juga alumni berdialog dan berkolaborasi dengan IKASADA melalui dukungan Prodi.</p></div><div class="panel-footer"><span>Jejaring IKASADA FIB UI</span><span>05 / 05</span></div></div><div class="visual-number" aria-hidden="true">05</div></article></section></div>
+<footer class="after" id="preview-info"><div><p class="eyebrow">Akhir rangkaian</p><h2>Lima cara.<br>Satu jejaring.</h2><p>Preview terpisah dengan teks, warna panel, dan pilihan foto dari konfigurasi publik localhost, snapshot 31 Oktober 2026. Foto mengikuti sumber section dan berupa ilustrasi. Media memerlukan localhost:3000 tetap berjalan.</p><p>Desktop: pin + rotasi 10°. Mobile: pin + rotasi 4° jika konten muat; layar pendek dan reduced motion memakai scroll biasa. Belum diterapkan ke beranda.</p></div><a class="all" href="#awal">Kembali ke awal ↑</a></footer></main>
+<script src="../node_modules/gsap/dist/gsap.min.js"></script><script src="../node_modules/gsap/dist/ScrollTrigger.min.js"></script><script>document.querySelectorAll('figure img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;img.nextElementSibling.hidden=false;}));
+(() => {
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  const match = gsap.matchMedia();
+  const toggle = document.querySelector('#reduce-motion');
+  const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const flow = document.querySelector('.flow');
+  function applyMotion() {
+    match.revert();
+    if (toggle.checked) return;
+    match.add({
+      desktop: '(min-width: 801px) and (min-height: 650px)',
+      mobile: '(max-width: 800px) and (min-height: 600px)',
+      reduced: '(prefers-reduced-motion: reduce)',
+    }, context => {
+      const {desktop, mobile, reduced} = context.conditions;
+      if (reduced || (!desktop && !mobile)) return;
+      const sections = gsap.utils.toArray('.flow-section');
+      // Measure natural content before assigning a fixed-height mobile poster.
+      const fits = sections.every(section =>
+        section.querySelector('.flow-inner').getBoundingClientRect().height <= window.innerHeight + 1
+      );
+      if (mobile && !fits) return;
+      if (mobile) flow.classList.add('mobile-motion');
+      sections.forEach((section, index) => {
+        gsap.set(section, { zIndex: index + 1 });
+        const inner = section.querySelector('.flow-inner');
+        if (index > 0) {
+          gsap.fromTo(inner, { rotation: mobile ? 4 : 10 }, {
+            rotation: 0, ease: 'none',
+            scrollTrigger: {
+              trigger: section, start: 'top bottom', end: mobile ? 'top top' : 'top 25%',
+              scrub: true, invalidateOnRefresh: true
+            }
+          });
+        }
+        if (index < sections.length - 1) {
+          ScrollTrigger.create({
+            trigger: section, pin: mobile ? inner : section,
+            start: mobile ? 'top top' : 'bottom bottom', end: 'bottom top',
+            pinSpacing: false, invalidateOnRefresh: true
+          });
+        }
+      });
+      return () => flow.classList.remove('mobile-motion');
+    });
+  }
+  // Re-measure natural content on resize, including changes within a breakpoint.
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(applyMotion, 180);
+  });
+  function syncPreference() {
+    toggle.checked = preference.matches;
+    toggle.disabled = preference.matches;
+    applyMotion();
+  }
+  toggle.addEventListener('change', applyMotion);
+  preference.addEventListener('change', syncPreference);
+  syncPreference();
+  window.addEventListener('load', () => ScrollTrigger.refresh(), {once:true});
+})();
+</script></body></html>

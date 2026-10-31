@@ -1,5 +1,7 @@
 "use client";
 
+import { bacaDataBeranda, simpanDataBeranda } from "@/lib/home-data-cache";
+
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -90,10 +92,12 @@ export function BeritaRow({
 
 export default function BeritaSection() {
   const beranda = useBerandaConfig();
-  const [berita, setBerita] = useState<PublicBerita[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [berita, setBerita] = useState<PublicBerita[]>(() => bacaDataBeranda<PublicBerita[]>("berita") ?? []);
+  const [isLoading, setIsLoading] = useState(() => bacaDataBeranda("berita") === undefined);
 
   const fetchData = useCallback(async () => {
+    const cached = bacaDataBeranda<PublicBerita[]>("berita");
+    if (cached !== undefined) { setBerita(cached); setIsLoading(false); return; }
     setIsLoading(true);
 
     const hasil = await panggilApi<PublicBerita[]>(
@@ -106,6 +110,7 @@ export default function BeritaSection() {
       return;
     }
 
+    simpanDataBeranda("berita", hasil.data);
     setBerita(hasil.data);
     setIsLoading(false);
   }, []);
