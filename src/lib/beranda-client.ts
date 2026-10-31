@@ -34,13 +34,15 @@ export type BerandaPublic = {
   sebaran: TitikSebaranPublic[];
 };
 
+let tersimpan: BerandaPublic | null = null;
+
 let janji: Promise<BerandaPublic | null> | null = null;
 
 function ambil(): Promise<BerandaPublic | null> {
   if (!janji) {
     janji = fetch("/api/public/beranda", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => (j?.data as BerandaPublic) ?? null)
+      .then((j) => { tersimpan = (j?.data as BerandaPublic) ?? null; return tersimpan; })
       .catch(() => null);
   }
   return janji;
@@ -49,13 +51,14 @@ function ambil(): Promise<BerandaPublic | null> {
 /** Buang konfigurasi publik yang tersimpan setelah admin menyimpan perubahan. */
 export function invalidasiBerandaConfig(): void {
   janji = null;
+  tersimpan = null;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("ikasada:beranda-config-updated"));
   }
 }
 
 export function useBerandaConfig(): BerandaPublic | null {
-  const [data, setData] = useState<BerandaPublic | null>(null);
+  const [data, setData] = useState<BerandaPublic | null>(() => typeof window === "undefined" ? null : tersimpan);
 
   useEffect(() => {
     let hidup = true;

@@ -12,6 +12,7 @@ import {
   WarningCircle,
 } from "@phosphor-icons/react";
 import { panggilApi } from "@/lib/api-client";
+import { bacaWarnaPanelArsip, WARNA_PANEL_ARSIP_BAWAAN } from "@/lib/arsip-panels";
 import {
   DEFAULT_PER_KUNCI,
   PALET_WARNA,
@@ -78,7 +79,13 @@ type DraftSection = {
   konfigurasi: Record<string, unknown>;
 };
 
-type ItemLima = { judul: string; deskripsi: string; fotoUrl: string; tampilkanFoto: boolean };
+type ItemLima = {
+  judul: string;
+  deskripsi: string;
+  fotoUrl: string;
+  tampilkanFoto: boolean;
+  warnaLatar: string;
+};
 type ModeMediaTentang = "foto" | "slideshow" | "video";
 type MediaTentang = { mode: ModeMediaTentang; fotoUrls: string[]; videoUrl: string; posterUrl: string };
 
@@ -92,6 +99,8 @@ const PALET_WARNA_BACKGROUND = [
   { nama: "Biru muda", nilai: "#eaf4ff" },
   { nama: "Hijau muda", nilai: "#e8f5ec" },
   { nama: "Kuning muda", nilai: "#fff5cc" },
+  { nama: "Hijau Lima Cara", nilai: "#087e59" },
+  { nama: "Kuning Lima Cara", nilai: "#f4c430" },
   { nama: "Biru", nilai: "#0b5ed7" },
   { nama: "Gelap", nilai: "#0f1012" },
 ];
@@ -143,12 +152,14 @@ function itemsLima(konfig: Record<string, unknown>): ItemLima[] {
       deskripsi?: unknown;
       fotoUrl?: unknown;
       tampilkanFoto?: unknown;
+      warnaLatar?: unknown;
     };
     return {
       judul: String(o.judul ?? ""),
       deskripsi: String(o.deskripsi ?? ""),
       fotoUrl: String(o.fotoUrl ?? ""),
       tampilkanFoto: o.tampilkanFoto !== false,
+      warnaLatar: typeof o.warnaLatar === "string" ? o.warnaLatar : "",
     };
   });
 }
@@ -164,6 +175,7 @@ function itemsLimaUntukEditor(konfig: Record<string, unknown>): ItemLima[] {
       deskripsi: String(o.deskripsi ?? ""),
       fotoUrl: "",
       tampilkanFoto: true,
+      warnaLatar: "",
     };
   });
 }
@@ -460,7 +472,16 @@ export function KelolaBeranda() {
           ...d,
           konfigurasi: {
             ...d.konfigurasi,
-            items: [...items, { judul: "", deskripsi: "" }],
+            items: [
+              ...items,
+              {
+                judul: "",
+                deskripsi: "",
+                fotoUrl: "",
+                tampilkanFoto: true,
+                warnaLatar: "",
+              },
+            ],
           },
         },
       };
@@ -508,6 +529,7 @@ export function KelolaBeranda() {
               // Section dengan data khas ikut menyimpan konfigurasi.
               ...(s.kunci === "tentang-kami" ||
               s.kunci === "lima-cara" ||
+              s.kunci === "arsip" ||
               s.kunci === "kontak" ||
               s.kunci === "sebaran-geografis"
                 ? { konfigurasi: d.konfigurasi }
@@ -1153,6 +1175,33 @@ export function KelolaBeranda() {
                   );
                 })()}
 
+                {s.kunci === "arsip" && (
+                  <div className="mt-5 rounded-2xl border border-black/[0.08] bg-white p-4">
+                    <h4 className="text-sm font-semibold text-[#0f1012]">Warna latar per panel</h4>
+                    <p className="mt-1 text-xs leading-relaxed text-[#5e5e5e]">
+                      Berlaku untuk panel 1–4 sesuai urutan arsip terbaru di beranda.
+                      Bawaan mengembalikan warna abu muda atau biru muda. Warna teks menyesuaikan otomatis.
+                    </p>
+                    <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                      {bacaWarnaPanelArsip(d.konfigurasi).map((warna, index) => (
+                        <div key={index} role="group" aria-label={`Warna panel Arsip ${index + 1}`}>
+                          <KontrolWarna
+                            label={`Warna latar panel ${index + 1}`}
+                            nilai={warna}
+                            palet={PALET_WARNA_BACKGROUND}
+                            onUbah={(nilai) => {
+                              const warnaPanel = bacaWarnaPanelArsip(d.konfigurasi);
+                              warnaPanel[index] = nilai;
+                              ubahKonfig(s.id, { warnaPanel });
+                            }}
+                          />
+                          <p className="mt-2 text-[11px] text-[#5e5e5e]">Bawaan: {WARNA_PANEL_ARSIP_BAWAAN[index]}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {s.kunci === "lima-cara" && (
                   <div className="space-y-3 border-t border-black/[0.08] pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1218,6 +1267,14 @@ export function KelolaBeranda() {
                               }
                               placeholder="Deskripsi"
                               className={inputClass}
+                            />
+                            <KontrolWarna
+                              label={`Warna latar panel ${i + 1}`}
+                              nilai={it.warnaLatar}
+                              palet={PALET_WARNA_BACKGROUND}
+                              onUbah={(warnaLatar) =>
+                                ubahItemLima(s.id, i, { warnaLatar })
+                              }
                             />
                             <button
                               type="button"

@@ -23,7 +23,8 @@
   font-size: calc(clamp(45px, 5vw, 72px) * var(--skala-judul, 1));
   font-weight: 400;
   letter-spacing: -0.06em;
-  line-height: 1.02;
+  line-height: 1.12;
+  padding-bottom: 0.08em;
   text-wrap: balance;
 }
 
@@ -68,8 +69,8 @@
 }
 
 .stepNav button {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -163,7 +164,7 @@
   font-size: clamp(25px, 2.2vw, 36px);
   font-weight: 600;
   letter-spacing: -0.06em;
-  line-height: 1.08;
+  line-height: 1.13;
 }
 
 .copy p {
@@ -273,4 +274,25 @@
 
 @media (max-width: 700px) and (prefers-reduced-motion: reduce) {
   .panel, .panel ~ .panel { min-height: 100svh; }
+}
+
+.metadata{display:grid;gap:5px;margin:0 0 16px;font-size:12px;line-height:1.5;letter-spacing:0}
+.metadata time{font-weight:600}.metadata span{opacity:.85}
+.action a{display:inline-flex;align-items:center;gap:20px;min-height:44px;padding:7px 0;border-bottom:1px solid currentColor;color:inherit;font-size:13px;font-weight:600;text-decoration:none;margin-top:18px}
+.action a span{font-size:21px}.action a:focus-visible{outline:3px solid currentColor;outline-offset:4px}
+@media(max-width:700px){.metadata{font-size:10px;gap:3px;margin-bottom:12px}.action a{font-size:11px;gap:12px;margin-top:12px}}
+@media(prefers-reduced-motion:reduce){.copy{max-height:none;overflow:visible}}
+
+/* Archive panels retain the approved larger title and centered copy. */
+.archive .panel { grid-template-columns: minmax(0,1fr) minmax(260px,38%); }
+.archive .copy { max-width: 490px; align-self: center; }
+.archive .number { font-weight: 400; }
+.archive .index { font-size: 10px; color: inherit; opacity: .7; }
+.archive .copy h3 { font-size: clamp(28px,3.3vw,46px); font-weight: 500; }
+.archive .copy p { font-size: 15px; line-height: 1.6; letter-spacing: 0; }
+@media(max-width:700px) {
+ .archive .panel { grid-template-columns: 47% 53%; }
+ .archive .index { font-size: 8px; }
+ .archive .copy h3 { font-size: clamp(20px,5.4vw,28px); }
+ .archive .copy p { font-size: 12px; line-height: 1.45; }
 }

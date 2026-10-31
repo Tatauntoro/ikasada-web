@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Preview Flow Kegiatan — IKASADA</title>
+<style>
+*{box-sizing:border-box} html{color-scheme:light} body{margin:0;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;color:#101820;background:#fff;-webkit-font-smoothing:antialiased}
+button,a{-webkit-tap-highlight-color:transparent} button{font:inherit} button:focus-visible,a:focus-visible{outline:3px solid currentColor;outline-offset:6px}
+.preview-bar{padding:16px 4vw;display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #dce3ed;font-size:12px;line-height:1.5}.motion-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}.motion-toggle input{accent-color:#0b5ed7;width:17px;height:17px}.preview-bar a{color:inherit;text-underline-offset:4px}
+.heading{padding:70px 4vw 50px;min-height:340px;display:flex;flex-direction:column;justify-content:end}.eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;color:#0b5ed7;margin:0 0 18px}h1{font-size:clamp(45px,7vw,92px);font-weight:500;letter-spacing:-.075em;line-height:.98;max-width:950px;margin:0;text-wrap:balance}.hint{margin:28px 0 0;font-size:13px;color:#566477}
+.flow{isolation:isolate;overflow:clip}.flow-section{position:relative;min-height:100svh;overflow:hidden}.flow-inner{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:100svh;background:var(--panel);color:var(--ink);transform-origin:bottom left}
+.copy{display:flex;flex-direction:column;justify-content:space-between;padding:40px clamp(24px,4vw,64px);min-width:0}.index,.meta,.panel-footer{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.index{display:flex;justify-content:space-between;gap:15px}.index span{opacity:.8}.body{padding:70px 0}.meta{display:flex;flex-wrap:wrap;gap:12px 22px;line-height:1.7}h2{font-size:clamp(36px,4.15vw,62px);font-weight:500;letter-spacing:-.065em;line-height:1.04;text-wrap:balance;margin:24px 0 0}.body p{font-size:clamp(16px,1.45vw,18px);line-height:1.55;max-width:47ch;margin:26px 0 0}.detail{display:inline-flex;align-items:center;gap:26px;margin-top:30px;background:none;border:0;border-bottom:1px solid currentColor;padding:8px 0;color:inherit;cursor:pointer;font-size:14px;font-weight:700}.detail span{font-size:23px}.panel-footer{display:flex;justify-content:space-between;gap:20px;padding-top:18px;border-top:1px solid currentColor;line-height:1.6}
+figure{position:relative;min-width:0;margin:0;overflow:hidden;background:#dceafa}figure img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}figcaption{position:absolute;bottom:20px;left:20px;right:20px;width:fit-content;max-width:calc(100% - 40px);padding:9px 12px;background:#fff;color:#101820;font-size:11px;line-height:1.5}
+.after{position:relative;z-index:10;padding:72px 4vw 100px;background:#fff;min-height:52svh;display:flex;align-items:start;justify-content:space-between;gap:30px;flex-wrap:wrap}.after h2{margin:0;font-size:clamp(28px,4vw,48px)}.after p{font-size:14px;color:#566477;max-width:48ch;line-height:1.7}.all{background:#0b5ed7;color:#fff;border:0;border-radius:999px;padding:20px 28px;font-weight:700;cursor:pointer}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;max-width:calc(100% - 32px);width:max-content;background:#101820;color:#fff;border-radius:8px;padding:14px 20px;font-size:13px;line-height:1.5}.toast:empty{display:none}
+@media(min-width:801px) and (min-height:650px){.flow-inner{height:100svh}.body{padding:35px 0}}
+@media(max-width:800px){.preview-bar{padding:14px 24px;flex-direction:column;gap:5px}.heading{padding:48px 24px 36px;min-height:280px}h1{font-size:clamp(43px,10vw,70px)}.flow-inner{grid-template-columns:1fr;min-height:0}.flow-section{min-height:0}.copy{padding:30px 24px}.body{padding:58px 0}h2{font-size:clamp(37px,9vw,58px)}figure{height:90vw;max-height:620px}figcaption{bottom:16px;left:16px}.after{padding:52px 24px 76px}.index{font-size:10px}}
+/* Compact mobile poster: natural height remains available when text cannot fit. */
+@media(max-width:800px){
+ .flow-inner{display:flex;flex-direction:column;min-height:100svh}
+ .flow-inner>figure{order:-1;flex:none;height:clamp(170px,28svh,270px);max-height:none}
+ .copy{flex:1;padding:20px 24px;gap:18px}
+ .body{padding:14px 0}
+ .meta{font-size:10px;gap:4px 12px}
+ .body h2{font-size:clamp(30px,8.2vw,44px);margin-top:15px}
+ .body p{font-size:15px;line-height:1.45;margin-top:16px}
+ .detail{min-height:44px;margin-top:16px;padding:4px 0}
+ .panel-footer{font-size:9px;padding-top:12px;gap:12px}
+ figcaption{font-size:9px;padding:6px 9px;bottom:12px;left:12px}
+ .flow.mobile-motion .flow-section:not(:last-child){min-height:135svh}
+ .flow.mobile-motion .flow-inner{height:100svh}
+}
+@media(prefers-reduced-motion:reduce){.flow-inner{transform:none!important;will-change:auto!important}.hint-motion{display:none}}
+</style>
+</head>
+<body>
+<div class="preview-bar"><span>IKASADA / Preview desain · semua kegiatan adalah placeholder</span><label class="motion-toggle"><input id="reduce-motion" type="checkbox"> Kurangi gerakan</label><a href="#preview-info">Tentang preview ini ↗</a></div>
+<main>
+<header class="heading"><p class="eyebrow">Kegiatan</p><h1>Hadiri Kegiatan Kami.</h1><p class="hint"><span class="hint-motion">Gulir untuk menjelajah ↓ · </span>Empat contoh kegiatan, bukan agenda aktual.</p></header>
+<div class="flow" aria-label="Contoh kegiatan IKASADA">
+<section class="flow-section" aria-labelledby="event-1">
+  <article class="flow-inner" style="--panel:#0b5ed7;--ink:#ffffff">
+    <div class="copy">
+      <div class="index">IKASADA / 01 <span>Contoh kegiatan</span></div>
+      <div class="body">
+        <div class="meta"><span>[Kategori] · [Lokasi]</span><span>[Tanggal kegiatan]</span></div>
+        <h2 id="event-1">Diskusi lintas angkatan</h2>
+        <p>Ruang berbagi cerita, pengalaman, dan gagasan antar-alumni.</p>
+        <button class="detail" type="button" data-preview>Lihat kegiatan <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="panel-footer"><span>Agenda pilihan · placeholder</span><span>01 / 04</span></div>
+    </div>
+    <figure>
+      <img src="../public/images/beranda/alumni-discussion.png" alt="Ilustrasi placeholder untuk contoh kegiatan 1" width="1024" height="1024">
+      <figcaption>Gambar ilustrasi · bukan dokumentasi kegiatan</figcaption>
+    </figure>
+  </article>
+</section>
+<section class="flow-section" aria-labelledby="event-2">
+  <article class="flow-inner" style="--panel:#f4c430;--ink:#101820">
+    <div class="copy">
+      <div class="index">IKASADA / 02 <span>Contoh kegiatan</span></div>
+      <div class="body">
+        <div class="meta"><span>[Kategori] · [Lokasi]</span><span>[Tanggal kegiatan]</span></div>
+        <h2 id="event-2">Lokakarya kolaborasi</h2>
+        <p>Sesi belajar bersama untuk mempertemukan keahlian dan membuka peluang kolaborasi.</p>
+        <button class="detail" type="button" data-preview>Lihat kegiatan <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="panel-footer"><span>Agenda pilihan · placeholder</span><span>02 / 04</span></div>
+    </div>
+    <figure>
+      <img src="../public/images/beranda/collaboration.png" alt="Ilustrasi placeholder untuk contoh kegiatan 2" width="1024" height="1024">
+      <figcaption>Gambar ilustrasi · bukan dokumentasi kegiatan</figcaption>
+    </figure>
+  </article>
+</section>
+<section class="flow-section" aria-labelledby="event-3">
+  <article class="flow-inner" style="--panel:#eaf4ff;--ink:#101820">
+    <div class="copy">
+      <div class="index">IKASADA / 03 <span>Contoh kegiatan</span></div>
+      <div class="body">
+        <div class="meta"><span>[Kategori] · [Lokasi]</span><span>[Tanggal kegiatan]</span></div>
+        <h2 id="event-3">Temu alumni</h2>
+        <p>Kesempatan untuk kembali menyapa dan memperluas jejaring lintas angkatan.</p>
+        <button class="detail" type="button" data-preview>Lihat kegiatan <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="panel-footer"><span>Agenda pilihan · placeholder</span><span>03 / 04</span></div>
+    </div>
+    <figure>
+      <img src="../public/images/beranda/seminar.png" alt="Ilustrasi placeholder untuk contoh kegiatan 3" width="1024" height="1024">
+      <figcaption>Gambar ilustrasi · bukan dokumentasi kegiatan</figcaption>
+    </figure>
+  </article>
+</section>
+<section class="flow-section" aria-labelledby="event-4">
+  <article class="flow-inner" style="--panel:#164caa;--ink:#ffffff">
+    <div class="copy">
+      <div class="index">IKASADA / 04 <span>Contoh kegiatan</span></div>
+      <div class="body">
+        <div class="meta"><span>[Kategori] · [Lokasi]</span><span>[Tanggal kegiatan]</span></div>
+        <h2 id="event-4">Berbagi pengalaman</h2>
+        <p>Percakapan tentang perjalanan berkarya dan langkah berikutnya bersama komunitas.</p>
+        <button class="detail" type="button" data-preview>Lihat kegiatan <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="panel-footer"><span>Agenda pilihan · placeholder</span><span>04 / 04</span></div>
+    </div>
+    <figure>
+      <img src="../public/images/beranda/mentoring.png" alt="Ilustrasi placeholder untuk contoh kegiatan 4" width="1024" height="1024">
+      <figcaption>Gambar ilustrasi · bukan dokumentasi kegiatan</figcaption>
+    </figure>
+  </article>
+</section>
+</div>
+<footer class="after" id="preview-info"><div><p class="eyebrow">Terus terhubung</p><h2>Masih banyak ruang<br>untuk bertemu.</h2><p>Ini akhir rangkaian preview. Judul, deskripsi, tanggal, lokasi, dan gambar digunakan sebagai placeholder. Tombol hanya menampilkan pemberitahuan.</p></div><button type="button" class="all" data-preview>Lihat semua agenda ↗</button></footer>
+</main>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../node_modules/gsap/dist/ScrollTrigger.min.js"></script>
+<script>
+// Local dependencies: serve this file from the repository root over HTTP.
+// No API requests, production navigation, or live content changes.
+(() => {
+  const toast = document.querySelector('.toast');
+  let toastTimer;
+  document.querySelectorAll('[data-preview]').forEach(button => {
+    button.addEventListener('click', () => {
+      toast.textContent = 'Preview saja — belum terhubung ke halaman kegiatan.';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.textContent = ''; }, 4000);
+    });
+  });
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  const match = gsap.matchMedia();
+  const toggle = document.querySelector('#reduce-motion');
+  const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const flow = document.querySelector('.flow');
+  function applyMotion() {
+    match.revert();
+    if (toggle.checked) return;
+    match.add({
+      desktop: '(min-width: 801px) and (min-height: 650px)',
+      mobile: '(max-width: 800px) and (min-height: 600px)',
+      reduced: '(prefers-reduced-motion: reduce)',
+    }, context => {
+      const {desktop, mobile, reduced} = context.conditions;
+      if (reduced || (!desktop && !mobile)) return;
+      const sections = gsap.utils.toArray('.flow-section');
+      // Measure natural content before assigning a fixed-height mobile poster.
+      const fits = sections.every(section =>
+        section.querySelector('.flow-inner').getBoundingClientRect().height <= window.innerHeight + 1
+      );
+      if (mobile && !fits) return;
+      if (mobile) flow.classList.add('mobile-motion');
+      sections.forEach((section, index) => {
+        gsap.set(section, { zIndex: index + 1 });
+        const inner = section.querySelector('.flow-inner');
+        if (index > 0) {
+          gsap.fromTo(inner, { rotation: mobile ? 4 : 10 }, {
+            rotation: 0, ease: 'none',
+            scrollTrigger: {
+              trigger: section, start: 'top bottom', end: mobile ? 'top top' : 'top 25%',
+              scrub: true, invalidateOnRefresh: true
+            }
+          });
+        }
+        if (index < sections.length - 1) {
+          ScrollTrigger.create({
+            trigger: section, pin: mobile ? inner : section,
+            start: mobile ? 'top top' : 'bottom bottom', end: 'bottom top',
+            pinSpacing: false, invalidateOnRefresh: true
+          });
+        }
+      });
+      return () => flow.classList.remove('mobile-motion');
+    });
+  }
+  // Re-measure natural content on resize, including changes within a breakpoint.
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(applyMotion, 180);
+  });
+  function syncPreference() {
+    toggle.checked = preference.matches;
+    toggle.disabled = preference.matches;
+    applyMotion();
+  }
+  toggle.addEventListener('change', applyMotion);
+  preference.addEventListener('change', syncPreference);
+  syncPreference();
+  window.addEventListener('load', () => ScrollTrigger.refresh(), {once:true});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html><html lang="id"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>IKASADA — Preview Parallax Hero & Tentang Kami</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:white}.hero {
+  position: relative;
+  isolation: isolate;
+  container-type: size;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #101a22;
+  color: #fff;
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+.media { position: absolute; inset: 0; overflow: hidden; }
+.poster { object-fit: cover; }
+.photo { position: absolute; inset: 0; object-fit: cover; opacity: 0; transition: opacity 600ms ease; }
+.photo[data-visible] { opacity: 1; }
+.video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; transition: opacity 500ms ease; }
+.video[data-visible] { opacity: 1; }
+/* Siluet gelap: video diredupkan supaya teks putih terbaca, paling kuat di sisi
+   kiri tempat teks berdiri dan makin tipis ke kanan. */
+.hero-content {
+  position: relative;
+  display: flex;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 120px clamp(24px, 6vw, 90px) 90px;
+  background: linear-gradient(90deg, rgba(6, 14, 22, 0.85) 0%, rgba(6, 14, 22, 0.62) 45%, rgba(6, 14, 22, 0.42) 100%);
+  text-align: left;
+}
+/* Plakat putih dipertahankan: teks hitam "IKASADA FIB UI" di dalam logo tidak
+   terbaca kalau emblem transparan ditaruh langsung di atas video gelap. */
+.logo { position: absolute; top: 28px; left: clamp(24px, 6vw, 90px); padding: 5px; border-radius: 6px; background: #fff; }
+.logo img { display: block; width: 48px; height: auto; }
+.description, .tagline { margin: 0; text-wrap: balance; }
+.description { max-width: 42ch; font-size: clamp(16px, 1.5vw, 20px); line-height: 1.5; font-weight: 400; color: rgba(255, 255, 255, 0.9); }
+.tagline { margin-top: 6px; max-width: 18ch; font-size: clamp(34px, 5.2vw, 76px); line-height: 1.03; letter-spacing: -0.03em; font-weight: 500; color: #fff; }
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin-top: 30px; padding: 0 24px; border: 0; border-radius: 999px; background: #0071e3; color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.cta:hover { background: #005fc1; }
+.cta:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@media (max-width: 600px) {
+  .hero { height: 82svh; }
+  .media { bottom: auto; height: 54%; }
+  .hero-content {
+    justify-content: flex-start;
+    padding: 46svh 20px 100px;
+    background: linear-gradient(
+      180deg,
+      rgba(6, 14, 22, 0.12) 0%,
+      rgba(6, 14, 22, 0.16) 25%,
+      rgba(6, 14, 22, 0.82) 43%,
+      #101a22 58%,
+      #101a22 100%
+    );
+  }
+  .logo { top: 24px; left: 20px; }
+  .logo img { width: 38px; }
+  .description { max-width: 32ch; font-size: 15px; }
+  .tagline { max-width: 15ch; font-size: clamp(30px, 9vw, 46px); }
+}
+@media (prefers-reduced-motion: reduce) { .video, .photo { transition: none; } }
+
+.preview{position:relative;z-index:10;display:flex;justify-content:space-between;gap:15px;padding:12px 24px;background:white;color:#101820;font-size:12px}.preview label{display:flex;align-items:center;gap:8px}.media{inset:-8% 0;height:116%}.media video,.media img{width:100%;height:100%;object-fit:cover}.hero-content{background:none}.shade{position:absolute;inset:0;background:linear-gradient(90deg,#060e16dd,#060e1699 45%,#060e1666)}.hero-copy{position:relative}.cta{text-decoration:none}.overview{position:relative;z-index:5;margin-top:calc(-1 * clamp(96px,10vw,180px));padding-bottom:60px}.panel{width:min(1320px,calc(100% - clamp(40px,12vw,200px)));margin:auto;padding:clamp(36px,5.5vw,76px) clamp(20px,5vw,68px);border-radius:28px;background:#0071e3;color:white;display:grid;grid-template-columns:1.03fr .97fr;gap:clamp(40px,7vw,112px);align-items:center}.label{font-size:18px;margin:0 0 30px}.panel h2{font-size:clamp(36px,5.1vw,72px);font-weight:400;line-height:.99;letter-spacing:-.055em;margin:0;text-wrap:balance}.body{font-size:clamp(19px,1.65vw,25px);line-height:1.4;max-width:39ch;margin-top:35px}.visual{height:320px;position:relative;overflow:hidden;border-radius:14px;margin:0}.visual img{width:100%;height:120%;object-fit:cover}.visual figcaption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,#0c1213cc);padding:45px 24px 24px;color:white;font-size:16px}.following{padding:60px 24px 140px;text-align:center;color:#17191c}.following h2{font-size:clamp(38px,5vw,72px);font-weight:400;letter-spacing:-.06em}.following p{color:#5e5e5e;font-size:13px}@media(max-width:700px){.panel{grid-template-columns:1fr;gap:30px;width:calc(100% - 32px);padding:32px 24px}.visual{height:240px}.preview{font-size:10px;padding:10px 16px}.hero{min-height:730px}.hero-content{padding-bottom:140px}.media{height:62%;inset:-4% 0 auto}.shade{background:linear-gradient(180deg,#060e1620 10%,#101a22 60%)}.overview{margin-top:-85px}.tagline{font-size:34px}.body{font-size:19px}}
+.panel{background:#f2f2f4;color:#0f1012}.body{color:#343331}</style><div class="preview"><span>PREVIEW LOCAL · Hero + Tentang Kami · gambar & konten aktif localhost:3000</span><label><input id="reduce" type="checkbox">Kurangi gerakan</label></div><main><section class="hero"><div class="media"><img class="poster" src="http://localhost:3000/api/uploads/hero/52996ad1-d6a1-46c4-81aa-af16cb0d18d6.webp" alt="Alumni berbincang dalam pertemuan"></div><div class="shade"></div><div class="hero-content"><div class="logo"><img src="../public/logo/ikasada-logo.jpeg" alt="IKASADA FIB UI"></div><div class="hero-copy"><p class="description">Ikatan Alumni Sastra Daerah, Fakultas Ilmu Pengetahuan Budaya, Universitas Indonesia.</p><h1 class="tagline">Ruang jejaring dan kontribusi antar alumni</h1></div></div></section><section class="overview" id="overview"><div class="panel"><div><p class="label">Tentang Kami</p><h2>Jejaring alumni yang tumbuh dari satu akar, bergerak lebih jauh bersama.</h2><p class="body">IKASADA merawat hubungan lintas angkatan melalui ruang bertemu, berbagi pengetahuan, dan kontribusi yang terus hidup di dalam dan di luar kampus.</p></div><figure class="visual"><img src="http://localhost:3000/api/uploads/beranda/60765a49-7935-4a98-9e0e-541b5b011bee.webp" alt="Ilustrasi alumni berbincang"><figcaption>Jejaring yang terus hidup lintas angkatan</figcaption></figure></div></section><section class="following"><p>LIMA CARA KAMI MENYAMBUNG</p><h2>Lima cara kami menyambung.</h2><p>Batas preview · gambar dan konten mengikuti tampilan localhost:3000 saat diperiksa. Media memerlukan server tersebut tetap berjalan.</p><p id="status" role="status">Belum diterapkan ke produksi.</p></section></main><script src="../node_modules/gsap/dist/gsap.min.js"></script><script src="../node_modules/gsap/dist/ScrollTrigger.min.js"></script><script>
+gsap.registerPlugin(ScrollTrigger);const mm=gsap.matchMedia(),toggle=document.querySelector('#reduce'),pref=matchMedia('(prefers-reduced-motion: reduce)');function setup(){mm.revert();if(toggle.checked)return;mm.add({mobile:'(max-width:700px)',desktop:'(min-width:701px)',reduce:'(prefers-reduced-motion:reduce)'},c=>{if(c.conditions.reduce)return;const scale=c.conditions.mobile ? .65 : 1;const tl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});tl.to('.media',{yPercent:25*scale,ease:'none'},0).to('.hero-copy',{yPercent:16*scale,ease:'none'},0);gsap.fromTo('.visual img',{yPercent:c.conditions.mobile ? -6 : -8},{yPercent:0,ease:'none',scrollTrigger:{trigger:'.overview',start:'top bottom',end:'bottom top',scrub:true}});});}function sync(){toggle.checked=pref.matches;toggle.disabled=pref.matches;setup()}toggle.addEventListener('change',setup);pref.addEventListener('change',sync);sync();</script></html>

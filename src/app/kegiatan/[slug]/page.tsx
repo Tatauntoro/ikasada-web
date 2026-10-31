@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatTanggalWIB } from "@/lib/format";
+import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import VideoPreviewCard from "@/components/VideoPreviewCard";
@@ -79,6 +80,7 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
   return (
     <section className="public-page relative w-full bg-white">
       <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-24 md:px-12 md:pb-48 md:pt-32">
+        <BackButton fallback="/event" />
         <Breadcrumb
           className="mb-12"
           items={[

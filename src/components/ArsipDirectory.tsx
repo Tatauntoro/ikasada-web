@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type FocusEvent } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import {
+  ArrowUpRight,
   ArrowsCounterClockwise,
   Files,
   Images,
@@ -27,35 +30,50 @@ const JEDA_CARI_MS = 400;
 export function ArsipRow({
   item,
   level = 2,
+  onPreview,
+  onHidePreview,
 }: {
   item: PublicArsip;
   level?: 2 | 3;
+  onPreview: (item: PublicArsip, x: number, y: number) => void;
+  onHidePreview: () => void;
 }) {
   const Judul = level === 3 ? "h3" : "h2";
+  const pointerEnter = (event: PointerEvent<HTMLAnchorElement>) => {
+    if (event.pointerType !== "touch") onPreview(item, event.clientX, event.clientY);
+  };
+  const focus = (event: FocusEvent<HTMLAnchorElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    onPreview(item, bounds.right, bounds.top + bounds.height / 2);
+  };
 
   return (
     <li className="border-b border-black/10">
       <Link
         href={`/arsip/${item.slug}`}
-        className="group flex flex-col gap-3 py-7 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black sm:flex-row sm:items-baseline sm:gap-8"
+        className="group relative isolate flex flex-col gap-3 py-7 outline-none before:absolute before:inset-x-0 before:inset-y-2 before:-z-10 before:rounded-[10px] before:bg-[#f7f4ed] before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100 focus-visible:before:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0b5ed7] sm:flex-row sm:items-baseline sm:gap-8"
+        onPointerEnter={pointerEnter}
+        onPointerMove={pointerEnter}
+        onPointerLeave={onHidePreview}
+        onFocus={focus}
       >
-        <span className="font-serif text-[17px] italic text-black/55 sm:w-44 sm:flex-none">
+        <span className="relative z-10 font-serif text-[17px] italic text-black/55 transition-colors duration-300 group-hover:text-[#0b5ed7] group-focus-visible:text-[#0b5ed7] sm:w-44 sm:flex-none">
           {formatPeriodeKegiatan(
             item.tanggalKegiatanMulai,
             item.tanggalKegiatanSelesai
           )}
         </span>
 
-        <div className="min-w-0 flex-1">
-          <Judul className="font-display text-[21px] font-normal leading-tight tracking-[-0.02em] text-black decoration-black/30 underline-offset-4 group-hover:underline">
+        <div className="relative z-10 min-w-0 flex-1 transition-transform duration-300 group-hover:translate-x-1 group-focus-visible:translate-x-1">
+          <Judul className="font-display text-[21px] font-normal leading-tight tracking-[-0.02em] text-black decoration-black/30 underline-offset-4 transition-colors duration-300 group-hover:underline">
             {item.judul}
           </Judul>
-          <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-black/60">
+          <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-black/60 transition-colors duration-300 group-hover:text-black/80 group-focus-visible:text-black/80">
             {keTeksBiasa(item.deskripsiSingkat)}
           </p>
         </div>
 
-        <div className="flex flex-none items-center gap-2">
+        <div className="relative z-10 flex flex-none items-center gap-2">
           {item.akses === "KHUSUS_ALUMNI" && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/15 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-black/60">
               <LockKey weight="bold" aria-hidden="true" />
@@ -77,6 +95,7 @@ export function ArsipRow({
             </span>
           )}
         </div>
+        <ArrowUpRight aria-hidden="true" className="relative z-10 hidden h-5 w-5 flex-none translate-x-1 translate-y-1 text-[#0b5ed7] opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 sm:block" />
       </Link>
     </li>
   );
@@ -108,11 +127,30 @@ export default function ArsipDirectory({
   const [error, setError] = useState<string | null>(null);
 
   const daftarRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [previewItem, setPreviewItem] = useState<PublicArsip | null>(null);
+  const [previewReady, setPreviewReady] = useState(false);
   // Render pertama memakai data dari server; jangan langsung menimpa dengan
   // hasil fetch yang isinya sama.
   const lewatiFetchPertama = useRef(true);
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setPreviewReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const movePreview = useCallback((item: PublicArsip, clientX: number, clientY: number) => {
+    setPreviewItem(item);
+    const width = 278, height = 186, margin = 16;
+    let x = clientX + 22;
+    if (x + width > window.innerWidth - margin) x = clientX - width - 22;
+    const y = Math.max(margin, Math.min(window.innerHeight - height - margin, clientY - 96));
+    if (previewRef.current) previewRef.current.style.transform = `translate3d(${Math.max(margin, Math.min(window.innerWidth - width - margin, x))}px, ${y}px, 0)`;
+  }, []);
+
+  const hidePreview = useCallback(() => setPreviewItem(null), []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), JEDA_CARI_MS);
@@ -275,7 +313,7 @@ export default function ArsipDirectory({
       ) : (
         <ul className="mt-2 border-t border-black/10">
           {data.map((item) => (
-            <ArsipRow key={item.slug} item={item} />
+            <ArsipRow key={item.slug} item={item} onPreview={movePreview} onHidePreview={hidePreview} />
           ))}
         </ul>
       )}
@@ -287,6 +325,17 @@ export default function ArsipDirectory({
         tone="gold"
         className="mt-12"
       />
+      {previewReady && createPortal(
+        <div
+          ref={previewRef}
+          aria-hidden="true"
+          className={`pointer-events-none fixed left-0 top-0 z-[1000] hidden h-[186px] w-[278px] overflow-hidden rounded-[10px] bg-[#ece7da] shadow-[0_18px_42px_-20px_rgba(17,17,17,0.42)] transition-opacity duration-200 md:block ${previewItem ? "opacity-100" : "opacity-0"}`}
+        >
+          {previewItem?.gambarSampulUrl && <Image src={previewItem.gambarSampulUrl} alt="" fill unoptimized sizes="278px" className="object-cover" />}
+          {!previewItem?.gambarSampulUrl && previewItem && <div className="flex h-full flex-col justify-between bg-[#fffdf7] p-5 text-[#111]"><span className="font-mono text-[9px] uppercase tracking-widest">IKASADA / ARSIP</span><strong className="text-xl leading-tight">{previewItem.judul}</strong><span className="font-mono text-[9px] uppercase tracking-widest">{previewItem.jenis.nama} · {previewItem.berkasFormat || "ARSIP"}</span></div>}
+          {previewItem?.gambarSampulUrl && <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />}
+        </div>, document.body
+      )}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { bacaDataBeranda, simpanDataBeranda } from "@/lib/home-data-cache";
+
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { m } from "framer-motion";
@@ -65,9 +67,9 @@ function AnimatedNumber({ value, aktif }: { value: number; aktif: boolean }) {
  * sementara berdasarkan profesi. Semua angka dihitung dari data publik.
  */
 export default function Stats() {
-  const [statistik, setStatistik] = useState<PublicStatistik | null>(null);
+  const [statistik, setStatistik] = useState<PublicStatistik | null>(() => bacaDataBeranda<PublicStatistik | null>("statistik") ?? null);
   const beranda = useBerandaConfig();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => bacaDataBeranda("statistik") === undefined);
   const [failed, setFailed] = useState(false);
   const barisAngkaRef = useRef<HTMLDivElement>(null);
   const [angkaTerlihat, setAngkaTerlihat] = useState(false);
@@ -122,11 +124,13 @@ export default function Stats() {
 
   useEffect(() => {
     async function ambil() {
+      if (bacaDataBeranda("statistik") !== undefined) return;
       try {
         const res = await fetch("/api/public/statistik");
         const hasil = await res.json();
         if (res.ok) {
-          setStatistik(hasil.data);
+          simpanDataBeranda("statistik", hasil.data);
+      setStatistik(hasil.data);
         } else {
           setFailed(true);
         }

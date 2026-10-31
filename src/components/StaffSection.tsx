@@ -1,5 +1,7 @@
 "use client";
 
+import { bacaDataBeranda, simpanDataBeranda } from "@/lib/home-data-cache";
+
 import { useEffect, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { reportAssetError } from "@/lib/asset-error";
@@ -20,16 +22,18 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export default function StaffSection() {
   const beranda = useBerandaConfig();
-  const [data, setData] = useState<PengurusItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<PengurusItem[]>(() => bacaDataBeranda<PengurusItem[]>("pengurus") ?? []);
+  const [isLoading, setIsLoading] = useState(() => bacaDataBeranda("pengurus") === undefined);
 
   useEffect(() => {
     async function fetchPengurus() {
+      if (bacaDataBeranda("pengurus") !== undefined) return;
       try {
         const response = await fetch("/api/public/pengurus");
         const result = await response.json();
         if (response.ok) {
-          setData(result.data || []);
+          simpanDataBeranda("pengurus", result.data || []);
+      setData(result.data || []);
         }
       } catch {
         reportAssetError("/api/public/pengurus", "api");
@@ -70,7 +74,7 @@ export default function StaffSection() {
     <section
       id="staf"
       style={gayaBackgroundPengurus}
-      className={`home-jakarta-section ${plusJakartaSans.className} relative isolate overflow-hidden bg-[#f2f2f4] py-9 pb-7 md:pt-[50px] md:pb-8 text-[#0f1012] reveal-section`}
+      className={`home-jakarta-section ${plusJakartaSans.className} relative isolate overflow-hidden bg-[#f2f2f4] py-9 pb-7 md:pt-[50px] md:pb-8 text-[#0f1012]`}
     >
       <div className="home-section-container relative z-10">
         {/* Header rata kiri (sama seperti Direktori Alumni) */}
@@ -82,7 +86,7 @@ export default function StaffSection() {
             {eyebrowPengurus}
           </span>
           <h2
-            className="reveal-item mt-4 section-title"
+            className="mt-4 section-title"
             style={gayaJudulPengurus}
           >
             {judulPengurus}

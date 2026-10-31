@@ -9,7 +9,8 @@
   color: #fff;
   font-family: var(--font-plus-jakarta), sans-serif;
 }
-.media { position: absolute; inset: 0; overflow: hidden; }
+.media { position: absolute; inset: -8% 0; overflow: hidden; }
+.copy { position: relative; width: 100%; }
 .poster { object-fit: cover; }
 .photo { position: absolute; inset: 0; object-fit: cover; opacity: 0; transition: opacity 600ms ease; }
 .photo[data-visible] { opacity: 1; }
@@ -41,7 +42,7 @@
 .cta:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 @media (max-width: 600px) {
   .hero { height: 82svh; }
-  .media { bottom: auto; height: 54%; }
+  .media { top: -4%; bottom: auto; height: 62%; }
   .content {
     justify-content: flex-start;
     padding: 46svh 20px 100px;

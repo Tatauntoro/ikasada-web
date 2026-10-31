@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Preview Flow Dewan Pengurus — IKASADA</title>
+<style>
+*{box-sizing:border-box} html{color-scheme:light} body{margin:0;font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;color:#101820;background:#fff;-webkit-font-smoothing:antialiased}
+button,a{-webkit-tap-highlight-color:transparent} button{font:inherit} button:focus-visible,a:focus-visible{outline:3px solid currentColor;outline-offset:6px}
+.preview-bar{padding:16px 4vw;display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #dce3ed;font-size:12px;line-height:1.5}.motion-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}.motion-toggle input{accent-color:#0b5ed7;width:17px;height:17px}.preview-bar a{color:inherit;text-underline-offset:4px}
+.heading{padding:70px 4vw 50px;min-height:340px;display:flex;flex-direction:column;justify-content:end}.eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;color:#0b5ed7;margin:0 0 18px}h1{font-size:clamp(45px,7vw,92px);font-weight:500;letter-spacing:-.075em;line-height:.98;max-width:950px;margin:0;text-wrap:balance}.hint{margin:28px 0 0;font-size:13px;color:#566477}
+.flow{isolation:isolate;overflow:clip}.flow-section{position:relative;min-height:100svh;overflow:hidden}.flow-inner{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:100svh;background:var(--panel);color:var(--ink);transform-origin:bottom left}
+.copy{display:flex;flex-direction:column;justify-content:space-between;padding:40px clamp(24px,4vw,64px);min-width:0}.index,.meta,.panel-footer{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.index{display:flex;justify-content:space-between;gap:15px}.index span{opacity:.8}.body{padding:70px 0}.meta{display:flex;flex-wrap:wrap;gap:12px 22px;line-height:1.7}h2{font-size:clamp(36px,4.15vw,62px);font-weight:500;letter-spacing:-.065em;line-height:1.04;text-wrap:balance;margin:24px 0 0}.body p{font-size:clamp(16px,1.45vw,18px);line-height:1.55;max-width:47ch;margin:26px 0 0}.detail{display:inline-flex;align-items:center;gap:26px;margin-top:30px;background:none;border:0;border-bottom:1px solid currentColor;padding:8px 0;color:inherit;cursor:pointer;font-size:14px;font-weight:700}.detail span{font-size:23px}.panel-footer{display:flex;justify-content:space-between;gap:20px;padding-top:18px;border-top:1px solid currentColor;line-height:1.6}
+figure{position:relative;min-width:0;margin:0;overflow:hidden;background:#dceafa}figure img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}figcaption{position:absolute;bottom:20px;left:20px;right:20px;width:fit-content;max-width:calc(100% - 40px);padding:9px 12px;background:#fff;color:#101820;font-size:11px;line-height:1.5}
+.after{position:relative;z-index:10;padding:72px 4vw 100px;background:#fff;min-height:52svh;display:flex;align-items:start;justify-content:space-between;gap:30px;flex-wrap:wrap}.after h2{margin:0;font-size:clamp(28px,4vw,48px)}.after p{font-size:14px;color:#566477;max-width:48ch;line-height:1.7}.all{background:#0b5ed7;color:#fff;border:0;border-radius:999px;padding:20px 28px;font-weight:700;cursor:pointer}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;max-width:calc(100% - 32px);width:max-content;background:#101820;color:#fff;border-radius:8px;padding:14px 20px;font-size:13px;line-height:1.5}.toast:empty{display:none}
+@media(min-width:801px) and (min-height:650px){.flow-inner{height:100svh}.body{padding:35px 0}}
+@media(max-width:800px){.preview-bar{padding:14px 24px;flex-direction:column;gap:5px}.heading{padding:48px 24px 36px;min-height:280px}h1{font-size:clamp(43px,10vw,70px)}.flow-inner{grid-template-columns:1fr;min-height:0}.flow-section{min-height:0}.copy{padding:30px 24px}.body{padding:58px 0}h2{font-size:clamp(37px,9vw,58px)}figure{height:90vw;max-height:620px}figcaption{bottom:16px;left:16px}.after{padding:52px 24px 76px}.index{font-size:10px}}
+/* Compact mobile poster: natural height remains available when text cannot fit. */
+@media(max-width:800px){
+ .flow-inner{display:flex;flex-direction:column;min-height:100svh}
+ .flow-inner>figure{order:-1;flex:none;height:clamp(170px,28svh,270px);max-height:none}
+ .copy{flex:1;padding:20px 24px;gap:18px}
+ .body{padding:14px 0}
+ .meta{font-size:10px;gap:4px 12px}
+ .body h2{font-size:clamp(30px,8.2vw,44px);margin-top:15px}
+ .body p{font-size:15px;line-height:1.45;margin-top:16px}
+ .detail{min-height:44px;margin-top:16px;padding:4px 0}
+ .panel-footer{font-size:9px;padding-top:12px;gap:12px}
+ figcaption{font-size:9px;padding:6px 9px;bottom:12px;left:12px}
+ .flow.mobile-motion .flow-section:not(:last-child){min-height:135svh}
+ .flow.mobile-motion .flow-inner{height:100svh}
+}
+@media(prefers-reduced-motion:reduce){.flow-inner{transform:none!important;will-change:auto!important}.hint-motion{display:none}}
+
+/* Preserve the current board section's quiet surfaces and portrait-left layout. */
+.intro-copy{max-width:650px;font-size:16px;line-height:1.65;color:#5e5e5e;margin:24px 0 0}
+.flow-inner{grid-template-columns:48% 52%}
+.flow-inner>.portrait{order:-1;background:#e2e3e8;margin:clamp(28px,4vw,60px);border-radius:16px;min-height:360px}
+.portrait-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:30px;text-align:center;color:#626773}
+.portrait-placeholder>span{font-size:24px;letter-spacing:-.03em}.portrait-placeholder small{font-size:11px;line-height:1.6}
+.portrait figcaption{display:flex;justify-content:space-between;width:auto;background:none;left:24px;right:24px;bottom:20px;padding:0;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;color:#626773}
+.copy{padding-left:20px}.index{color:#5e5e5e}.body .role{font-size:13px;font-weight:700;color:#0b5ed7;letter-spacing:.06em;margin:0}.body h2{font-size:clamp(36px,4.5vw,68px);font-weight:500;letter-spacing:-.055em}.body .cohort{font-size:14px;color:#5e5e5e;margin-top:16px}.body .profile-description{font-size:clamp(16px,1.6vw,22px);color:#343331;line-height:1.55;margin-top:30px}.all{text-decoration:none;font-size:14px}
+@media(max-width:800px){
+ .heading{min-height:0}.intro-copy{font-size:14px;margin-top:20px}.hint{line-height:1.6}
+ .flow-inner>.portrait{flex:none;height:clamp(180px,30svh,270px);min-height:0;margin:20px 24px 0;border-radius:12px}
+ .portrait-placeholder{gap:10px;padding:16px}.portrait-placeholder svg{width:48px;height:48px}.portrait-placeholder>span{font-size:20px}.portrait-placeholder small{font-size:10px}
+ .portrait figcaption{font-size:9px;bottom:12px;left:16px;right:16px;max-width:none}
+ .copy{padding:22px 24px;gap:16px}.body{padding:12px 0}.body h2{font-size:clamp(32px,8.7vw,44px);margin-top:12px}.body .role{font-size:11px}.body .cohort{font-size:13px;margin-top:14px}.body .profile-description{font-size:16px;line-height:1.5;margin-top:20px}
+}
+
+</style>
+</head>
+<body id="top">
+<div class="preview-bar"><span>IKASADA / Preview desain · semua profil adalah placeholder</span><label class="motion-toggle"><input id="reduce-motion" type="checkbox"> Kurangi gerakan</label><a href="#preview-info">Tentang preview ini ↗</a></div>
+<main>
+<header class="heading"><p class="eyebrow">Pengurus</p><h1>Dewan Pengurus Inti</h1><p class="intro-copy">Nakhoda organisasi yang berdedikasi menjaga sinergi antar-alumni dan kejayaan tradisi Sastra Daerah FIB UI.</p><p class="hint"><span class="hint-motion">Gulir untuk menjelajah ↓ · </span>Empat profil placeholder, bukan data pengurus aktual.</p></header>
+<div class="flow" aria-label="Preview Dewan Pengurus IKASADA">
+<section class="flow-section" aria-labelledby="pengurus-1">
+ <article class="flow-inner" style="--panel:#f2f2f4;--ink:#0f1012">
+  <div class="copy">
+   <div class="index">IKASADA / PENGURUS <span>Profil placeholder</span></div>
+   <div class="body">
+    <p class="role">[Jabatan pengurus]</p>
+    <h2 id="pengurus-1">[Nama Pengurus 01]</h2>
+    <p class="cohort">[Angkatan]</p>
+    <p class="profile-description">[Keterangan singkat pengurus. Informasi profil akan mengikuti data resmi yang dipublikasikan.]</p>
+   </div>
+   <div class="panel-footer"><span>Gulir untuk mengenal pengurus ↓</span><span>01 / 04</span></div>
+  </div>
+  <figure class="portrait" aria-label="Placeholder foto pengurus 01">
+   <div class="portrait-placeholder">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true"><circle cx="36" cy="23" r="12" stroke="currentColor" stroke-width="1.5"/><path d="M12 64v-6c0-12 10-21 24-21s24 9 24 21v6" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Foto pengurus 01</span>
+    <small>Placeholder · bukan foto pengurus aktual</small>
+   </div>
+   <figcaption>IKASADA FIB UI <span>01 / 04</span></figcaption>
+  </figure>
+ </article>
+</section>
+<section class="flow-section" aria-labelledby="pengurus-2">
+ <article class="flow-inner" style="--panel:#eaf4ff;--ink:#0f1012">
+  <div class="copy">
+   <div class="index">IKASADA / PENGURUS <span>Profil placeholder</span></div>
+   <div class="body">
+    <p class="role">[Jabatan pengurus]</p>
+    <h2 id="pengurus-2">[Nama Pengurus 02]</h2>
+    <p class="cohort">[Angkatan]</p>
+    <p class="profile-description">[Keterangan singkat pengurus. Informasi profil akan mengikuti data resmi yang dipublikasikan.]</p>
+   </div>
+   <div class="panel-footer"><span>Gulir untuk mengenal pengurus ↓</span><span>02 / 04</span></div>
+  </div>
+  <figure class="portrait" aria-label="Placeholder foto pengurus 02">
+   <div class="portrait-placeholder">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true"><circle cx="36" cy="23" r="12" stroke="currentColor" stroke-width="1.5"/><path d="M12 64v-6c0-12 10-21 24-21s24 9 24 21v6" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Foto pengurus 02</span>
+    <small>Placeholder · bukan foto pengurus aktual</small>
+   </div>
+   <figcaption>IKASADA FIB UI <span>02 / 04</span></figcaption>
+  </figure>
+ </article>
+</section>
+<section class="flow-section" aria-labelledby="pengurus-3">
+ <article class="flow-inner" style="--panel:#f2f2f4;--ink:#0f1012">
+  <div class="copy">
+   <div class="index">IKASADA / PENGURUS <span>Profil placeholder</span></div>
+   <div class="body">
+    <p class="role">[Jabatan pengurus]</p>
+    <h2 id="pengurus-3">[Nama Pengurus 03]</h2>
+    <p class="cohort">[Angkatan]</p>
+    <p class="profile-description">[Keterangan singkat pengurus. Informasi profil akan mengikuti data resmi yang dipublikasikan.]</p>
+   </div>
+   <div class="panel-footer"><span>Gulir untuk mengenal pengurus ↓</span><span>03 / 04</span></div>
+  </div>
+  <figure class="portrait" aria-label="Placeholder foto pengurus 03">
+   <div class="portrait-placeholder">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true"><circle cx="36" cy="23" r="12" stroke="currentColor" stroke-width="1.5"/><path d="M12 64v-6c0-12 10-21 24-21s24 9 24 21v6" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Foto pengurus 03</span>
+    <small>Placeholder · bukan foto pengurus aktual</small>
+   </div>
+   <figcaption>IKASADA FIB UI <span>03 / 04</span></figcaption>
+  </figure>
+ </article>
+</section>
+<section class="flow-section" aria-labelledby="pengurus-4">
+ <article class="flow-inner" style="--panel:#eaf4ff;--ink:#0f1012">
+  <div class="copy">
+   <div class="index">IKASADA / PENGURUS <span>Profil placeholder</span></div>
+   <div class="body">
+    <p class="role">[Jabatan pengurus]</p>
+    <h2 id="pengurus-4">[Nama Pengurus 04]</h2>
+    <p class="cohort">[Angkatan]</p>
+    <p class="profile-description">[Keterangan singkat pengurus. Informasi profil akan mengikuti data resmi yang dipublikasikan.]</p>
+   </div>
+   <div class="panel-footer"><span>Gulir untuk mengenal pengurus ↓</span><span>04 / 04</span></div>
+  </div>
+  <figure class="portrait" aria-label="Placeholder foto pengurus 04">
+   <div class="portrait-placeholder">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true"><circle cx="36" cy="23" r="12" stroke="currentColor" stroke-width="1.5"/><path d="M12 64v-6c0-12 10-21 24-21s24 9 24 21v6" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Foto pengurus 04</span>
+    <small>Placeholder · bukan foto pengurus aktual</small>
+   </div>
+   <figcaption>IKASADA FIB UI <span>04 / 04</span></figcaption>
+  </figure>
+ </article>
+</section>
+</div>
+<footer class="after" id="preview-info"><div><p class="eyebrow">Dewan Pengurus</p><h2>Bersama menjaga<br>jalinan alumni.</h2><p>Akhir preview empat profil. Nama, jabatan, angkatan, keterangan, dan foto masih placeholder. Belum diterapkan ke website.</p></div><a class="all" href="#top">Kembali ke awal ↑</a></footer>
+</main>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../node_modules/gsap/dist/ScrollTrigger.min.js"></script>
+<script>
+// Local dependencies: serve this file from the repository root over HTTP.
+// No API requests, production navigation, or live content changes.
+(() => {
+  const toast = document.querySelector('.toast');
+  let toastTimer;
+  document.querySelectorAll('[data-preview]').forEach(button => {
+    button.addEventListener('click', () => {
+      toast.textContent = 'Preview saja — profil pengurus masih placeholder.';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.textContent = ''; }, 4000);
+    });
+  });
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  const match = gsap.matchMedia();
+  const toggle = document.querySelector('#reduce-motion');
+  const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const flow = document.querySelector('.flow');
+  function applyMotion() {
+    match.revert();
+    if (toggle.checked) return;
+    match.add({
+      desktop: '(min-width: 801px) and (min-height: 650px)',
+      mobile: '(max-width: 800px) and (min-height: 600px)',
+      reduced: '(prefers-reduced-motion: reduce)',
+    }, context => {
+      const {desktop, mobile, reduced} = context.conditions;
+      if (reduced || (!desktop && !mobile)) return;
+      const sections = gsap.utils.toArray('.flow-section');
+      // Measure natural content before assigning a fixed-height mobile poster.
+      const fits = sections.every(section =>
+        section.querySelector('.flow-inner').getBoundingClientRect().height <= window.innerHeight + 1
+      );
+      if (mobile && !fits) return;
+      if (mobile) flow.classList.add('mobile-motion');
+      sections.forEach((section, index) => {
+        gsap.set(section, { zIndex: index + 1 });
+        const inner = section.querySelector('.flow-inner');
+        if (index > 0) {
+          gsap.fromTo(inner, { rotation: mobile ? 4 : 10 }, {
+            rotation: 0, ease: 'none',
+            scrollTrigger: {
+              trigger: section, start: 'top bottom', end: mobile ? 'top top' : 'top 25%',
+              scrub: true, invalidateOnRefresh: true
+            }
+          });
+        }
+        if (index < sections.length - 1) {
+          ScrollTrigger.create({
+            trigger: section, pin: mobile ? inner : section,
+            start: mobile ? 'top top' : 'bottom bottom', end: 'bottom top',
+            pinSpacing: false, invalidateOnRefresh: true
+          });
+        }
+      });
+      return () => flow.classList.remove('mobile-motion');
+    });
+  }
+  // Re-measure natural content on resize, including changes within a breakpoint.
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(applyMotion, 180);
+  });
+  function syncPreference() {
+    toggle.checked = preference.matches;
+    toggle.disabled = preference.matches;
+    applyMotion();
+  }
+  toggle.addEventListener('change', applyMotion);
+  preference.addEventListener('change', syncPreference);
+  syncPreference();
+  window.addEventListener('load', () => ScrollTrigger.refresh(), {once:true});
+})();
+</script>
+</body>
+</html>

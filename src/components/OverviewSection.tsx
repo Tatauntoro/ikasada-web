@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 import SplitType from "split-type";
-import WaysStory from "./WaysStory";
+import FlowWaysStory from "./FlowWaysStory";
 import AboutMedia from "./AboutMedia";
 import {
   sectionAktif,
@@ -155,7 +158,7 @@ export default function OverviewSection() {
   const limaItems = (() => {
     const konfig = beranda?.sections.find((s) => s.kunci === "lima-cara")
       ?.konfigurasi as
-      | { items?: { judul?: unknown; deskripsi?: unknown; fotoUrl?: unknown; tampilkanFoto?: unknown }[] }
+      | { items?: { judul?: unknown; deskripsi?: unknown; fotoUrl?: unknown; tampilkanFoto?: unknown; warnaLatar?: unknown }[] }
       | null
       | undefined;
     const items = konfig?.items;
@@ -165,6 +168,7 @@ export default function OverviewSection() {
         deskripsi: String(x?.deskripsi ?? ""),
         fotoUrl: typeof x?.fotoUrl === "string" ? x.fotoUrl : "",
         tampilkanFoto: x?.tampilkanFoto !== false,
+        warnaLatar: typeof x?.warnaLatar === "string" ? x.warnaLatar : "",
       }));
     }
     return ways.map((w) => ({
@@ -172,6 +176,7 @@ export default function OverviewSection() {
       deskripsi: w.headline,
       fotoUrl: "",
       tampilkanFoto: true,
+      warnaLatar: "",
     }));
   })();
   const mediaTentang = (() => {
@@ -267,6 +272,25 @@ export default function OverviewSection() {
     };
   }, [judulTentang, bodyTentang, tentangAktif]);
 
+  useEffect(() => {
+    if (!tentangAktif || !ref.current) return;
+    const match = gsap.matchMedia();
+    match.add({
+      mobile: "(max-width: 700px)",
+      desktop: "(min-width: 701px)",
+      reduced: "(prefers-reduced-motion: reduce)",
+    }, (context) => {
+      if (context.conditions?.reduced) return;
+      const media = ref.current?.querySelector(`.${styles.aboutMedia}`);
+      if (!media) return;
+      gsap.fromTo(media, { yPercent: context.conditions?.mobile ? -6 : -8 }, {
+        yPercent: 0, ease: "none",
+        scrollTrigger: { trigger: ref.current?.querySelector("#overview"), start: "top bottom", end: "bottom top", scrub: true },
+      });
+    }, ref);
+    return () => match.revert();
+  }, [tentangAktif]);
+
   if (!tentangAktif && !limaAktif) return null;
 
   return (
@@ -299,10 +323,12 @@ export default function OverviewSection() {
                   <p className={styles.body}>{bodyTentang}</p>
                 </div>
                 <figure className={styles.aboutVisual}>
+                  <div className={styles.aboutMedia}>
                   <AboutMedia
                     {...mediaTentang}
                     fallback="/images/beranda/alumni-discussion.png"
                   />
+                  </div>
                   <figcaption className={styles.aboutCaption}>
                     Jejaring yang terus hidup lintas angkatan
                   </figcaption>
@@ -314,7 +340,7 @@ export default function OverviewSection() {
       )}
 
       {limaAktif && (
-        <WaysStory
+        <FlowWaysStory
           kicker={kickerLima}
           title={limaKustom ? judulLimaRaw : JUDUL_LIMA_DEFAULT}
           kickerStyle={gayaEyebrowLima}
@@ -329,6 +355,10 @@ export default function OverviewSection() {
               image: item.fotoUrl || fallback.image,
               showImage: item.tampilkanFoto,
               imageAlt: fallback.imageAlt,
+              backgroundColor: item.warnaLatar.trim() || undefined,
+              inkColor: item.warnaLatar.trim()
+                ? tintaUntukLatar(item.warnaLatar)
+                : undefined,
             };
           })}
         />

@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 import { ArrowRight } from "@phosphor-icons/react";
 import { useLoader } from "../LoaderProvider";
 import {
@@ -69,6 +73,28 @@ export default function VideoHero() {
   const [allowed, setAllowed] = useState(false);
   const [siap, setSiap] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+
+  useEffect(() => {
+    if (!root.current) return;
+    const match = gsap.matchMedia();
+    match.add({
+      mobile: "(max-width: 700px)",
+      desktop: "(min-width: 701px)",
+      reduced: "(prefers-reduced-motion: reduce)",
+    }, (context) => {
+      if (context.conditions?.reduced) return;
+      const scale = context.conditions?.mobile ? 0.65 : 1;
+      const timeline = gsap.timeline({
+        scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
+      });
+      timeline.to(root.current!.querySelector(`.${styles.media}`), {
+        yPercent: 25 * scale, ease: "none",
+      }, 0).to(root.current!.querySelector(`.${styles.copy}`), {
+        yPercent: 16 * scale, ease: "none",
+      }, 0);
+    }, root);
+    return () => match.revert();
+  }, []);
 
   // Hormati reduced-motion dan mode hemat data: kalau keduanya menyala, video
   // tidak pernah diputar dan hero memakai poster.
@@ -204,6 +230,7 @@ export default function VideoHero() {
             height={80}
           />
         </div>
+        <div className={styles.copy}>
         <p className={styles.description}>
           {teksSection(
             beranda,
@@ -229,6 +256,7 @@ export default function VideoHero() {
             Cari alumni <ArrowRight weight="bold" aria-hidden="true" />
           </button>
         )}
+        </div>
       </div>
     </section>
   );

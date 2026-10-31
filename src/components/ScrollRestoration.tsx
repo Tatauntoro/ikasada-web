@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { pulihkanGulir, catatJangkarGulir, tujuanGulirTersimpan } from "@/lib/scroll-return";
 
 /**
  * Memulihkan posisi gulir saat tombol back/forward browser ditekan.
@@ -13,16 +14,14 @@ import { usePathname } from "next/navigation";
  * terpotong ke atas.
  *
  * Posisinya dicatat per alamat halaman di `sessionStorage`, lalu dipasang
- * kembali setelah route hasil back/forward selesai dirender. Pencobaannya
- * diulang sebentar karena tinggi dokumen masih berubah selama data section
- * (statistik, direktori alumni) menyusul.
+ * kembali ke elemen dan offset tersimpan ketika layout siap.
  */
 
 const KUNCI_SIMPAN = "ikasada:posisi-gulir";
 const KUNCI_RUTE_AKTIF = "ikasada:rute-aktif";
 const KUNCI_RUTE_SEBELUMNYA = "ikasada:rute-sebelumnya";
 const DURASI_PEMULIHAN_MS = 1200;
-const JEDA_PERCOBAAN_MS = 100;
+
 
 type PetaPosisi = Record<string, number>;
 
@@ -103,7 +102,7 @@ export default function ScrollRestoration() {
     const scrollRestorationAsal = window.history.scrollRestoration;
     let memulihkan = false;
     let frame = 0;
-    let timers: number[] = [];
+    let hentikanAnimasi: (() => void) | undefined;
     let markerTimer = 0;
 
     // Kita punya pemulihan sendiri; matikan pemulihan browser agar keduanya
@@ -117,7 +116,8 @@ export default function ScrollRestoration() {
 
     const simpan = () => {
       // Selama pemulihan, geseran yang tercatat adalah geseran kita sendiri.
-      if (memulihkan) return;
+      if (memulihkan || document.documentElement.dataset.historyRestoring === "true") return;
+      catatJangkarGulir(kunciHalaman());
       peta[kunciHalaman()] = window.scrollY;
       try {
         window.sessionStorage.setItem(KUNCI_SIMPAN, JSON.stringify(peta));
@@ -135,9 +135,8 @@ export default function ScrollRestoration() {
     };
 
     const pulihkan = () => {
+      hentikanAnimasi?.();
       memulihkan = false;
-      timers.forEach(window.clearTimeout);
-      timers = [];
       if (markerTimer) window.clearTimeout(markerTimer);
       document.documentElement.dataset.historyRestoring = "true";
 
@@ -151,26 +150,16 @@ export default function ScrollRestoration() {
       }
 
       memulihkan = true;
-      const batas = window.performance.now() + DURASI_PEMULIHAN_MS;
-
-      const coba = () => {
-        if (Math.abs(window.scrollY - tujuan) > 1) window.scrollTo(0, tujuan);
-        if (window.performance.now() < batas) {
-          timers.push(window.setTimeout(coba, JEDA_PERCOBAAN_MS));
-        } else {
-          memulihkan = false;
-          markerTimer = 0;
-          hapusPenandaPemulihan();
-        }
-      };
-      coba();
+      hentikanAnimasi = pulihkanGulir(tujuanGulirTersimpan(kunciHalaman(), tujuan), () => {
+        memulihkan = false;
+        hapusPenandaPemulihan();
+      });
     };
 
     const batal = () => {
       // Pengunjung sudah mengambil alih gulirnya; jangan ditimpa lagi.
       memulihkan = false;
-      timers.forEach(window.clearTimeout);
-      timers = [];
+      hentikanAnimasi?.();
       if (markerTimer) window.clearTimeout(markerTimer);
       markerTimer = 0;
       hapusPenandaPemulihan();
@@ -178,6 +167,7 @@ export default function ScrollRestoration() {
 
     window.addEventListener("scroll", jadwalkanSimpan, { passive: true });
     window.addEventListener("pagehide", simpan);
+    document.addEventListener("click", simpan, true);
     window.addEventListener("popstate", pulihkan);
     window.addEventListener("wheel", batal, { passive: true });
     window.addEventListener("touchstart", batal, { passive: true });
@@ -192,12 +182,13 @@ export default function ScrollRestoration() {
     return () => {
       window.removeEventListener("scroll", jadwalkanSimpan);
       window.removeEventListener("pagehide", simpan);
+      document.removeEventListener("click", simpan, true);
       window.removeEventListener("popstate", pulihkan);
       window.removeEventListener("wheel", batal);
       window.removeEventListener("touchstart", batal);
       window.removeEventListener("keydown", batal);
       if (frame) window.cancelAnimationFrame(frame);
-      timers.forEach(window.clearTimeout);
+      hentikanAnimasi?.();
       if (markerTimer) window.clearTimeout(markerTimer);
       hapusPenandaPemulihan();
       window.history.scrollRestoration = scrollRestorationAsal;

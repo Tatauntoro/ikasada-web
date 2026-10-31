@@ -74,15 +74,37 @@ export default function BerandaIsi() {
     };
 
     sinkronkanDivider();
-    const observer = new MutationObserver(sinkronkanDivider);
+    let dividerFrame = 0;
+    const backgroundDeclarations = (style: string | null) =>
+      (style?.match(/(?:^|;)\s*(?:background(?:-color)?|--warna-background-section)\s*:[^;]*/gi) ?? []).join(";");
+    const observer = new MutationObserver((records) => {
+      const needsUpdate = records.some((record) => {
+        if (record.type === "childList") return true;
+        if (!(record.target instanceof HTMLElement)) return false;
+        // Scroll animations change transform/top on every frame; these do not
+        // affect the divider between two white sections.
+        return backgroundDeclarations(record.oldValue) !==
+          backgroundDeclarations(record.target.getAttribute("style"));
+      });
+      if (needsUpdate && !dividerFrame) {
+        dividerFrame = window.requestAnimationFrame(() => {
+          dividerFrame = 0;
+          sinkronkanDivider();
+        });
+      }
+    });
     observer.observe(root, {
       attributes: true,
       attributeFilter: ["style"],
+      attributeOldValue: true,
       childList: true,
       subtree: true,
     });
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(dividerFrame);
+    };
   }, []);
 
   const urutanBlok = (kunci: string, fallback: number) =>

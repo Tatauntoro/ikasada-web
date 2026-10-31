@@ -127,9 +127,17 @@ export const limaCaraKonfigSchema = z.object({
           .optional()
           .default(""),
         tampilkanFoto: z.boolean().optional().default(true),
+        warnaLatar: warnaOpsional.or(z.literal("")).optional(),
       })
     )
     .max(10, "Maksimal 10 poin"),
+});
+
+/** Empat slot warna panel Arsip; kosong berarti memakai desain bawaan. */
+export const arsipKonfigSchema = z.object({
+  warnaPanel: z.array(warnaOpsional.or(z.literal("")))
+    .length(4, "Warna panel harus memuat empat posisi")
+    .optional(),
 });
 
 /** Konfigurasi section "kontak": email kanal resmi (boleh dikosongkan). */
@@ -206,6 +214,7 @@ export function skemaKonfigurasi(kunci: string): z.ZodTypeAny | null {
   if (kunci === "hero") return heroKonfigSchema;
   if (kunci === "tentang-kami") return tentangKamiKonfigSchema;
   if (kunci === "lima-cara") return limaCaraKonfigSchema;
+  if (kunci === "arsip") return arsipKonfigSchema;
   if (kunci === "kontak") return kontakKonfigSchema;
   if (kunci === "sebaran-geografis") return sebaranKonfigSchema;
   return null;
