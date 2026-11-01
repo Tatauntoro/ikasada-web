@@ -12,7 +12,7 @@ import {
 import { alumniAktif } from "@/lib/sesi-alumni";
 
 export const metadata: Metadata = {
-  title: "Arsip Dokumen - IKASADA FIB UI",
+  title: "Dokumen dan Laporan - IKASADA FIB UI",
   description:
     "Arsip laporan, notulen, proposal, dan publikasi IKASADA FIB UI.",
 };
@@ -63,12 +63,12 @@ export default async function ArsipPage() {
             <BackButton fallback="/#arsip" forceFallback />
             <Breadcrumb
               className="mb-10"
-              items={[{ label: "Beranda", href: "/" }, { label: "Arsip Dokumen" }]}
+              items={[{ label: "Beranda", href: "/" }, { label: "Dokumen dan Laporan" }]}
             />
 
             <div className="mb-12">
               <h1 className="page-title page-title--single">
-                Arsip <span className="text-black/25">Dokumen.</span>
+                Dokumen dan Laporan
               </h1>
               <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-black/68 text-pretty sm:text-base">
                 Kumpulan laporan, notulen, proposal, dan publikasi IKASADA FIB

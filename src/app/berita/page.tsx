@@ -3,7 +3,12 @@ import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import ScrollReveal from "@/components/ScrollReveal";
 import BeritaDirectory from "@/components/BeritaDirectory";
-import { PER_PAGE_BERITA, daftarBeritaPublik } from "@/lib/berita-publik";
+import {
+  PER_PAGE_BERITA,
+  daftarBeritaPublik,
+  jenisBeritaTerpakai,
+  tahunBeritaTersedia,
+} from "@/lib/berita-publik";
 
 export const metadata: Metadata = {
   title: "Berita - IKASADA FIB UI",
@@ -26,10 +31,11 @@ export const dynamic = "force-dynamic";
  * halaman berikutnya berjalan lewat `/api/public/berita`.
  */
 export default async function BeritaPage() {
-  const { items, total } = await daftarBeritaPublik({
-    page: 1,
-    limit: PER_PAGE_BERITA,
-  });
+  const [{ items, total }, jenis, tahun] = await Promise.all([
+    daftarBeritaPublik({ page: 1, limit: PER_PAGE_BERITA }),
+    jenisBeritaTerpakai(),
+    tahunBeritaTersedia(),
+  ]);
 
   return (
     <>
@@ -52,7 +58,12 @@ export default async function BeritaPage() {
               </p>
             </div>
 
-            <BeritaDirectory awal={items} totalAwal={total} />
+            <BeritaDirectory
+              awal={items}
+              totalAwal={total}
+              jenisAwal={jenis}
+              tahunAwal={tahun}
+            />
           </div>
         </section>
       </div>

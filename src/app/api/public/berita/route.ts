@@ -7,7 +7,8 @@ import { daftarBeritaPublik } from "@/lib/berita-publik";
 /**
  * `GET /api/public/berita` — daftar berita terbit, berhalaman.
  *
- * Query: `page`, `limit`. Meta membawa `total`/`totalPages` untuk `Pagination`.
+ * Query: `page`, `limit`, `search`, `jenisId`, `tahun`.
+ * Meta membawa `total`/`totalPages` untuk `Pagination`.
  */
 async function handler(req: NextRequest): Promise<Response> {
   const { searchParams } = req.nextUrl;
@@ -16,6 +17,9 @@ async function handler(req: NextRequest): Promise<Response> {
   const { items, total } = await daftarBeritaPublik({
     page: pagination.page,
     limit: pagination.limit,
+    search: searchParams.get("search"),
+    jenisId: searchParams.get("jenisId"),
+    tahun: searchParams.get("tahun"),
   });
 
   return okPaginated(items, {
