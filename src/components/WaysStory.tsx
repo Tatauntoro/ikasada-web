@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Image from "next/image";
 import styles from "./WaysStory.module.css";
 
@@ -31,6 +31,7 @@ type Props = {
   showIntro?: boolean;
   itemNoun?: string;
   variant?: "default" | "archive";
+  deferMedia?: boolean;
 };
 
 const labels = ["Bertemu", "Berkolaborasi", "Berkegiatan", "Bertumbuh", "Terhubung"];
@@ -51,10 +52,14 @@ export default function WaysStory({
   showIntro = true,
   itemNoun = "cara",
   variant = "default",
+  deferMedia = false,
 }: Props) {
   const storyRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const count = items.length;
+  const [indeksMedia, setIndeksMedia] = useState<number[]>(() =>
+    deferMedia ? Array.from({ length: Math.min(2, count) }, (_, index) => index) : []
+  );
   const storyStyle = {
     "--ways-desktop-height": `${100 + Math.max(0, count - 1) * 150}svh`,
     "--ways-mobile-height": `${100 + Math.max(0, count - 1) * 110}svh`,
@@ -72,19 +77,27 @@ export default function WaysStory({
     const mobile = window.matchMedia("(max-width: 700px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
+    let dekatDenganLayar = false;
+    let tataLetakPanel: boolean | null = null;
+    let pasanganPanelTerlihat = "";
+    let panelAktif = -1;
 
     function render() {
       frame = 0;
       if (!story || !pin) return;
 
       if (reduced.matches) {
-        panels.forEach((panel) => {
-          panel.style.removeProperty("left");
-          panel.style.removeProperty("width");
-          panel.style.removeProperty("transform");
-          panel.removeAttribute("aria-hidden");
-          panel.inert = false;
-        });
+        if (pasanganPanelTerlihat !== "reduced") {
+          panels.forEach((panel) => {
+            panel.style.removeProperty("left");
+            panel.style.removeProperty("width");
+            panel.style.removeProperty("transform");
+            panel.removeAttribute("aria-hidden");
+            panel.inert = false;
+          });
+          if (deferMedia) setIndeksMedia(Array.from({ length: count }, (_, index) => index));
+          pasanganPanelTerlihat = "reduced";
+        }
         return;
       }
 
@@ -93,11 +106,18 @@ export default function WaysStory({
       const progress = clamp((window.scrollY - start) / range, 0, 1) * Math.max(0, panels.length - 1);
       const width = pin.clientWidth;
       const strip = Math.min(width * 0.092, 135);
+      const mobileLayout = mobile.matches;
 
-      panels.forEach((panel, index) => {
-        if (mobile.matches) {
+      if (mobileLayout !== tataLetakPanel) {
+        panels.forEach((panel) => {
           panel.style.removeProperty("left");
           panel.style.removeProperty("width");
+        });
+        tataLetakPanel = mobileLayout;
+      }
+
+      panels.forEach((panel, index) => {
+        if (mobileLayout) {
           const entry = index === 0 ? 1 : clamp(progress - (index - 1), 0, 1);
           panel.style.transform = `translate3d(0, ${(1 - entry) * 100}%, 0)`;
         } else {
@@ -108,23 +128,40 @@ export default function WaysStory({
           panel.style.width = `${width - offset}px`;
           panel.style.transform = `translate3d(${movement}px, 0, 0)`;
         }
-        panel.setAttribute(
-          "aria-hidden",
-          index === Math.floor(progress) || index === Math.ceil(progress) ? "false" : "true"
-        );
       });
 
-      panels.forEach(panel => { panel.inert = panel.getAttribute("aria-hidden") === "true"; });
+      const bawah = Math.floor(progress);
+      const atas = Math.ceil(progress);
+      const pasanganBaru = `${bawah}:${atas}`;
+      if (pasanganBaru !== pasanganPanelTerlihat) {
+        panels.forEach((panel, index) => {
+          const terlihat = index === bawah || index === atas;
+          panel.setAttribute("aria-hidden", terlihat ? "false" : "true");
+          panel.inert = !terlihat;
+        });
+        if (deferMedia) {
+          const mediaAktif = clamp(Math.round(progress), 0, count - 1);
+          setIndeksMedia([mediaAktif, Math.min(mediaAktif + 1, count - 1)]);
+        }
+        pasanganPanelTerlihat = pasanganBaru;
+      }
 
       const current = clamp(Math.round(progress), 0, buttons.length - 1);
-      buttons.forEach((button, index) => {
-        if (index === current) button.setAttribute("aria-current", "step");
-        else button.removeAttribute("aria-current");
-      });
+      if (current !== panelAktif) {
+        buttons.forEach((button, index) => {
+          if (index === current) button.setAttribute("aria-current", "step");
+          else button.removeAttribute("aria-current");
+        });
+        panelAktif = current;
+      }
     }
 
     function schedule() {
       if (!frame) frame = window.requestAnimationFrame(render);
+    }
+
+    function scheduleSaatDekat() {
+      if (dekatDenganLayar && !reduced.matches) schedule();
     }
 
     const jump = (index: number) => {
@@ -142,7 +179,16 @@ export default function WaysStory({
       button.addEventListener("click", handler);
       return handler;
     });
-    window.addEventListener("scroll", schedule, { passive: true });
+    const pengamat = "IntersectionObserver" in window
+      ? new IntersectionObserver(([entry]) => {
+          dekatDenganLayar = entry.isIntersecting;
+          if (dekatDenganLayar) schedule();
+        }, { rootMargin: "100% 0px" })
+      : null;
+    pengamat?.observe(story);
+    if (!pengamat) dekatDenganLayar = true;
+
+    window.addEventListener("scroll", scheduleSaatDekat, { passive: true });
     window.addEventListener("resize", schedule);
     mobile.addEventListener("change", schedule);
     reduced.addEventListener("change", schedule);
@@ -150,13 +196,14 @@ export default function WaysStory({
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", schedule);
+      pengamat?.disconnect();
+      window.removeEventListener("scroll", scheduleSaatDekat);
       window.removeEventListener("resize", schedule);
       mobile.removeEventListener("change", schedule);
       reduced.removeEventListener("change", schedule);
       buttons.forEach((button, index) => button.removeEventListener("click", buttonHandlers[index]));
     };
-  }, [count]);
+  }, [count, deferMedia]);
 
   return (
     <>
@@ -213,7 +260,7 @@ export default function WaysStory({
                 <h3>{item.title}</h3>
                 {item.subtitle}
                 <p>{item.description}</p>
-                {item.media}
+                {item.media && (!deferMedia || indeksMedia.includes(index)) && item.media}
                 {item.media == null && item.showImage !== false && item.image && (
                   <div className={styles.photo}>
                     <Image
@@ -221,7 +268,7 @@ export default function WaysStory({
                       alt={item.imageAlt}
                       fill
                       sizes="(max-width: 700px) 53vw, 34vw"
-                      unoptimized
+                      quality={75}
                     />
                   </div>
                 )}
