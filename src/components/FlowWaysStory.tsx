@@ -121,7 +121,13 @@ export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, 
               </div>
               {item.showImage !== false && item.image ? (
                 <figure className={styles.visual}>
-                  <Image src={item.image} alt={item.imageAlt} fill unoptimized sizes="(max-width: 800px) 100vw, 50vw" />
+                  <Image
+                    src={item.image}
+                    alt={item.imageAlt}
+                    fill
+                    sizes="(max-width: 800px) 100vw, 50vw"
+                    quality={75}
+                  />
                 </figure>
               ) : (
                 <div className={styles.number} aria-hidden="true">{String(index + 1).padStart(2, "0")}</div>

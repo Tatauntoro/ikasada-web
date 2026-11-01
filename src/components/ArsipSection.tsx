@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -31,6 +31,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 function SampulArsip({ item }: { item: PublicArsip }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const url = item.terkunci ? null : item.gambarSampulUrl;
+  const dapatDioptimasi = url?.startsWith("/api/uploads/") ?? false;
   return (
     <figure className={styles.cover}>
       {url && failedUrl !== url ? (
@@ -38,8 +39,9 @@ function SampulArsip({ item }: { item: PublicArsip }) {
           src={url}
           alt={item.alt || ""}
           fill
-          unoptimized
+          unoptimized={!dapatDioptimasi}
           sizes="(max-width: 700px) 53vw, 38vw"
+          quality={75}
           onError={() => {
             reportAssetError(url, "image");
             setFailedUrl(url);
@@ -56,11 +58,15 @@ function SampulArsip({ item }: { item: PublicArsip }) {
 
 /** Empat arsip publik terbaru dengan pola panel WaysStory. */
 export default function ArsipSection() {
+  const sectionRef = useRef<HTMLElement>(null);
   const beranda = useBerandaConfig();
+  const aktif = sectionAktif(beranda, "arsip");
   const [dokumen, setDokumen] = useState<PublicArsip[]>(() => bacaDataBeranda<PublicArsip[]>("arsip") ?? []);
   const [isLoading, setIsLoading] = useState(() => bacaDataBeranda("arsip") === undefined);
 
   useEffect(() => {
+    if (!aktif || bacaDataBeranda("arsip") !== undefined) return;
+
     let active = true;
     async function fetchData() {
       if (bacaDataBeranda("arsip") !== undefined) return;
@@ -74,9 +80,22 @@ export default function ArsipSection() {
       }
       setIsLoading(false);
     }
-    fetchData();
-    return () => { active = false; };
-  }, []);
+    const section = sectionRef.current;
+    if (!section || !("IntersectionObserver" in window)) {
+      void fetchData();
+      return () => { active = false; };
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer?.disconnect();
+      void fetchData();
+    }, { rootMargin: "900px 0px" });
+    observer.observe(section);
+    return () => {
+      active = false;
+      observer?.disconnect();
+    };
+  }, [aktif]);
 
   const eyebrow = teksSection(beranda, "arsip", "eyebrow", "Arsip");
   const title = teksSection(beranda, "arsip", "judul", "Dokumen & Laporan.");
@@ -86,10 +105,10 @@ export default function ArsipSection() {
   const ampersandIndex = title.indexOf("&");
   const warnaPanel = bacaWarnaPanelArsip(beranda?.sections.find(s => s.kunci === "arsip")?.konfigurasi);
 
-  if (!sectionAktif(beranda, "arsip") || (!isLoading && dokumen.length === 0)) return null;
+  if (!aktif || (!isLoading && dokumen.length === 0)) return null;
 
   return (
-    <section id="arsip" style={backgroundStyle} aria-labelledby="arsip-title" className={`home-jakarta-section ${plusJakartaSans.className} ${styles.section}`}>
+    <section ref={sectionRef} id="arsip" style={backgroundStyle} aria-labelledby="arsip-title" className={`home-jakarta-section ${plusJakartaSans.className} ${styles.section}`}>
       <header className={`${styles.header} home-section-container`}>
         <span className={`section-label ${styles.eyebrow}`} style={kickerStyle}>{eyebrow}</span>
         <h2 id="arsip-title" className={`section-title ${styles.title}`} style={titleStyle}>
@@ -107,6 +126,7 @@ export default function ArsipSection() {
           showIntro={false}
           itemNoun="arsip"
           variant="archive"
+          deferMedia
           kicker={eyebrow}
           title={title}
           firstInk="#0f1012"
