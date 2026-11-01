@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { formatTanggalWIB } from "@/lib/format";
+import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
+import Link from "next/link";
+import styles from "./KegiatanDetail.module.css";
 import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
@@ -70,164 +72,92 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
       ? ` – ${formatTanggalWIB(kegiatan.tanggalSelesai)}`
       : "");
 
-  const specs = [
-    { label: "Tanggal", value: tanggal },
-    { label: "Durasi", value: `${durasiHari} Hari` },
-    { label: "Lokasi", value: kegiatan.lokasi },
-    { label: "Penyelenggara", value: "IKASADA FIB UI" },
-  ];
+  const lainnya = await prisma.kegiatan.findMany({
+    where: { status: "PUBLISHED", deletedAt: null, id: { not: kegiatan.id } },
+    orderBy: { tanggalMulai: "desc" },
+    take: 2,
+  });
 
   return (
-    <section className="public-page relative w-full bg-white">
-      <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-24 md:px-12 md:pb-48 md:pt-32">
-        <BackButton fallback="/event" />
-        <Breadcrumb
-          className="mb-12"
-          items={[
-            { label: "Beranda", href: "/" },
-            { label: "Kegiatan", href: "/event" },
-            { label: kegiatan.judul },
-          ]}
-        />
-
-        {/* Hero — gambar kegiatan */}
-        <div className="group relative w-full overflow-hidden border border-[#0B5ED7]/15">
-          <div className="aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
-            {kegiatan.gambarThumbnailUrl ? (
-              <MorphHeroImage
-                src={kegiatan.gambarThumbnailUrl}
-                alt={kegiatan.judul}
-                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-              />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-br from-neutral-200 to-neutral-400" />
-            )}
-          </div>
-
-          <div className="absolute bottom-4 left-4 z-10 rounded-[2px] border border-[#0B5ED7]/15 bg-[#fdfdfd]/90 px-4 py-2">
-            <span className="text-[10px] font-normal uppercase tracking-widest text-black">
-              {kegiatan.lokasi}
-            </span>
-          </div>
+    <main className={`public-page ${styles.page}`}>
+      <div className={styles.wrap}>
+        <div className={styles.navigation}>
+          <BackButton fallback="/event" />
+          <Breadcrumb items={[{ label: "Beranda", href: "/" }, { label: "Kegiatan", href: "/event" }, { label: namaKategori }]} />
         </div>
-
-        {/* Konten */}
-        <div className="mt-12 grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-7">
-            <span className="mb-6 block text-[10px] font-semibold uppercase tracking-widest text-[#0B5ED7]">
-              Kegiatan — {namaKategori}
-            </span>
-            <h1 className="mb-6 font-sans text-[length:var(--text-display-page)] font-semibold leading-tight tracking-[-0.03em] text-neutral-900">
-              {kegiatan.judul}
-            </h1>
-            <RichText
-              teks={kegiatan.deskripsiSingkat}
-              className="mb-4 max-w-2xl space-y-4 font-normal leading-relaxed text-black/70"
-            />
-            <RichText
-              teks={kegiatan.deskripsiLengkap}
-              className="max-w-2xl space-y-4 font-normal leading-relaxed text-black/70"
-            />
-
-            {videoId && (
-              <div className="mt-12 max-w-2xl border-t border-[#0B5ED7]/15 pt-8">
-                <h2 className="mb-6 text-xs font-normal uppercase tracking-widest text-black/60">
-                  Lihat Video
-                </h2>
-                <VideoPreviewCard
-                  videoId={videoId}
-                  kategori={namaKategori}
-                  durasi={`${durasiHari} Hari`}
-                  description="Tonton rekaman dokumentasi kegiatan ini."
-                />
-              </div>
-            )}
-
-            {kegiatan.media.length > 0 && (
-              <div className="mt-12 max-w-2xl border-t border-[#0B5ED7]/15 pt-8">
-                <h2 className="mb-6 text-xs font-normal uppercase tracking-widest text-black/60">
-                  Galeri Foto &amp; Video ({kegiatan.media.length})
-                </h2>
-                <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  {kegiatan.media.map((media) => {
-                    const sumber = `/api/kegiatan/${kegiatan.slug}/media/${media.id}`;
-                    return (
-                      <li key={media.id}>
-                        {media.jenis === "VIDEO" ? (
-                          <video
-                            src={sumber}
-                            controls
-                            preload="metadata"
-                            className="w-full border border-[#0B5ED7]/15 bg-black"
-                          />
-                        ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden border border-[#0B5ED7]/15">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={sumber}
-                              alt={media.caption ?? kegiatan.judul}
-                              loading="lazy"
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        )}
-                        {media.caption && (
-                          <p className="mt-2 text-[13px] leading-relaxed text-black/60">
-                            {media.caption}
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
+        <div className={styles.hero}>
+          {kegiatan.gambarThumbnailUrl ? <MorphHeroImage src={kegiatan.gambarThumbnailUrl} alt={kegiatan.judul} className={styles.heroImage} /> : <div className={styles.imageFallback}>IKASADA / KEGIATAN</div>}
+        </div>
+        <section className={styles.ticket} aria-labelledby="judul-kegiatan">
+          <div className={styles.ticketInfo}>
+            <span className={styles.tag}>{namaKategori}</span>
+            <h1 id="judul-kegiatan">{kegiatan.judul}</h1>
+            <dl className={styles.facts}>
+              <div><dt>Tanggal kegiatan</dt><dd>{tanggal}</dd></div>
+              <div><dt>Waktu mulai</dt><dd>{formatWaktuWIB(kegiatan.tanggalMulai)} WIB</dd></div>
+              <div className={styles.location}><dt>Lokasi</dt><dd>{kegiatan.lokasi}</dd></div>
+            </dl>
           </div>
-
-          <div className="md:col-span-5">
-            {/* Spesifikasi */}
-            <div className="grid grid-cols-1 gap-x-4 gap-y-5 border-t border-[#0B5ED7]/15 pt-6 sm:grid-cols-2">
-              {specs.map((spec) => (
-                <div key={spec.label} className="flex items-baseline gap-2">
-                  <span className="shrink-0 text-[10px] font-normal uppercase tracking-widest text-black/60">
-                    {spec.label}
-                  </span>
-                  <span className="text-[10px] font-normal text-black/30">—</span>
-                  <span className="text-sm font-normal text-black">
-                    {spec.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-10 flex flex-col items-start gap-4">
-              {kegiatan.linkPendaftaran ? (
-                <a
-                  href={kegiatan.linkPendaftaran}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-[2px] border border-[#0B5ED7] px-8 py-3 text-[10px] font-semibold uppercase tracking-widest transition-colors duration-300 hover:bg-[#0B5ED7] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B5ED7]"
-                >
-                  Daftar / Ikuti Kegiatan
-                </a>
-              ) : (
-                <span className="text-sm font-normal text-black/60">
-                  Terbuka untuk umum, tanpa pendaftaran.
-                </span>
-              )}
-
-              <a
-                href={mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border-b border-[#0B5ED7]/35 pb-0.5 text-[10px] uppercase tracking-widest text-[#0B5ED7] transition-colors hover:border-[#0B5ED7] hover:text-[#084BAA] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0B5ED7]"
-              >
-                Lihat Lokasi
-              </a>
-            </div>
+          <div className={styles.ticketAction}>
+            <h2>{kegiatan.linkPendaftaran ? "Ikuti kegiatannya." : "Informasi kegiatan"}</h2>
+            {kegiatan.linkPendaftaran ? <>
+              <p>Buka tautan pendaftaran dari penyelenggara untuk mengikuti kegiatan ini.</p>
+              <a className={styles.primary} href={kegiatan.linkPendaftaran} target="_blank" rel="noopener noreferrer">Daftar / Ikuti Kegiatan <span aria-hidden="true">↗</span></a>
+            </> : <p>Tautan pendaftaran belum dicantumkan untuk kegiatan ini.</p>}
           </div>
+        </section>
+        <div className={styles.content}>
+          <div>
+            <section aria-labelledby="tentang-kegiatan">
+              <h2 id="tentang-kegiatan">Tentang kegiatan</h2>
+              <RichText teks={kegiatan.deskripsiSingkat} className={styles.prose} />
+              <RichText teks={kegiatan.deskripsiLengkap} className={styles.prose} />
+            </section>
+            {videoId && <section className={styles.documentation} aria-labelledby="video-kegiatan">
+              <h2 id="video-kegiatan">Lihat video</h2>
+              <VideoPreviewCard videoId={videoId} kategori={namaKategori} durasi={`${durasiHari} Hari`} description="Tonton rekaman dokumentasi kegiatan ini." />
+            </section>}
+            {kegiatan.media.length > 0 && <section className={styles.documentation} aria-labelledby="galeri-kegiatan">
+              <h2 id="galeri-kegiatan">Galeri Foto &amp; Video ({kegiatan.media.length})</h2>
+              <ul className={styles.gallery}>
+                {kegiatan.media.map(media => {
+                  const sumber = `/api/kegiatan/${kegiatan.slug}/media/${media.id}`;
+                  return <li key={media.id}>
+                    {media.jenis === "VIDEO" ? <video src={sumber} controls preload="metadata" className={styles.galleryVideo} /> :
+                      <a href={sumber} target="_blank" rel="noopener noreferrer" aria-label={`Buka foto: ${media.caption || kegiatan.judul}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={sumber} alt={media.caption ?? kegiatan.judul} loading="lazy" className={styles.galleryImage} />
+                      </a>}
+                    {media.caption && <p className={styles.caption}>{media.caption}</p>}
+                  </li>;
+                })}
+              </ul>
+            </section>}
+            {lainnya.length > 0 && <section className={styles.documentation} aria-labelledby="kegiatan-lain">
+              <h2 id="kegiatan-lain">Kegiatan lainnya</h2>
+              <div className={styles.related}>
+                {lainnya.map(item => <Link key={item.id} href={`/kegiatan/${item.slug}`}>
+                  {item.gambarThumbnailUrl ?
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={item.gambarThumbnailUrl} alt="" loading="lazy" /> : <div className={styles.relatedFallback}>IKASADA</div>}
+                  <h3>{item.judul}</h3>
+                </Link>)}
+              </div>
+            </section>}
+            <Link href="/event" className={styles.backLink}>← Kembali ke semua kegiatan</Link>
+          </div>
+          <aside className={styles.organizer} aria-label="Penyelenggara kegiatan">
+            <div className={styles.organizerHeading}><span className={styles.monogram} aria-hidden="true">IKA</span><div><small>Penyelenggara</small><h2>IKASADA FIB UI</h2></div></div>
+            <p>Ikatan Alumni Sastra Daerah<br />Fakultas Ilmu Pengetahuan Budaya<br />Universitas Indonesia</p>
+            <dl className={styles.organizerFacts}>
+              <div><dt>Kategori kegiatan</dt><dd>{namaKategori}</dd></div>
+              <div><dt>Durasi</dt><dd>{durasiHari} Hari</dd></div>
+              <div><dt>Lokasi</dt><dd>{kegiatan.lokasi}</dd></div>
+            </dl>
+            <a className={styles.backLink} href={mapsUrl} target="_blank" rel="noopener noreferrer">Lihat lokasi ↗</a>
+          </aside>
         </div>
       </div>
-    </section>
+    </main>
   );
 }

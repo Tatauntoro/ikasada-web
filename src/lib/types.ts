@@ -39,6 +39,11 @@ export type PublicJenisArsip = {
   nama: string;
 };
 
+export type PublicJenisBerita = {
+  id: string;
+  nama: string;
+};
+
 /**
  * Satu dokumen/media arsip seperti yang dikirim `GET /api/public/arsip`.
  *

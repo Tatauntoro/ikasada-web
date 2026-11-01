@@ -7,7 +7,6 @@ import {
   TiktokLogo,
 } from "@phosphor-icons/react/dist/ssr";
 import BackButton from "@/components/BackButton";
-import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import { prisma } from "@/lib/db";
 
@@ -109,15 +108,6 @@ export default async function KerjasamaDetailPage({ params }: PageProps) {
     <section className="public-page relative w-full bg-white">
       <div className="mx-auto max-w-[1400px] px-6 pb-32 pt-24 md:px-12 md:pb-48 md:pt-32">
         <BackButton fallback="/#journal" />
-        <Breadcrumb
-          className="mb-12"
-          items={[
-            { label: "Beranda", href: "/" },
-            { label: "Kerjasama Kami", href: "/", sectionId: "journal" },
-            { label: item.organisasi },
-          ]}
-        />
-
         {/* Hero — dokumentasi kerjasama */}
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-black/10 sm:aspect-[16/9] lg:aspect-[21/9]">
           <Image
