@@ -11,9 +11,17 @@ export function FotoKegiatan({ item, className, eager = false }: { item: PublicK
   // eslint-disable-next-line @next/next/no-img-element
   return <img className={className} src={item.gambarThumbnailUrl} alt="" width={800} height={540} loading={eager ? "eager" : "lazy"} decoding="async" onError={() => setFailedUrl(item.gambarThumbnailUrl)} />;
 }
-export function MetadataKegiatan({ item, className }: { item: PublicKegiatan; className: string }) {
+export function MetadataKegiatan({ item, className, showRange = false }: { item: PublicKegiatan; className: string; showRange?: boolean }) {
+  const tanggalMulai = formatAgenda(item.tanggalMulai, { day: "numeric", month: "short", year: "numeric" });
+  const tanggalSelesai = showRange && item.tanggalSelesai
+    ? formatAgenda(item.tanggalSelesai, { day: "numeric", month: "short", year: "numeric" })
+    : null;
+  const waktuMulai = formatAgenda(item.tanggalMulai, { hour: "2-digit", minute: "2-digit" });
+  const waktuSelesai = showRange && item.tanggalSelesai
+    ? formatAgenda(item.tanggalSelesai, { hour: "2-digit", minute: "2-digit" })
+    : null;
   return <div className={className}>
-    <span><CalendarBlank weight="bold" aria-hidden="true" /><time dateTime={item.tanggalMulai}>{formatAgenda(item.tanggalMulai, { day: "numeric", month: "short", year: "numeric" })} · {formatAgenda(item.tanggalMulai, { hour: "2-digit", minute: "2-digit" })} WIB</time></span>
+    <span><CalendarBlank weight="bold" aria-hidden="true" /><time dateTime={item.tanggalMulai}>{tanggalMulai}{tanggalSelesai && tanggalSelesai !== tanggalMulai ? ` – ${tanggalSelesai}` : ""} · {waktuMulai}{waktuSelesai ? ` – ${waktuSelesai}` : ""} WIB</time></span>
     <span><MapPin weight="bold" aria-hidden="true" />{item.lokasi}</span>
   </div>;
 }

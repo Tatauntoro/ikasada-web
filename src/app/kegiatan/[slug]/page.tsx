@@ -9,6 +9,8 @@ import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import VideoPreviewCard from "@/components/VideoPreviewCard";
 import { MorphHeroImage } from "@/components/motion/ImageMorph";
+import { labelStatusKegiatan, statusKegiatan } from "@/lib/status-kegiatan";
+import KegiatanDetailGallery from "./KegiatanDetailGallery";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -50,6 +52,8 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
   const namaKategori = kegiatan.kategoriKegiatan.namaKategori;
 
   const videoId = kegiatan.videoYoutubeId;
+  const statusWaktu = statusKegiatan(kegiatan.tanggalMulai, kegiatan.tanggalSelesai);
+  const labelStatusWaktu = labelStatusKegiatan(statusWaktu);
 
   const durasiHari = kegiatan.tanggalSelesai
     ? Math.max(
@@ -62,21 +66,29 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
       )
     : 1;
 
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    kegiatan.lokasi
-  )}`;
+  const mapsUrl = kegiatan.urlGoogleMaps?.trim() || null;
 
+  const tanggalMulai = formatTanggalWIB(kegiatan.tanggalMulai);
+  const tanggalSelesai = kegiatan.tanggalSelesai
+    ? formatTanggalWIB(kegiatan.tanggalSelesai)
+    : null;
   const tanggal =
-    formatTanggalWIB(kegiatan.tanggalMulai) +
+    tanggalMulai +
+    (tanggalSelesai && tanggalSelesai !== tanggalMulai
+      ? ` – ${tanggalSelesai}`
+      : "");
+  const waktu =
+    formatWaktuWIB(kegiatan.tanggalMulai) +
     (kegiatan.tanggalSelesai
-      ? ` – ${formatTanggalWIB(kegiatan.tanggalSelesai)}`
+      ? ` – ${formatWaktuWIB(kegiatan.tanggalSelesai)}`
       : "");
 
-  const lainnya = await prisma.kegiatan.findMany({
-    where: { status: "PUBLISHED", deletedAt: null, id: { not: kegiatan.id } },
-    orderBy: { tanggalMulai: "desc" },
-    take: 2,
-  });
+  const galeri = kegiatan.media.map((media) => ({
+    id: media.id,
+    jenis: media.jenis,
+    src: `/api/kegiatan/${kegiatan.slug}/media/${media.id}`,
+    caption: media.caption,
+  }));
 
   return (
     <main className={`public-page ${styles.page}`}>
@@ -90,73 +102,52 @@ export default async function KegiatanDetailPage({ params }: PageProps) {
         </div>
         <section className={styles.ticket} aria-labelledby="judul-kegiatan">
           <div className={styles.ticketInfo}>
-            <span className={styles.tag}>{namaKategori}</span>
+            <div className={styles.tags}>
+              <span className={styles.tag}>{namaKategori}</span>
+              <span className={`${styles.statusBadge} ${styles[`status_${statusWaktu}`]}`}>{labelStatusWaktu}</span>
+            </div>
             <h1 id="judul-kegiatan">{kegiatan.judul}</h1>
             <dl className={styles.facts}>
               <div><dt>Tanggal kegiatan</dt><dd>{tanggal}</dd></div>
-              <div><dt>Waktu mulai</dt><dd>{formatWaktuWIB(kegiatan.tanggalMulai)} WIB</dd></div>
-              <div className={styles.location}><dt>Lokasi</dt><dd>{kegiatan.lokasi}</dd></div>
+              <div><dt>Waktu kegiatan</dt><dd>{waktu} WIB</dd></div>
+              <div className={styles.location}><dt>Lokasi</dt><dd><span>{kegiatan.lokasi}</span>{kegiatan.alamatLokasi && <span className={styles.locationAddress}>{kegiatan.alamatLokasi}</span>}{mapsUrl && <a className={styles.locationLink} href={mapsUrl} target="_blank" rel="noopener noreferrer">Lihat lokasi ↗</a>}</dd></div>
+              <div><dt>Durasi</dt><dd>{durasiHari} Hari</dd></div>
             </dl>
           </div>
           <div className={styles.ticketAction}>
-            <h2>{kegiatan.linkPendaftaran ? "Ikuti kegiatannya." : "Informasi kegiatan"}</h2>
-            {kegiatan.linkPendaftaran ? <>
-              <p>Buka tautan pendaftaran dari penyelenggara untuk mengikuti kegiatan ini.</p>
-              <a className={styles.primary} href={kegiatan.linkPendaftaran} target="_blank" rel="noopener noreferrer">Daftar / Ikuti Kegiatan <span aria-hidden="true">↗</span></a>
-            </> : <p>Tautan pendaftaran belum dicantumkan untuk kegiatan ini.</p>}
+            <h2>{statusWaktu === "SUDAH_BERLANGSUNG" ? "Kegiatan telah berlangsung." : statusWaktu === "SEDANG_BERLANGSUNG" ? "Kegiatan sedang berlangsung." : kegiatan.linkPendaftaran ? "Ikuti kegiatannya." : "Informasi kegiatan"}</h2>
+            {statusWaktu === "SUDAH_BERLANGSUNG" ? (
+              <p>Kegiatan ini sudah selesai.</p>
+            ) : kegiatan.linkPendaftaran ? <>
+              <p>{statusWaktu === "SEDANG_BERLANGSUNG" ? "Kegiatan sedang berlangsung. Buka tautan penyelenggara untuk melihat informasi selengkapnya." : "Buka tautan pendaftaran dari penyelenggara untuk mengikuti kegiatan ini."}</p>
+              <a className={styles.primary} href={kegiatan.linkPendaftaran} target="_blank" rel="noopener noreferrer">{statusWaktu === "SEDANG_BERLANGSUNG" ? "Buka tautan kegiatan" : "Daftar / Ikuti Kegiatan"} <span aria-hidden="true">↗</span></a>
+            </> : <p>{statusWaktu === "SEDANG_BERLANGSUNG" ? "Kegiatan sedang berlangsung saat ini." : "Tautan pendaftaran belum dicantumkan untuk kegiatan ini."}</p>}
+            <p className={styles.organizerCredit}>Penyelenggara<br /><strong>IKASADA FIB UI</strong></p>
           </div>
         </section>
         <div className={styles.content}>
-          <div>
-            <section aria-labelledby="tentang-kegiatan">
-              <h2 id="tentang-kegiatan">Tentang kegiatan</h2>
-              <RichText teks={kegiatan.deskripsiSingkat} className={styles.prose} />
-              <RichText teks={kegiatan.deskripsiLengkap} className={styles.prose} />
-            </section>
-            {videoId && <section className={styles.documentation} aria-labelledby="video-kegiatan">
-              <h2 id="video-kegiatan">Lihat video</h2>
-              <VideoPreviewCard videoId={videoId} kategori={namaKategori} durasi={`${durasiHari} Hari`} description="Tonton rekaman dokumentasi kegiatan ini." />
-            </section>}
-            {kegiatan.media.length > 0 && <section className={styles.documentation} aria-labelledby="galeri-kegiatan">
-              <h2 id="galeri-kegiatan">Galeri Foto &amp; Video ({kegiatan.media.length})</h2>
-              <ul className={styles.gallery}>
-                {kegiatan.media.map(media => {
-                  const sumber = `/api/kegiatan/${kegiatan.slug}/media/${media.id}`;
-                  return <li key={media.id}>
-                    {media.jenis === "VIDEO" ? <video src={sumber} controls preload="metadata" className={styles.galleryVideo} /> :
-                      <a href={sumber} target="_blank" rel="noopener noreferrer" aria-label={`Buka foto: ${media.caption || kegiatan.judul}`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={sumber} alt={media.caption ?? kegiatan.judul} loading="lazy" className={styles.galleryImage} />
-                      </a>}
-                    {media.caption && <p className={styles.caption}>{media.caption}</p>}
-                  </li>;
-                })}
-              </ul>
-            </section>}
-            {lainnya.length > 0 && <section className={styles.documentation} aria-labelledby="kegiatan-lain">
-              <h2 id="kegiatan-lain">Kegiatan lainnya</h2>
-              <div className={styles.related}>
-                {lainnya.map(item => <Link key={item.id} href={`/kegiatan/${item.slug}`}>
-                  {item.gambarThumbnailUrl ?
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={item.gambarThumbnailUrl} alt="" loading="lazy" /> : <div className={styles.relatedFallback}>IKASADA</div>}
-                  <h3>{item.judul}</h3>
-                </Link>)}
-              </div>
-            </section>}
-            <Link href="/event" className={styles.backLink}>← Kembali ke semua kegiatan</Link>
-          </div>
-          <aside className={styles.organizer} aria-label="Penyelenggara kegiatan">
-            <div className={styles.organizerHeading}><span className={styles.monogram} aria-hidden="true">IKA</span><div><small>Penyelenggara</small><h2>IKASADA FIB UI</h2></div></div>
-            <p>Ikatan Alumni Sastra Daerah<br />Fakultas Ilmu Pengetahuan Budaya<br />Universitas Indonesia</p>
-            <dl className={styles.organizerFacts}>
-              <div><dt>Kategori kegiatan</dt><dd>{namaKategori}</dd></div>
-              <div><dt>Durasi</dt><dd>{durasiHari} Hari</dd></div>
-              <div><dt>Lokasi</dt><dd>{kegiatan.lokasi}</dd></div>
-            </dl>
-            <a className={styles.backLink} href={mapsUrl} target="_blank" rel="noopener noreferrer">Lihat lokasi ↗</a>
-          </aside>
+          <section aria-labelledby="tentang-kegiatan">
+            <h2 id="tentang-kegiatan">Tentang kegiatan</h2>
+            <RichText teks={kegiatan.deskripsiSingkat} className={styles.prose} />
+            <RichText teks={kegiatan.deskripsiLengkap} className={styles.prose} />
+          </section>
         </div>
+        {galeri.length > 0 && (
+          <section className={styles.gallerySection} aria-labelledby="galeri-kegiatan">
+            <div className={styles.galleryHeading}>
+              <div>
+                <span>Dokumentasi</span>
+                <h2 id="galeri-kegiatan">Foto &amp; video kegiatan</h2>
+              </div>
+            </div>
+            <KegiatanDetailGallery key={kegiatan.id} items={galeri} judul={kegiatan.judul} />
+          </section>
+        )}
+        {videoId && <section className={styles.videoSection} aria-labelledby="video-kegiatan">
+          <h2 id="video-kegiatan">Lihat di Kanal YouTube</h2>
+          <VideoPreviewCard videoId={videoId} title={kegiatan.judul} />
+        </section>}
+        <Link href="/event" className={styles.backLink}>← Kembali ke semua kegiatan</Link>
       </div>
     </main>
   );

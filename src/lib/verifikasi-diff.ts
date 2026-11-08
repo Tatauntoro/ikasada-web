@@ -24,6 +24,8 @@ export const LABEL_SNAPSHOT: Record<string, string> = {
   tanggalMulai: "Tanggal mulai",
   tanggalSelesai: "Tanggal selesai",
   lokasi: "Lokasi",
+  alamatLokasi: "Alamat lengkap",
+  urlGoogleMaps: "URL Google Maps",
   kategoriKegiatanId: "Kategori",
   videoYoutubeUrl: "Video YouTube",
   linkPendaftaran: "Link pendaftaran",
@@ -85,6 +87,8 @@ export function bikinSnapshot(
         tanggalMulai: norm(d.tanggalMulai),
         tanggalSelesai: norm(d.tanggalSelesai),
         lokasi: norm(d.lokasi),
+        alamatLokasi: norm(d.alamatLokasi),
+        urlGoogleMaps: norm(d.urlGoogleMaps),
         kategoriKegiatanId: norm(d.kategoriKegiatanId),
         videoYoutubeUrl: norm(d.videoYoutubeUrl),
         linkPendaftaran: norm(d.linkPendaftaran),
@@ -155,6 +159,10 @@ export function fieldBerubah(
     const lama =
       entitas === "berita" && k === "penulis" && !(k in snapshot)
         ? "Redaksi IKASADA"
+        : entitas === "kegiatan" &&
+            (k === "alamatLokasi" || k === "urlGoogleMaps") &&
+            !(k in snapshot)
+          ? null
         : snapshot[k];
     return !setara(sekarang[k], lama);
   });

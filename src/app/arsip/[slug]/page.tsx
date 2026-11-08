@@ -7,6 +7,9 @@ import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import { PratinjauArsip } from "@/components/arsip/PratinjauArsip";
 import { TautanEmailPengurus } from "@/components/arsip/TautanEmailPengurus";
+import KegiatanDetailGallery from "@/app/kegiatan/[slug]/KegiatanDetailGallery";
+import kegiatanStyles from "@/app/kegiatan/[slug]/KegiatanDetail.module.css";
+import archiveStyles from "./ArsipDetail.module.css";
 import { prisma } from "@/lib/db";
 import { getAlumniSession } from "@/lib/auth-alumni";
 import { alumniAktif } from "@/lib/sesi-alumni";
@@ -151,7 +154,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
                         ? `${dokumen.media.length} media`
                         : "isi"
                     }${format ? ` dan berkas ${format}` : ""} arsip ini.`
-                  : "Isi arsip ini hanya untuk alumni. Silakan hubungi tim pengurus lewat email di bawah ini untuk meminta salinan berkas arsipnya."
+                  : "Arsip ini khusus alumni. Untuk meminta izin mengakses dokumen asli, silakan hubungi sekretariat IKASADA."
                 : "Akun Anda belum aktif. Selesaikan verifikasi pengurus terlebih dahulu — setelah itu arsip ini bisa dibuka."}
             </p>
             {sesi ? (
@@ -176,59 +179,32 @@ export default async function ArsipDetailPage({ params }: PageProps) {
           </div>
         ) : (
           <>
-            <div className="mt-12 space-y-4 border-t border-black/10 pt-8">
+            <div className="mt-12 space-y-4">
               <RichText
                 teks={dokumen.deskripsiLengkap}
                 className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-black/70"
               />
             </div>
 
-            {/*
-              Galeri kegiatan. Berkasnya dilayani endpoint berpenjaga supaya
-              aturan akses arsipnya benar-benar berlaku (bukan sekadar
-              disembunyikan), dan `next/image` tidak dipakai karena URL-nya bukan
-              aset statis.
-            */}
+            {/* Galeri memakai endpoint yang sama agar aturan akses arsip tetap ditegakkan. */}
             {dokumen.media.length > 0 && (
-              <section className="mt-12 border-t border-black/10 pt-8">
-                <h2 className="text-[10px] uppercase tracking-[0.18em] text-black/50">
-                  Galeri Kegiatan ({dokumen.media.length})
-                </h2>
-
-                <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  {dokumen.media.map((media) => {
-                    const sumber = `/api/arsip/${dokumen.slug}/media/${media.id}`;
-
-                    return (
-                      <li key={media.id}>
-                        {media.jenis === "VIDEO" ? (
-                          <video
-                            src={sumber}
-                            controls
-                            preload="metadata"
-                            className="w-full border border-black/10 bg-black"
-                          />
-                        ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden border border-black/10">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={sumber}
-                              alt={media.caption ?? dokumen.judul}
-                              loading="lazy"
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        )}
-
-                        {media.caption && (
-                          <p className="mt-2 text-[13px] leading-relaxed text-black/60">
-                            {media.caption}
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+              <section
+                className={`${kegiatanStyles.gallerySection} ${archiveStyles.gallerySection}`}
+                aria-labelledby="galeri-arsip"
+              >
+                <div className={`${kegiatanStyles.galleryHeading} ${archiveStyles.galleryHeading}`}>
+                  <span>Dokumentasi</span>
+                  <h2 id="galeri-arsip">Foto &amp; video arsip</h2>
+                </div>
+                <KegiatanDetailGallery
+                  items={dokumen.media.map((media) => ({
+                    id: media.id,
+                    jenis: media.jenis,
+                    src: `/api/arsip/${dokumen.slug}/media/${media.id}`,
+                    caption: media.caption,
+                  }))}
+                  judul={dokumen.judul}
+                />
               </section>
             )}
 
@@ -258,7 +234,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
                     <LockKey weight="bold" />
                     {AKSES_ALUMNI_TERBUKA
                       ? "Dokumen ini hanya bisa dibuka oleh alumni yang sudah masuk."
-                      : "Berkas arsip ini hanya bisa diunduh alumni."}
+                      : "Untuk meminta izin mengakses dokumen asli, silakan hubungi sekretariat IKASADA."}
                   </p>
                   {AKSES_ALUMNI_TERBUKA ? (
                     <Link
@@ -268,13 +244,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
                       Masuk untuk membuka
                     </Link>
                   ) : (
-                    <>
-                      <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-black/60">
-                        Silakan hubungi tim pengurus lewat email di bawah ini
-                        untuk meminta salinan berkasnya.
-                      </p>
-                      <TautanEmailPengurus />
-                    </>
+                    <TautanEmailPengurus />
                   )}
                 </div>
               ) : !bolehAmbilBerkas ? (

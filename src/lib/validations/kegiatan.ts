@@ -29,6 +29,15 @@ export const kegiatanBaseSchema = z.object({
   lokasi: z
     .string({ message: "Lokasi wajib diisi" })
     .max(200, "Lokasi maksimal 200 karakter"),
+  alamatLokasi: z.string().max(300, "Alamat maksimal 300 karakter").optional().nullable(),
+  urlGoogleMaps: z
+    .string()
+    .max(2048, "URL Google Maps maksimal 2048 karakter")
+    .optional()
+    .nullable()
+    .refine((val) => !val || isValidGoogleMapsUrl(val), {
+      message: "Gunakan tautan Google Maps yang valid (HTTPS)",
+    }),
   kategori: z
     .string({ message: "Kategori wajib dipilih" })
     .min(1, "Kategori wajib dipilih"),
@@ -72,6 +81,22 @@ export const kegiatanBaseSchema = z.object({
     .optional(),
   status: z.enum(statusValues, { message: "Status tidak valid" }),
 });
+
+function isValidGoogleMapsUrl(value: string) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return false;
+    const hostname = url.hostname.toLowerCase();
+    if (hostname === "maps.app.goo.gl") return true;
+    if (hostname === "goo.gl") return url.pathname.startsWith("/maps");
+    const domainMaps = ["google.com", "google.co.id"].some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+    return domainMaps && url.pathname.startsWith("/maps");
+  } catch {
+    return false;
+  }
+}
 
 export const kegiatanCreateSchema = kegiatanBaseSchema.superRefine(
   (data, ctx) => {

@@ -232,6 +232,8 @@ model Kegiatan {
   tanggalMulai       DateTime         @map("tanggal_mulai")
   tanggalSelesai     DateTime?        @map("tanggal_selesai")
   lokasi             String
+  alamatLokasi       String?          @map("alamat_lokasi")
+  urlGoogleMaps      String?          @map("url_google_maps")
   kategoriKegiatanId String            @map("kategori_kegiatan_id")
   kategoriKegiatan   KategoriKegiatan @relation(fields: [kategoriKegiatanId], references: [id])
   gambarThumbnailUrl String?          @map("gambar_thumbnail_url")

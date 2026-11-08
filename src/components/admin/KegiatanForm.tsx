@@ -60,6 +60,8 @@ export type KegiatanFormData = {
   tanggalMulai: string;
   tanggalSelesai: string;
   lokasi: string;
+  alamatLokasi: string;
+  urlGoogleMaps: string;
   kategori: string;
   videoYoutubeUrl: string;
   linkPendaftaran: string;
@@ -74,6 +76,8 @@ function emptyForm(): KegiatanFormData {
     tanggalMulai: "",
     tanggalSelesai: "",
     lokasi: "",
+    alamatLokasi: "",
+    urlGoogleMaps: "",
     kategori: "",
     videoYoutubeUrl: "",
     linkPendaftaran: "",
@@ -91,6 +95,8 @@ function kegiatanToFormData(kegiatan: Kegiatan): KegiatanFormData {
       ? toDatetimeLocal(kegiatan.tanggalSelesai)
       : "",
     lokasi: kegiatan.lokasi,
+    alamatLokasi: kegiatan.alamatLokasi ?? "",
+    urlGoogleMaps: kegiatan.urlGoogleMaps ?? "",
     kategori: kegiatan.kategoriKegiatanId,
     videoYoutubeUrl: kegiatan.videoYoutubeUrl ?? "",
     linkPendaftaran: kegiatan.linkPendaftaran ?? "",
@@ -411,6 +417,42 @@ export function KegiatanForm({
               value={form.lokasi}
               onChange={(e) => updateField("lokasi", e.target.value)}
               placeholder="Lokasi kegiatan"
+              className="w-full px-4 py-3 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
+            />
+          </FormField>
+
+          <FormField
+            label="Alamat lengkap"
+            htmlFor="alamatLokasi"
+            berubah={ubah("alamatLokasi")}
+            error={errors.alamatLokasi}
+            hint="Opsional. Tambahkan alamat, gedung, lantai, atau ruang agar lokasi lebih jelas."
+          >
+            <input
+              id="alamatLokasi"
+              type="text"
+              value={form.alamatLokasi}
+              onChange={(e) => updateField("alamatLokasi", e.target.value)}
+              placeholder="Alamat atau detail tempat"
+              maxLength={300}
+              className="w-full px-4 py-3 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
+            />
+          </FormField>
+
+          <FormField
+            label="URL Google Maps"
+            htmlFor="urlGoogleMaps"
+            berubah={ubah("urlGoogleMaps")}
+            error={errors.urlGoogleMaps}
+            hint="Opsional. Di Google Maps pilih Bagikan → Salin link. Tautan Google Maps HTTPS akan dipakai tombol Lihat lokasi."
+          >
+            <input
+              id="urlGoogleMaps"
+              type="url"
+              value={form.urlGoogleMaps}
+              onChange={(e) => updateField("urlGoogleMaps", e.target.value)}
+              placeholder="https://maps.app.goo.gl/..."
+              maxLength={2048}
               className="w-full px-4 py-3 rounded-xl bg-[#fdfdfd] border border-black/[0.08] text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] transition-all"
             />
           </FormField>

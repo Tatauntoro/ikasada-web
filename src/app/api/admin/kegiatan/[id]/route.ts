@@ -75,6 +75,13 @@ async function handleUpdate(
   }
 
   const data = normalizeKegiatanInput(parsed.data);
+  // Payload dari klien versi lama tidak menghapus data lokasi tambahan.
+  if (!("alamatLokasi" in parsed.data)) {
+    data.alamatLokasi = existing.alamatLokasi;
+  }
+  if (!("urlGoogleMaps" in parsed.data)) {
+    data.urlGoogleMaps = existing.urlGoogleMaps;
+  }
   const media = normalizeMediaKegiatan(parsed.data.media);
 
   // Gate verifikasi: edit yang mengubah isi membatalkan verifikasi; publish
@@ -136,6 +143,8 @@ async function handleUpdate(
         tanggalMulai: existing.tanggalMulai,
         tanggalSelesai: existing.tanggalSelesai,
         lokasi: existing.lokasi,
+        alamatLokasi: existing.alamatLokasi,
+        urlGoogleMaps: existing.urlGoogleMaps,
         kategoriKegiatanId: existing.kategoriKegiatanId,
         videoYoutubeUrl: existing.videoYoutubeUrl,
         videoYoutubeId: existing.videoYoutubeId,
@@ -151,6 +160,8 @@ async function handleUpdate(
         tanggalMulai: result.tanggalMulai,
         tanggalSelesai: result.tanggalSelesai,
         lokasi: result.lokasi,
+        alamatLokasi: result.alamatLokasi,
+        urlGoogleMaps: result.urlGoogleMaps,
         kategoriKegiatanId: result.kategoriKegiatanId,
         videoYoutubeUrl: result.videoYoutubeUrl,
         videoYoutubeId: result.videoYoutubeId,

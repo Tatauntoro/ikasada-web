@@ -10,6 +10,8 @@ export type PublicKegiatan = {
   tanggalMulai: string;
   tanggalSelesai: string | null;
   lokasi: string;
+  alamatLokasi: string | null;
+  urlGoogleMaps: string | null;
   kategori: string;
   gambarThumbnailUrl: string | null;
   videoYoutubeUrl: string | null;

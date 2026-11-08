@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -155,7 +155,7 @@ export default function OverviewSection() {
     judulLimaRaw && judulLimaRaw !== JUDUL_LIMA_DEFAULT
   );
   // Poin "lima cara" dari config; jatuh ke daftar bawaan bila belum diatur.
-  const limaItems = (() => {
+  const limaItems = useMemo(() => {
     const konfig = beranda?.sections.find((s) => s.kunci === "lima-cara")
       ?.konfigurasi as
       | { items?: { judul?: unknown; deskripsi?: unknown; fotoUrl?: unknown; tampilkanFoto?: unknown; warnaLatar?: unknown }[] }
@@ -178,7 +178,19 @@ export default function OverviewSection() {
       tampilkanFoto: true,
       warnaLatar: "",
     }));
-  })();
+  }, [beranda]);
+  const storyItems = useMemo(() => limaItems.map((item, index) => {
+    const fallback = ways[index % ways.length];
+    return {
+      title: item.judul,
+      description: item.deskripsi,
+      image: item.fotoUrl || fallback.image,
+      showImage: item.tampilkanFoto,
+      imageAlt: fallback.imageAlt,
+      backgroundColor: item.warnaLatar.trim() || undefined,
+      inkColor: item.warnaLatar.trim() ? tintaUntukLatar(item.warnaLatar) : undefined,
+    };
+  }), [limaItems]);
   const mediaTentang = (() => {
     const konfig = beranda?.sections.find((s) => s.kunci === "tentang-kami")
       ?.konfigurasi as {
@@ -347,20 +359,7 @@ export default function OverviewSection() {
           titleStyle={gayaJudulLima}
           firstBackground={gayaBackgroundLima?.backgroundColor}
           firstInk={tintaLima}
-          items={limaItems.map((item, index) => {
-            const fallback = ways[index % ways.length];
-            return {
-              title: item.judul,
-              description: item.deskripsi,
-              image: item.fotoUrl || fallback.image,
-              showImage: item.tampilkanFoto,
-              imageAlt: fallback.imageAlt,
-              backgroundColor: item.warnaLatar.trim() || undefined,
-              inkColor: item.warnaLatar.trim()
-                ? tintaUntukLatar(item.warnaLatar)
-                : undefined,
-            };
-          })}
+          items={storyItems}
         />
       )}
     </div>

@@ -20,3 +20,11 @@
 .root .card:hover .cardLink{background:#084baa}
 .root .cardLink svg{width:16px;height:16px;color:#fff;opacity:1;}
 .root .searchBar>svg{color:#46505e;opacity:1}
+.root .cardBottom .statusBadge{display:inline-flex;align-items:center;border-radius:99px;padding:5px 8px;font-size:8px;font-weight:600;line-height:1.2}
+.root .cardBottom .status_AKAN_DATANG{background:#eaf2ff;color:#1754a5}
+.root .cardBottom .status_SEDANG_BERLANGSUNG{background:#e8f7ed;color:#18713a}
+.root .cardBottom .status_SUDAH_BERLANGSUNG{background:#f0f1f3;color:#606773}
+.root .featuredStatusBadge{display:inline-flex;align-items:center;border-radius:99px;padding:6px 10px;font-size:9px;font-weight:700;line-height:1.2}
+.root .featuredStatusBadge.status_AKAN_DATANG{background:#eaf2ff;color:#1754a5}
+.root .featuredStatusBadge.status_SEDANG_BERLANGSUNG{background:#e8f7ed;color:#18713a}
+.root .featuredStatusBadge.status_SUDAH_BERLANGSUNG{background:#f0f1f3;color:#606773}

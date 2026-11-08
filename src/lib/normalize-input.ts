@@ -23,6 +23,8 @@ export function normalizeKegiatanInput(
     tanggalMulai: input.tanggalMulai,
     tanggalSelesai: input.tanggalSelesai ?? null,
     lokasi: input.lokasi,
+    alamatLokasi: input.alamatLokasi?.trim() || null,
+    urlGoogleMaps: input.urlGoogleMaps?.trim() || null,
     kategoriKegiatanId: input.kategori,
     videoYoutubeUrl: input.videoYoutubeUrl ?? null,
     videoYoutubeId: input.videoYoutubeUrl

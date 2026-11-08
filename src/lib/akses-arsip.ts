@@ -99,5 +99,7 @@ export function labelGembokArsip(
   if (terkunciSekarang) {
     return AKSES_ALUMNI_TERBUKA ? "Masuk untuk melihat" : "Khusus alumni";
   }
-  return akses === "KHUSUS_ALUMNI" ? "Khusus alumni" : "Unduh khusus alumni";
+  return akses === "KHUSUS_ALUMNI"
+    ? "Khusus alumni"
+    : AKSES_ALUMNI_TERBUKA ? "Unduh khusus alumni" : "Hubungi sekretariat";
 }

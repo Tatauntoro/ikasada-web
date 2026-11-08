@@ -23,5 +23,10 @@
 .root .feature .meta svg{color:#70aaff;opacity:1;width:18px;height:18px;}
 .root .heroPhoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .root .state{padding:65px 20px;text-align:center;color:#737982}.root .state button{margin-top:16px;border:0;cursor:pointer}
+.root .eventDialog{margin:auto}
+.root .dialogTop button{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--line);background:#fff;color:#49515d;transition:background .18s,color .18s,border-color .18s}
+.root .dialogTop button:hover{background:#f2f5f9;border-color:#d8dee8;color:var(--ink)}
+.root .dialogContent .modalFacts{gap:11px}
+.root .dialogContent .modalFacts svg{color:var(--blue)}
 @media(max-width:1050px){.root .featureCopy h3{font-size:27px}}
 @media(max-width:700px){.root:global(#kegiatan) .heading :global(#kegiatan-title){font-size:calc(43px * var(--skala-judul,1))}.root .featureCopy h3{font-size:27px}}

@@ -79,6 +79,7 @@ export default function WaysStory({
     let frame = 0;
     let dekatDenganLayar = false;
     let tataLetakPanel: boolean | null = null;
+    let lebarPanel = -1;
     let pasanganPanelTerlihat = "";
     let panelAktif = -1;
 
@@ -97,6 +98,8 @@ export default function WaysStory({
           });
           if (deferMedia) setIndeksMedia(Array.from({ length: count }, (_, index) => index));
           pasanganPanelTerlihat = "reduced";
+          tataLetakPanel = null;
+          lebarPanel = -1;
         }
         return;
       }
@@ -108,6 +111,7 @@ export default function WaysStory({
       const strip = Math.min(width * 0.092, 135);
       const mobileLayout = mobile.matches;
 
+      const ukuranBerubah = mobileLayout !== tataLetakPanel || width !== lebarPanel;
       if (mobileLayout !== tataLetakPanel) {
         panels.forEach((panel) => {
           panel.style.removeProperty("left");
@@ -115,6 +119,7 @@ export default function WaysStory({
         });
         tataLetakPanel = mobileLayout;
       }
+      lebarPanel = width;
 
       panels.forEach((panel, index) => {
         if (mobileLayout) {
@@ -124,8 +129,10 @@ export default function WaysStory({
           const offset = index * strip;
           const entry = index === 0 ? 1 : clamp((progress - (index - 1) - 0.22) / 0.68, 0, 1);
           const movement = (1 - entry) ** 3 * (width - offset);
-          panel.style.left = `${offset}px`;
-          panel.style.width = `${width - offset}px`;
+          if (ukuranBerubah) {
+            panel.style.left = `${offset}px`;
+            panel.style.width = `${width - offset}px`;
+          }
           panel.style.transform = `translate3d(${movement}px, 0, 0)`;
         }
       });
@@ -141,7 +148,10 @@ export default function WaysStory({
         });
         if (deferMedia) {
           const mediaAktif = clamp(Math.round(progress), 0, count - 1);
-          setIndeksMedia([mediaAktif, Math.min(mediaAktif + 1, count - 1)]);
+          setIndeksMedia((sebelumnya) => {
+            const tambahan = [mediaAktif, Math.min(mediaAktif + 1, count - 1)].filter((index) => !sebelumnya.includes(index));
+            return tambahan.length ? [...sebelumnya, ...tambahan] : sebelumnya;
+          });
         }
         pasanganPanelTerlihat = pasanganBaru;
       }
