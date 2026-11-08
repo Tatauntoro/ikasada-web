@@ -31,6 +31,8 @@ export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, 
     const match = gsap.matchMedia();
     let resizeTimer: ReturnType<typeof setTimeout>;
     let disposed = false;
+    let ukuranLebar = window.innerWidth;
+    let ukuranTinggi = window.innerHeight;
 
     const rebuild = () => {
       match.revert();
@@ -82,6 +84,14 @@ export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, 
       ScrollTrigger.refresh();
     };
     const resize = () => {
+      const lebar = window.innerWidth;
+      const tinggi = window.innerHeight;
+      // Tinggi viewport ponsel berubah saat bilah browser muncul atau hilang.
+      // Hindari membangun ulang semua ScrollTrigger untuk perubahan kecil itu.
+      if (lebar === ukuranLebar && lebar <= 800 && Math.abs(tinggi - ukuranTinggi) < 120) return;
+      if (lebar === ukuranLebar && tinggi === ukuranTinggi) return;
+      ukuranLebar = lebar;
+      ukuranTinggi = tinggi;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(rebuild, 180);
     };

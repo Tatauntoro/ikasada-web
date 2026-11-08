@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { useKegiatanPublik, tanggalKegiatan, labelKategori, agendaTerpilih } from "@/lib/kegiatan-client";
 import { keTeksBiasa } from "@/lib/rich-text";
+import { labelStatusKegiatan, statusKegiatan } from "@/lib/status-kegiatan";
 import BackButton from "../BackButton";
 import Breadcrumb from "../Breadcrumb";
 import Pagination from "../Pagination";
@@ -30,13 +31,30 @@ export default function KegiatanCatalog() {
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
-  const [today] = useState(() => tanggalKegiatan(new Date()));
+  const [now, setNow] = useState(() => Date.now());
+  const today = tanggalKegiatan(new Date(now));
   const categories = [...new Set(items.map(item => item.kategori))];
-  const [now] = useState(() => Date.now());
   const feature = agendaTerpilih(items, now);
+  const featureStatus = feature
+    ? statusKegiatan(feature.tanggalMulai, feature.tanggalSelesai, now)
+    : null;
   const search = query.trim().toLocaleLowerCase("id-ID");
-  const results = items.filter(item => (category === "all" || category === item.kategori) && (!search || `${item.judul} ${keTeksBiasa(item.deskripsiSingkat)}`.toLocaleLowerCase("id-ID").includes(search)) && (period === "all" || (period === "upcoming" && tanggalKegiatan(item.tanggalMulai) >= today) || (period === "past" && tanggalKegiatan(item.tanggalMulai) < today) || (period === "month" && tanggalKegiatan(item.tanggalMulai).startsWith(today.slice(0, 7))))).sort((a, b) => sort === "latest" ? new Date(b.tanggalMulai).getTime() - new Date(a.tanggalMulai).getTime() : new Date(a.tanggalMulai).getTime() - new Date(b.tanggalMulai).getTime());
+  const results = items.filter(item => {
+    const status = statusKegiatan(item.tanggalMulai, item.tanggalSelesai, now);
+    const cocokWaktu = period === "all"
+      || (period === "upcoming" && status === "AKAN_DATANG")
+      || (period === "ongoing" && status === "SEDANG_BERLANGSUNG")
+      || (period === "past" && status === "SUDAH_BERLANGSUNG")
+      || (period === "month" && tanggalKegiatan(item.tanggalMulai).startsWith(today.slice(0, 7)));
+    return (category === "all" || category === item.kategori)
+      && (!search || `${item.judul} ${keTeksBiasa(item.deskripsiSingkat)}`.toLocaleLowerCase("id-ID").includes(search))
+      && cocokWaktu;
+  }).sort((a, b) => sort === "latest" ? new Date(b.tanggalMulai).getTime() - new Date(a.tanggalMulai).getTime() : new Date(a.tanggalMulai).getTime() - new Date(b.tanggalMulai).getTime());
   const start = (page - 1) * 6;
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   function reset() { setQuery(""); setCategory("all"); setPeriod("all"); setPage(1); }
   function changeCategory(value: string) { setCategory(value); setPage(1); }
   return <main className={`public-page ${styles.root}`}>
@@ -50,16 +68,19 @@ export default function KegiatanCatalog() {
         </form>
       </header>
       {loading ? <p className={styles.state} role="status">Memuat kegiatan…</p> : error ? <div className={styles.state} role="alert"><p>{error}</p><button type="button" className={styles.primary} onClick={retry}>Coba lagi</button></div> : !items.length ? <p className={styles.state}>Belum ada kegiatan yang tersedia.</p> : <>
-        {feature && <section className={styles.featured} aria-label="Kegiatan unggulan"><FotoKegiatan item={feature} className={styles.heroPhoto} /><div className={styles.featuredCopy}><h2>{feature.judul}</h2><p>{keTeksBiasa(feature.deskripsiSingkat)}</p><MetadataKegiatan item={feature} className={styles.meta} /><Link className={styles.primary} href={`/kegiatan/${feature.slug}`}>Lihat kegiatan <ArrowRight weight="bold" aria-hidden="true" /></Link></div><HitungMundur key={feature.id} start={feature.tanggalMulai} /></section>}
+        {feature && featureStatus && <section className={styles.featured} aria-label="Kegiatan unggulan"><FotoKegiatan item={feature} className={styles.heroPhoto} /><div className={styles.featuredCopy}><span className={`${styles.featuredStatusBadge} ${styles[`status_${featureStatus}`]}`}>{labelStatusKegiatan(featureStatus)}</span><h2>{feature.judul}</h2><p>{keTeksBiasa(feature.deskripsiSingkat)}</p><MetadataKegiatan item={feature} className={styles.meta} showRange /><Link className={styles.primary} href={`/kegiatan/${feature.slug}`}>Lihat kegiatan <ArrowRight weight="bold" aria-hidden="true" /></Link></div><HitungMundur key={feature.id} start={feature.tanggalMulai} /></section>}
         <div className={styles.catalog}>
           <button type="button" className={styles.mobileFilter} aria-expanded={filtersOpen} aria-controls="event-filters" onClick={() => setFiltersOpen(!filtersOpen)}>Filter kegiatan <span>⌄</span></button>
           <aside className={`${styles.filters} ${filtersOpen ? styles.open : ""}`} id="event-filters" aria-label="Filter kegiatan"><div className={styles.filterHeading}><h2>Filter kegiatan</h2><button type="button" className={styles.textButton} onClick={reset}>Reset</button></div>
             <fieldset className={styles.filterGroup}><legend>Kategori</legend>{["all", ...categories].map(value => <label key={value}><input type="radio" name="category" value={value} checked={value === category} onChange={() => changeCategory(value)} />{value === "all" ? "Semua kategori" : labelKategori(value)}</label>)}</fieldset>
-            <fieldset className={styles.filterGroup}><legend>Waktu kegiatan</legend>{[["all", "Semua waktu"], ["upcoming", "Akan datang"], ["month", "Bulan ini"], ["past", "Sudah berlangsung"]].map(([value, text]) => <label key={value}><input type="radio" name="period" value={value} checked={value === period} onChange={() => { setPeriod(value); setPage(1); }} />{text}</label>)}</fieldset>
+            <fieldset className={styles.filterGroup}><legend>Waktu kegiatan</legend>{[["all", "Semua waktu"], ["upcoming", "Akan datang"], ["ongoing", "Sedang berlangsung"], ["month", "Bulan ini"], ["past", "Sudah berlangsung"]].map(([value, text]) => <label key={value}><input type="radio" name="period" value={value} checked={value === period} onChange={() => { setPeriod(value); setPage(1); }} />{text}</label>)}</fieldset>
             <p className={styles.filterNote}>Tanggal dan waktu mengikuti WIB. Pilih kartu untuk membuka detail kegiatan.</p>
           </aside>
           <section ref={resultsRef} className={styles.results} aria-labelledby="hasil-kegiatan"><div className={styles.resultHead}><h2 id="hasil-kegiatan">Semua kegiatan <span role="status">({results.length ? `${start + 1}–${Math.min(start + 6, results.length)} dari ${results.length}` : "0 ditemukan"})</span></h2><select aria-label="Urutan kegiatan" value={sort} onChange={event => { setSort(event.target.value); setPage(1); }}><option value="latest">Tanggal terbaru</option><option value="nearest">Tanggal terdekat</option></select></div>
-            <div className={styles.cards}>{results.slice(start, start + 6).map(item => <Link className={styles.card} key={item.id} href={`/kegiatan/${item.slug}`} aria-label={`Lihat ${item.judul}`}><div className={styles.cardImage}><FotoKegiatan item={item} /><span className={styles.tag}>{labelKategori(item.kategori)}</span></div><div className={styles.cardCopy}><h3>{item.judul}</h3><MetadataKegiatan item={item} className={styles.meta} /><p className={styles.description}>{keTeksBiasa(item.deskripsiSingkat)}</p><div className={styles.cardBottom}><span className={tanggalKegiatan(item.tanggalMulai) >= today ? styles.upcoming : undefined}>{tanggalKegiatan(item.tanggalMulai) >= today ? "Akan datang" : "Sudah berlangsung"}</span></div><span className={styles.cardLink}>Lihat kegiatan <ArrowRight weight="bold" aria-hidden="true" /></span></div></Link>)}{results.length === 0 && <p className={styles.empty}><strong>Belum ada kegiatan yang cocok.</strong><br />Ubah kata pencarian atau reset filter.</p>}</div>
+            <div className={styles.cards}>{results.slice(start, start + 6).map(item => {
+              const status = statusKegiatan(item.tanggalMulai, item.tanggalSelesai, now);
+              return <Link className={styles.card} key={item.id} href={`/kegiatan/${item.slug}`} aria-label={`Lihat ${item.judul}`}><div className={styles.cardImage}><FotoKegiatan item={item} /><span className={styles.tag}>{labelKategori(item.kategori)}</span></div><div className={styles.cardCopy}><h3>{item.judul}</h3><MetadataKegiatan item={item} className={styles.meta} showRange /><p className={styles.description}>{keTeksBiasa(item.deskripsiSingkat)}</p><div className={styles.cardBottom}><span className={`${styles.statusBadge} ${styles[`status_${status}`]}`}>{labelStatusKegiatan(status)}</span></div><span className={styles.cardLink}>Lihat kegiatan <ArrowRight weight="bold" aria-hidden="true" /></span></div></Link>;
+            })}{results.length === 0 && <p className={styles.empty}><strong>Belum ada kegiatan yang cocok.</strong><br />Ubah kata pencarian atau reset filter.</p>}</div>
             <Pagination page={page} totalPages={Math.max(1, Math.ceil(results.length / 6))} tone="gold" className={styles.pagination} onPageChange={value => { setPage(value); resultsRef.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); }} />
           </section>
         </div>

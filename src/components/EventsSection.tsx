@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight, X } from "@phosphor-icons/react";
+import { ArrowUpRight, ArrowRight, CalendarBlank, Clock, MapPin, X } from "@phosphor-icons/react";
 import type { PublicKegiatan } from "@/lib/types";
 import { useKegiatanPublik, agendaTerpilih, tanggalKegiatan, formatAgenda, labelKategori } from "@/lib/kegiatan-client";
+import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
 import { keTeksBiasa } from "@/lib/rich-text";
 import { sectionAktif, teksSection, useBerandaConfig, gayaSection, gayaBackgroundSection } from "@/lib/beranda-client";
 import { FotoKegiatan, MetadataKegiatan } from "./kegiatan/KegiatanMedia";
@@ -62,14 +63,17 @@ function KalenderBeranda({ items }: { items: PublicKegiatan[] }) {
       const rect = event.currentTarget.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close();
     }}>
-      <div className={styles.dialogTop}><span>KEGIATAN IKASADA</span><button type="button" aria-label="Tutup ringkasan" onClick={() => dialogRef.current?.close()}><X /></button></div>
+      <div className={styles.dialogTop}><span>KEGIATAN IKASADA</span><button type="button" aria-label="Tutup ringkasan" onClick={() => dialogRef.current?.close()}><X size={20} weight="bold" /></button></div>
       {selection && <div className={styles.dialogContent}>
         {selection.items.length > 1 && <h2 id="calendar-event-title">{formatAgenda(selection.day + "T00:00:00Z", { day: "numeric", month: "long", year: "numeric" })}</h2>}
         {selection.items.map(item => <article key={item.id} className={selection.items.length > 1 ? styles.dayAgenda : undefined}>
           <span className={styles.dialogCategory}>{labelKategori(item.kategori)}</span>
           <h2 id={selection.items.length === 1 ? "calendar-event-title" : undefined}>{item.judul}</h2>
-          <MetadataKegiatan item={item} className={styles.meta} />
-          {item.tanggalSelesai && <p>Sampai {formatAgenda(item.tanggalSelesai, { day: "numeric", month: "long", year: "numeric" })}</p>}
+          <div className={`${styles.meta} ${styles.modalFacts}`}>
+            <span><CalendarBlank weight="bold" aria-hidden="true" /><time dateTime={item.tanggalMulai}>{formatTanggalWIB(item.tanggalMulai)}{item.tanggalSelesai && formatTanggalWIB(item.tanggalSelesai) !== formatTanggalWIB(item.tanggalMulai) ? ` – ${formatTanggalWIB(item.tanggalSelesai)}` : ""}</time></span>
+            <span><Clock weight="bold" aria-hidden="true" /><time dateTime={item.tanggalMulai}>{formatWaktuWIB(item.tanggalMulai)}{item.tanggalSelesai ? ` – ${formatWaktuWIB(item.tanggalSelesai)}` : ""} WIB</time></span>
+            <span><MapPin weight="bold" aria-hidden="true" />{item.lokasi}</span>
+          </div>
           <p>{keTeksBiasa(item.deskripsiSingkat)}</p><Link href={`/kegiatan/${item.slug}`} className={styles.primary} onClick={() => dialogRef.current?.close()}>Lihat detail kegiatan <ArrowUpRight weight="bold" /></Link>
         </article>)}
       </div>}

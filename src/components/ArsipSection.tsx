@@ -21,17 +21,11 @@ import {
   gayaBackgroundSection,
 } from "@/lib/beranda-client";
 
-const TAMPIL = 4;
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
 function SampulArsip({ item }: { item: PublicArsip }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const url = item.terkunci ? null : item.gambarSampulUrl;
   const dapatDioptimasi = url?.startsWith("/api/uploads/") ?? false;
+
   return (
     <figure className={styles.cover}>
       {url && failedUrl !== url ? (
@@ -47,14 +41,36 @@ function SampulArsip({ item }: { item: PublicArsip }) {
             setFailedUrl(url);
           }}
         />
-      ) : (
+      ) : item.terkunci ? (
         <div className={styles.coverFallback}>
-          {item.terkunci ? <><LockSimple aria-hidden="true" size={22} />Arsip khusus alumni</> : "Sampul belum tersedia"}
+          <LockSimple aria-hidden="true" size={22} /> Arsip khusus alumni
+        </div>
+      ) : (
+        <div className={styles.emptyCover} aria-label="Dokumen tanpa sampul">
+          <span className={styles.paperStack} aria-hidden="true">
+            <span className={styles.paperBack} />
+            <span className={styles.paperFront}>
+              <svg viewBox="0 0 32 32">
+                <path d="M9 10h14M9 16h14M9 22h9" />
+              </svg>
+            </span>
+          </span>
+          <div className={styles.emptyCoverCopy}>
+            <strong className={styles.emptyCoverTitle}>Dokumen tanpa sampul</strong>
+            <p>Buka arsip untuk melihat informasi dokumen selengkapnya.</p>
+          </div>
         </div>
       )}
     </figure>
   );
 }
+
+const TAMPIL = 4;
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 /** Empat arsip publik terbaru dengan pola panel WaysStory. */
 export default function ArsipSection() {
@@ -148,9 +164,9 @@ export default function ArsipSection() {
             subtitle: <p className={styles.subtitle} style={{ color: accent }}>{item.jenis.nama} · {item.berkasFormat?.toUpperCase() || "ARSIP"} · {new Date(item.tanggalUpload).getFullYear()}</p>,
             media: <SampulArsip key={item.id} item={item} />,
             action: <>
-              <div className={styles.access} style={{ color: muted }}>
-                {item.terkunci ? <><LockSimple aria-hidden="true" size={13} /> Khusus alumni · terkunci</> : item.akses === "PUBLIK" ? "Arsip publik" : "Unduh untuk alumni"}
-              </div>
+              {(item.terkunci || item.akses === "PUBLIK") && <div className={styles.access} style={{ color: muted }}>
+                {item.terkunci ? <><LockSimple aria-hidden="true" size={13} /> Khusus alumni · terkunci</> : "Arsip publik"}
+              </div>}
               <Link href={`/arsip/${item.slug}`} className={styles.detail} style={{ color: accent }}>
                 {item.terkunci ? "Lihat akses arsip" : "Lihat arsip"}<ArrowUpRight aria-hidden="true" size={18} />
               </Link>

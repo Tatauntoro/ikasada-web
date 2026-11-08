@@ -112,6 +112,33 @@
   margin-inline: auto;
 }
 
+.gallerySection {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid #e8ebef;
+}
+
+.galleryHeading {
+  margin-bottom: 20px;
+}
+
+.galleryHeading span {
+  display: block;
+  margin-bottom: 9px;
+  color: #0b5ed7;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.galleryHeading h2 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.2;
+}
+
 @media (max-width: 639px) {
   .section {
     padding: 28px 0 64px;
@@ -155,5 +182,14 @@
   .body {
     margin-top: 28px;
     font-size: 16px;
+  }
+
+  .gallerySection {
+    margin-top: 36px;
+    padding-top: 22px;
+  }
+
+  .galleryHeading h2 {
+    font-size: 24px;
   }
 }

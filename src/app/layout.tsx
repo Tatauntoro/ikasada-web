@@ -6,7 +6,6 @@ import {
   Noto_Sans_Javanese,
   Plus_Jakarta_Sans,
 } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import { ScrollToHash } from "@/components/ScrollToHash";
 import ScrollRestoration from "@/components/ScrollRestoration";
 import AssetErrorBanner from "@/components/AssetErrorBanner";
@@ -75,16 +74,14 @@ export default function RootLayout({
       <body
         className={`${ppNeueMontreal.variable} ${plusJakartaSans.variable} ${instrumentSerif.variable} ${notoSansJavanese.variable} bg-[#f2f2f4] text-[#0f1012] selection:bg-[#0071e3]/20 selection:text-[#0f1012] transition-colors duration-300 antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <MotionProvider>
-            <Suspense>
-              <ScrollToHash />
-              <ScrollRestoration />
-            </Suspense>
-            {children}
-            <AssetErrorBanner />
-          </MotionProvider>
-        </ThemeProvider>
+        <MotionProvider>
+          <Suspense>
+            <ScrollToHash />
+            <ScrollRestoration />
+          </Suspense>
+          {children}
+          <AssetErrorBanner />
+        </MotionProvider>
       </body>
     </html>
   );

@@ -5,6 +5,7 @@ import BackButton from "@/components/BackButton";
 import Breadcrumb from "@/components/Breadcrumb";
 import RichText from "@/components/RichText";
 import ScrollReveal from "@/components/ScrollReveal";
+import KegiatanDetailGallery from "@/app/kegiatan/[slug]/KegiatanDetailGallery";
 import { ambilBeritaPublik, ambilMediaBeritaPublik } from "@/lib/berita-publik";
 import { formatTanggalWIB, formatWaktuWIB } from "@/lib/format";
 import styles from "./berita-detail.module.css";
@@ -93,42 +94,18 @@ export default async function BeritaDetailPage({ params }: Params) {
             />
 
             {media.length > 0 && (
-              <section className="mt-12 border-t border-[#0B5ED7]/15 pt-8">
-                <h2 className="text-[10px] uppercase tracking-[0.18em] text-black/50">
-                  Galeri ({media.length})
-                </h2>
-                <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {media.map((item) => {
-                    const sumber = `/api/berita/${berita.slug}/media/${item.id}`;
-                    return (
-                      <li key={item.id}>
-                        {item.jenis === "VIDEO" ? (
-                          <video
-                            src={sumber}
-                            controls
-                            preload="metadata"
-                            className="w-full rounded-[12px] border border-[#0B5ED7]/15 bg-black"
-                          />
-                        ) : (
-                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] border border-[#0B5ED7]/15 bg-[#f3f4f6]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={sumber}
-                              alt={item.caption ?? berita.judul}
-                              loading="lazy"
-                              className="h-full w-full object-contain"
-                            />
-                          </div>
-                        )}
-                        {item.caption && (
-                          <p className="mt-2 text-[13px] leading-relaxed text-black/60">
-                            {item.caption}
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+              <section className={styles.gallerySection} aria-labelledby="galeri-berita">
+                <div className={styles.galleryHeading}>
+                  <span>Dokumentasi</span>
+                  <h2 id="galeri-berita">Foto &amp; video berita</h2>
+                </div>
+                <KegiatanDetailGallery
+                  items={media.map((item) => ({
+                    ...item,
+                    src: `/api/berita/${berita.slug}/media/${item.id}`,
+                  }))}
+                  judul={berita.judul}
+                />
               </section>
             )}
           </article>
