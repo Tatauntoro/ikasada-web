@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="id" data-intro="wait">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f2f2f4">
+<title>IKASADA mockup: Preloader kartu judul animator + Hero jendela aksara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Javanese:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+/* ===== Halaman + Hero (salinan HeroAksara beranda) ===== */
+:root{--ink:#0f1012;--muted:#5e5e5e;--paper:#f2f2f4;--blue:#0071e3;--sans:"Plus Jakarta Sans",system-ui,sans-serif;--jv:"Noto Sans Javanese",serif;--gutter:clamp(24px,6vw,90px)}
+*{box-sizing:border-box}
+html{scrollbar-gutter:stable}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+a,button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+/* Selama preloader main, halaman dikunci di puncak. */
+html[data-intro="wait"],html[data-intro="play"]{overflow:hidden}
+
+.hero{height:280svh}
+.stick{position:relative;position:sticky;top:0;height:100svh;min-height:560px;overflow:hidden;background:var(--paper);color:#fff}
+#bsvg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .3s}
+.stick.ready #bsvg{opacity:1}
+.aksara{font-family:var(--jv);font-weight:500}
+.scrim{position:absolute;inset:0;opacity:0;pointer-events:none;background:linear-gradient(90deg,rgba(6,14,22,.7) 0%,rgba(6,14,22,.35) 55%,rgba(6,14,22,.1) 100%),linear-gradient(0deg,rgba(6,14,22,.75) 0%,rgba(6,14,22,.35) 35%,rgba(6,14,22,0) 65%)}
+.logo{position:absolute;top:28px;left:var(--gutter);z-index:2;display:block;padding:5px;border-radius:6px;background:#fff;box-shadow:0 0 0 1px rgba(15,16,18,.1);line-height:0}
+.logo img{display:block;width:48px;height:auto}
+.teks{position:absolute;left:var(--gutter);right:var(--gutter);bottom:clamp(32px,6vh,64px);z-index:2;opacity:0}
+.pengantar{margin:0;max-width:42ch;font-size:clamp(16px,1.5vw,20px);line-height:1.5;color:rgba(236,238,240,.95)}
+.judul{margin:6px 0 0;max-width:18ch;font-size:clamp(32px,4.4vw,64px);line-height:1.06;letter-spacing:-.025em;font-weight:500;color:#fff;text-wrap:balance}
+.hint{position:absolute;left:0;right:0;bottom:clamp(32px,6vh,64px);z-index:2;margin:0;text-align:center;font-size:14px;color:var(--muted);transition:opacity .3s}
+.hero.static{height:auto}
+.hero.static .stick{position:relative}
+.hero.static .hint{display:none}
+
+.pill{position:fixed;top:28px;left:50%;z-index:50;transform:translateX(-50%);display:flex;gap:2px;padding:8px;border-radius:10px;background:rgba(244,244,245,.92);border:1px solid rgba(15,16,18,.12)}
+.pill a{display:block;padding:12px;border-radius:6px;font-size:15px;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap}
+.pill a:hover{background:rgba(15,16,18,.06)}
+.pill a[aria-current]{color:var(--blue)}
+
+.stub{display:grid;place-items:center;min-height:60vh;padding:48px 24px;background:#fff;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+.stub p{max-width:60ch;margin:0}
+
+.replay{position:fixed;right:16px;bottom:16px;z-index:60;padding:10px 16px;border:1px solid rgba(15,16,18,.16);border-radius:999px;background:rgba(255,255,255,.94);color:var(--ink);font:inherit;font-size:12px;transition:border-color .18s,color .18s}
+.replay:hover,.replay:focus-visible{border-color:var(--blue);color:var(--blue)}
+
+/* ===== Sambungan preloader -> hero =====
+   Selama data-intro="wait" hero berdiri di keadaan awalnya (aksara belum ada,
+   logo dan navbar belum masuk). Saat iris mulai terbuka (data-intro="play")
+   aksara muncul dengan squash and stretch yang sama dengan huruf judul. */
+.logo,.pill{transition:opacity .7s ease .5s,translate .7s cubic-bezier(.2,.8,.2,1) .5s}
+html[data-intro="wait"] .logo,html[data-intro="wait"] .pill{opacity:0;translate:0 -10px}
+html[data-intro="wait"] .hint{visibility:hidden}
+html[data-intro="wait"] .stick.ready #bsvg{opacity:0}
+html[data-intro="play"] #bsvg{animation:hero-pop 950ms cubic-bezier(.2,.9,.3,1) 120ms both}
+@keyframes hero-pop{
+  0%{opacity:0;transform:scale(.72,1.28)}
+  38%{opacity:1;transform:scale(1.1,.9)}
+  62%{transform:scale(.97,1.04)}
+  82%{transform:scale(1.015,.985)}
+  100%{opacity:1;transform:none}
+}
+
+@media(max-width:699px){
+ .hero{height:220svh}
+ .scrim{background:linear-gradient(180deg,rgba(6,14,22,.12) 0%,rgba(6,14,22,.16) 25%,rgba(6,14,22,.82) 43%,#101a22 58%,#101a22 100%)}
+ .logo{top:24px;left:20px}.logo img{width:38px}
+ .pill{top:20px;left:auto;right:20px;transform:none}
+ .pill a:not([aria-current]){display:none}
+ .teks{left:20px;right:20px}
+ .judul{font-size:clamp(30px,9vw,46px)}
+ .pengantar{font-size:15px;max-width:32ch}
+ .hint{top:50svh;bottom:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-intro] #bsvg{animation:none!important}
+ .logo,.pill{transition:none}
+}
+
+/* ===== Preloader: kartu judul animator (semua aturan berawalan .atp-) ===== */
+.atp-gate{
+  position:fixed;inset:0;z-index:9999;overflow:hidden;outline:none;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  transition:opacity 600ms cubic-bezier(.65,0,.35,1);
+}
+.atp-gate[data-phase="fade"]{opacity:0}
+.atp-gate:focus-visible .atp-stage{box-shadow:inset 0 0 0 2px var(--atp-rough)}
+.atp-backdrop{position:absolute;inset:0;background:#0071e3}
+.atp-stage{position:absolute;inset:0;overflow:hidden;background:var(--atp-stage);color:var(--atp-ink);container-type:size;cursor:pointer}
+.atp-stage svg{max-width:none}
+.atp-vignette{position:absolute;inset:0;pointer-events:none;z-index:5;background:radial-gradient(120% 90% at 50% 46%,transparent 52%,rgba(0,0,0,var(--atp-vig)) 100%)}
+.atp-grain{position:absolute;left:-60px;top:-60px;width:calc(100% + 120px);height:calc(100% + 120px);pointer-events:none;z-index:6;opacity:var(--atp-grain);mix-blend-mode:var(--atp-grain-blend);animation:atp-grain .5s steps(1) infinite}
+@keyframes atp-grain{0%{transform:translate(0,0)}25%{transform:translate(-31px,17px)}50%{transform:translate(23px,-27px)}75%{transform:translate(-13px,-41px)}}
+.atp-card{position:absolute;left:50%;top:50%;z-index:3;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);width:max-content;max-width:100%}
+.atp-kickrow{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:.9em;font-size:calc(var(--atp-word-size) * .2);color:var(--atp-ink)}
+.atp-kicker{margin-bottom:.15em}
+.atp-line{display:block;overflow:visible;flex:none}
+.atp-line .atp-w{stroke-dasharray:1 2;stroke-dashoffset:1.001;transition-property:stroke-dashoffset;transition-timing-function:linear}
+.atp-line[data-on="1"] .atp-w{stroke-dashoffset:0}
+.atp-fallback{font-size:1.5em;line-height:1.2;white-space:nowrap;clip-path:inset(0 100% 0 0);transition:clip-path 1400ms cubic-bezier(.4,0,.2,1)}
+.atp-fallback[data-on="1"]{clip-path:inset(0 -10% 0 0)}
+.atp-trinket{width:1.05em;height:2.4em;color:var(--atp-muted);transform-origin:50% 0;opacity:0;transform:translateY(-.6em) rotate(0deg);transition:opacity 500ms ease,transform 900ms cubic-bezier(.3,1.6,.5,1)}
+.atp-stage[data-trinkets="1"] .atp-trinket{opacity:1;transform:none;animation:atp-swing 2.6s ease-in-out 900ms infinite}
+.atp-trinket.atp-t2{animation-delay:1.3s!important}
+@keyframes atp-swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.atp-titlewrap{position:relative;margin:.06em 0 .02em}
+.atp-word{
+  position:relative;z-index:2;display:block;white-space:nowrap;margin:0;
+  font-family:var(--atp-display);font-weight:800;line-height:.92;letter-spacing:-.045em;
+  font-size:var(--atp-word-size);color:transparent;transform-origin:50% 60%;
+}
+.atp-gate[data-phase="grip"] .atp-word{animation:atp-squeeze 520ms cubic-bezier(.3,0,.3,1) both}
+.atp-gate[data-phase="fling"] .atp-word{animation:atp-stretch 760ms cubic-bezier(.2,.8,.3,1) both}
+@keyframes atp-squeeze{0%{transform:none}45%{transform:scale(.955,1.05)}100%{transform:scale(.985,1.015)}}
+@keyframes atp-stretch{0%{transform:scale(.985,1.015)}22%{transform:scale(.94,1.07)}55%{transform:scale(1.05,.95)}100%{transform:none}}
+.atp-ch{position:relative;display:inline-block;opacity:0;transform-origin:50% 85%}
+.atp-ch[data-ink="1"]{opacity:1;animation:atp-pop 640ms cubic-bezier(.2,.9,.3,1) both}
+@keyframes atp-pop{
+  0%{opacity:0;transform:translateY(-.18em) scale(.55,1.45)}
+  38%{opacity:1;transform:translateY(.02em) scale(1.22,.78)}
+  62%{transform:translateY(-.03em) scale(.93,1.08)}
+  82%{transform:scale(1.03,.97)}
+  100%{opacity:1;transform:none}
+}
+.atp-ink{-webkit-text-stroke:max(1.5px,.014em) var(--atp-ink);color:transparent;transition:-webkit-text-stroke-color 600ms ease}
+.atp-paint{
+  position:absolute;left:0;top:0;pointer-events:none;
+  background:linear-gradient(90deg,var(--atp-word0),var(--atp-word1) 55%,var(--atp-word2));
+  background-size:var(--atp-ww,100%) 100%;background-position:var(--atp-gx,0) 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  clip-path:inset(100% -10% -10% -10%);transition:clip-path 760ms cubic-bezier(.6,0,.2,1);
+}
+.atp-ch[data-paint="1"] .atp-paint{clip-path:inset(-10% -10% -10% -10%)}
+.atp-ch[data-paint="1"] .atp-ink{-webkit-text-stroke-color:transparent;transition-delay:500ms}
+.atp-rough{position:absolute;left:0;top:0;z-index:3;overflow:visible;pointer-events:none}
+.atp-rough path{stroke-dasharray:1 2;stroke-dashoffset:1.001;transition:opacity 900ms ease}
+.atp-stage[data-final="1"] .atp-rough path[data-keep="0"]{opacity:0}
+.atp-handslot{position:absolute;z-index:1;width:0;height:0}
+.atp-hand{position:absolute;left:0;top:0;will-change:transform}
+.atp-hand svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+.atp-thumb{transform-box:fill-box;transform-origin:0% 100%;transition:transform 420ms cubic-bezier(.3,1.5,.5,1)}
+.atp-gate[data-phase="grip"] .atp-thumb,.atp-gate[data-phase="hold"] .atp-thumb{transform:rotate(5deg) translateY(4px)}
+.atp-ofrow{font-size:calc(var(--atp-word-size) * .14);margin-top:.4em}
+.atp-namerow{font-size:calc(var(--atp-word-size) * .28);margin-top:.25em}
+.atp-mascot{width:calc(var(--atp-word-size) * .62);margin-top:calc(var(--atp-word-size) * .17);color:var(--atp-muted);overflow:visible}
+.atp-mascot .atp-mdraw{stroke-dasharray:1 2;stroke-dashoffset:1.001;transition:stroke-dashoffset 700ms cubic-bezier(.5,0,.3,1)}
+.atp-mascot .atp-mdot{opacity:0;transform-box:fill-box;transform-origin:50% 50%;transform:scale(0);transition:opacity 300ms ease,transform 500ms cubic-bezier(.3,1.8,.5,1)}
+.atp-stage[data-mascot="1"] .atp-mdraw{stroke-dashoffset:0}
+.atp-stage[data-mascot="1"] .atp-mdot{opacity:1;transform:none}
+.atp-stage[data-mascot="1"] .atp-mdot.atp-d2{transition-delay:120ms}
+.atp-stage[data-mascot="1"] .atp-mdot.atp-d3{transition-delay:240ms}
+.atp-eye{transform-box:fill-box;transform-origin:50% 50%;opacity:0;transition:opacity 300ms ease 500ms;animation:atp-blink 4.8s ease-in-out 2s infinite}
+.atp-stage[data-mascot="1"] .atp-eye{opacity:1}
+@keyframes atp-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.atp-lid{opacity:0}
+.atp-gate[data-phase="wink"] .atp-eye.atp-e2,.atp-gate[data-phase="shut"] .atp-eye.atp-e2{opacity:0}
+.atp-gate[data-phase="wink"] .atp-lid,.atp-gate[data-phase="shut"] .atp-lid{opacity:1}
+.atp-gate[data-phase="wink"] .atp-mascot{animation:atp-nod 760ms cubic-bezier(.3,1.4,.5,1) both}
+@keyframes atp-nod{0%{transform:none}30%{transform:translateY(-6%) rotate(-6deg)}100%{transform:rotate(-3deg)}}
+.atp-pegs{position:absolute;left:50%;top:0;z-index:4;transform:translateX(-50%);display:flex;align-items:center;gap:64px;padding-top:14px;pointer-events:none}
+.atp-peg{background:rgba(0,0,0,var(--atp-peg));box-shadow:inset 0 1px 2px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.05);border-radius:99px}
+.atp-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:560px){
+  .atp-pegs{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .atp-grain,.atp-eye,.atp-trinket,.atp-stage[data-trinkets="1"] .atp-trinket{animation:none!important}
+  .atp-ch[data-ink="1"]{animation:none}
+  .atp-gate[data-phase] .atp-word,.atp-gate[data-phase] .atp-mascot{animation:none}
+  .atp-line .atp-w,.atp-paint,.atp-thumb,.atp-mascot .atp-mdraw{transition-duration:1ms!important;transition-delay:0ms!important}
+  .atp-fallback{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero">
+  <div class="stick" id="stick">
+    <svg id="bsvg" role="img" aria-label="[contoh, ganti dengan foto asli] Alumni berbincang dalam pertemuan santai">
+      <defs>
+        <mask id="bm" maskUnits="userSpaceOnUse" x="0" y="0">
+          <rect id="m0" fill="#000"/>
+          <text id="t1" class="aksara" text-anchor="middle" dominant-baseline="central" fill="#fff" stroke="#fff" stroke-linejoin="round"></text>
+          <text id="t2" class="aksara" text-anchor="middle" dominant-baseline="central" fill="#fff" stroke="#fff" stroke-linejoin="round"></text>
+          <rect id="mf" fill="#fff" opacity="0"/>
+        </mask>
+      </defs>
+      <g mask="url(#bm)"><image id="bimg" href="../public/images/beranda/alumni-discussion.png" preserveAspectRatio="xMidYMid slice"/></g>
+    </svg>
+    <div class="scrim" id="scrim"></div>
+    <a class="logo" href="#hero"><img src="../public/logo/ikasada-logo.jpeg" alt="IKASADA FIB UI" width="64" height="80"></a>
+    <div class="teks" id="teks">
+      <p class="pengantar">Ruang jejaring dan kontribusi antar alumni</p>
+      <h1 class="judul">Dari Akar Yang Sama, Tumbuh Jauh Bersama</h1>
+    </div>
+    <p class="hint" id="hint">Gulir untuk membuka foto</p>
+  </div>
+</header>
+
+<nav class="pill" aria-label="Navigasi utama">
+  <a href="#hero" aria-current="page">Beranda</a><a href="#alumni">Direktori Alumni</a><a href="#berita">Berita</a><a href="#kegiatan">Kegiatan</a><a href="#arsip">Arsip</a>
+</nav>
+
+<main>
+  <section id="berikutnya" class="stub">
+    <p>[Bagian berikutnya dari situs asli, tidak ikut di mockup ini.] Mockup ini menunjukkan preloader kartu judul animator yang berujung di hero jendela aksara. Foto adalah contoh dari public/images/beranda.</p>
+  </section>
+</main>
+
+<button class="replay" id="replay" type="button">Ulangi preloader</button>
+
+<script>
+(function () {
+'use strict';
+
+/* ======================================================================
+   Konfigurasi. Durasi bisa diubah lewat ?durasi=3000 (ms).
+   ====================================================================== */
+var qs = new URLSearchParams(location.search);
+var CFG = {
+  kicker: 'Ikatan Alumni Sastra Daerah',
+  title: 'IKASADA',
+  connector: '',
+  name: 'FIB UI',
+  scene: 'Adegan 01 — Kartu judul',
+  meta: 'IKASADA · FIB UI',
+  frames: 120,
+  seed: 11,
+  durationMs: Math.max(1200, Number(qs.get('durasi')) || 4800)
+};
+
+var COLORS = {
+  stage: '#f2f2f4', ink: '#0f1012', muted: '#5e5e5e', rough: '#0071e3', ghost: '#7db1f5',
+  word0: '#2d3037', word1: '#1a1c21', word2: '#0f1012',
+  sleeve0: '#3b93f0', sleeve1: '#0071e3', sleeve2: '#0a4aa8', pattern: '#cfe4ff', speck: '#06234d',
+  skin0: '#ffffff', skin1: '#eceef2', skin2: '#9ea3b0', nail: '#d3d7e0', cuff: '#0f1012'
+};
+
+var DISPLAY_STACK = '"Plus Jakarta Sans", Inter, "Helvetica Neue", "Segoe UI", Arial, sans-serif';
+var MONO_STACK = '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace';
+var FALLBACK_SCRIPT = "'Segoe Script','Bradley Hand','Snell Roundhand','Brush Script MT',cursive";
+
+var STAGES = ['Sketsa', 'Tinta', 'Warna', 'Jadi'];
+var GRIP_MS = 520, HOLD_MS = 1150, FLING_MS = 760, IRIS_MS = 900, WINK_MS = 760, SHUT_MS = 300, REVEAL_MS = 1000, FADE_MS = 600;
+var ARM_DEG = 24, ARM_DEG_TALL = 52;
+
+/* ======================================================================
+   Huruf tangan: font Hershey Script dan Sans (domain publik), satu goresan.
+   ====================================================================== */
+var ATP_SCRIPT = "8:3947@ :47@ :3;47@ 5F4G5H6G5F|;937: :37: B3@: C3@:|==/6O C/<O 6<D< 5BCB|=>/6L C/;L D7C8D9E8E7D5C4@3<39476788:9;@?BA 789:@>A?BABDAF@G=H9H6G5F4D4C5B6C5D|>G35H :3<5<7;99:7:58566483:3<4?5B5E4G3 CAAB@D@FBHDHFGGEGCEACA|?I;H<I=J<J;I:H:F;D=?E=G;H8H5G4E4C5A6@8?==?<A:B8B6A4?3=4<6<9=?>B@EBGDHFHGFGE 8H6G5E5C6A7@== <9=>>A@DBFDGFGGF|8:594:3;4;5:789|:A/=2:5886<5A5E6J7M8O =2:68:7=6B6G7L8O|9;/<1=4>9>==B;F9I6L2O ;/<2=7=<<A;D9H6L|;<3<? 76A< A67<|??6?H 6?H?|85H4G5F6G6H5J3L|?6?H?|77F6G7H8G7F|=J/0O|=>3;496796<5@5C6F7G9H;H>G@EBBC?D;D8C5B4@3>3 >3<4:6897<6@6C7F9H ;H=G?EABB?C;C8B5@3|=>79H @3:H @3=6:889 ?6;889|=97:899888795:4=3@3C4D6D8C:A<>>:@7B5D3H @3B4C6C8B:@<:@ 4F5E7E<G?GAFBD 7E<H?HAGBD|=97:899888795:4=3@3C4D6D8C:@<== @3B4C6C8B:@< ;===@>A?BABDAF@G=H9H6G5F4D4C5B6C5D ==?>@?AAAD@F?G=H|=B4<H C3=H C34BDB|=;36= ;3E3 ;4@4E3 6=7<:;=;@<A=B?BBAE?G<H9H6G5F4D4C5B6C5D =;?<@=A?AB@E>G<H|=C6B7C8D7D6C4A3>3;496796<5@5D6F7G9H<H?GAEBCB@A>@=><;<9=7?6A >3<4:6897<6@6E7G <H>G@EACA?@=|=8369 E3D6B9=?;B:D9H B9<?:B9D8H 76:3<3A6 85:4<4A6C6D5E3|==3:495878:9<;=>=B<C;D9D6C4@3=3 =3;4:5979::<;= >=A<B;C9C6B4@3 ;=7>5@4B4E5G8H<H@GAFBDBAA?@>>= ;=8>6@5B5E6G8H <H?G@FADA@@>|=C:B<@>>?;?9>8=7;7886:4=3@3B4C5D7D;C?BB@E>G;H8H6G5E5D6C7D6E 9>8<8896;4=3 B4C6C;B?AB?E=G;H|88:7;8<9;8: 5F4G5H6G|88:7;8<9;8: 5H4G5F6G6H5J3L|>F66?FH|?6<H< 6BHB|>66F?6H|=97:899888795:4=3A3D4E6E8D:C;==;>;@<A>A A3C4D6D8C:B;@< :F9G:H;G:F|@D;C9A8>8<9;::=:@;B=C@CBBC@ >8<:;=;@<B=C D8C@CBECGCIAJ>J<I9H7F5D4A3>3;49577695<5?6B7D9F;G>HAHDGFFGE E8D@DBEC|;2H4G7D:@>9A3AH@E>B<@9>7>6?6A7C9E<G?HDH|=?5@6@9?=>@=B;E9G7H6H5G5D6?7<8::7<5>4A3D3F4G6G8F:E;C<@= ?=@=C>D?EAEDDFCGAH>H<G;E|<>9>:?;A;C:D8D6C4A3>3;496796;5?5C6F7G9H;H>G@EAC|>?3=4<6;::@9C8E6G4H2H1G1E2D4D6E8G;H>HAGCEEAF<F8E5D4B3?3=5=7>:@=B?EAGB|<@7@8A9C9D8D6C4@3<39486899;:<==:=7>6?5A5D6F7G:H=H@GBECC|<<9:9887684;3>3B4E4G3 B4@;>A<E:G8H6H4G3E3C4B6B8C ;=D=|>2H4G8C;><;=7=4<3;3:49699:;<<@<C;D:E8E>DCCEAG>H:H7G5E4C4A|>9:7967667493:3<4=6=8<<:B8F6H4H3G3E 9?B<D;G9I7J5J4I3H3F5D9B?ADAGBHCHEGFFHC|:@C>A<>;<:9:6;4<3>3?4@6@9?>=C<E:G8H6H4G3E3C4B6B8C|9<K:H8C7=7784:3<3=4>7>:=?:H8N7Q6S4T3S3Q4N6K8I;G?E|>9:7967667493:3<4=6=8<<:B8F6H4H3G3E J6J4I3H3F4D6B9@;><<< ><?>?E@GAHBHDGEFGC|<6?8?<>?<A:B8B5A3?3>4=6<;;@:C9E7G5H3H2G2E3D5D7E:G=H?HBGDE|A7:594746547383:4;6;8:=9A7H 9A<9>5?4A3B3D4E6E8D=CAAH CAF9H5I4K3L3N4O6O8N=LDLGMHNHPGQFSC|=7:594746547383:4;6;8:=9A7H 9A<9>5?4A3C3E4F6F8E=CDCGDHEHGGHFJC|=>3;496796;5?5C6F7G9H;H>G@EBBC@D<D8C5B4@3>3<5<8=;?>A@DBFC|??5@6@9?=>@=B;E9G7H6H5G5D6?7<8::7<5>4A3F3H4I5J7J:I<H=F>C>A=@<|>?9>;=<;=9=8;8996;4>3A3C4D6D:C=A@=D:F8G5H3H2G2E3D5D7E:G=H@HCGEE|??5@6@9?=>@=B;E9G7H6H5G5D6?7<8::7<5>4A3E3G4H5I7I:H<G=E>B>?=@>A@AEBGDHFGGFIC|<2H4G6E9A;>=:>7>4=3<3;4:6:8;:=<@>B@CBCDBFAG>H:H7G5E4C4A|;<9:9887684;3>3B4E4G3 B4@;>A<E:G8H6H4G3E3C4B6B8C|=7:594746547383:4;6;8:<9?8C8E9G;H=H?G@FBBE:G3 E:D>CDCGDHEHGGHFJC|=7:594746547383:4;6;8:<9?8C8F9H;H=G@DBAD=E:F6F4E3D3C4B6B8C;E=G>|?7:594746547383:4;6;9:H D3:H D3BH P3N4K7H;EABH|>:989787684:3<3>4?6?9=B=E>G@HBHDGEEECDBBB I6I4H3F3D4B6@9<B:E8G6H4H3G3E|=7:594746547383:4;6;8:<9?8C8E9G:H<H>G@EBBC@E: G3E:BD@J>O<S:T9S9Q:N<K?HBFGC|=?9>;=<;=9=8;8996;4>3A3C4D6D:C=AA>D:G8H5H4G4E5D8D:E;F<H<K;N:P8S6T5S5Q6N8K;H>FDC|96/6O 7/7O 6/=/ 6O=O|923@K|9;/;O </<O 5/</ 5O<O|:89:6<9 5<:7?< :7:H|:2JBJ|8;395878899:897|<;B:@8?6?4@3A2C2E3G5H7H9G:E<?;D;G<H=H?G@FBC|;2C4@7;8996948364564:3A3G4H5H7G9E:B:?;C<D>D@C|89A9@8?6?4@3A2C2E3G5H8H;F=C|<;B:@8?6?4@3A2C2E3G5H7H9G:E@3 <?;D;G<H=H?G@FBC|83F5E6D7B7@6?5?3@2B2E3G5H7H9G:F<C|72C6>8;99:6:49374664>1G.N-Q-S.T0S1P2G3H5H7G8F:C|;;B:@8?6?4@3A2C2E3G5H7H9G:F <?:F6Q5S3T2S2Q3N6K9I;H>FAC|<2C4@7;8996948364564:3@2H 2H3E4C6@8?:?;@;B:E:G;H<H>G?FAC|75:5;6;6:5: 2C4?2E2G3H4H6G7F9C|75:5;6;6:5: 2C4?.Q-S+T*S*Q+N.K1I3H6F9C|;2C4@7;8996948364564:3@2H 2H3E4C6@8?:?;@;B9C6C 6C8D9G:H;H=G>F@C|72C4@7;8996948364564:3A3G4H5H7G8F:C|>2C4@6?7@7A6E5H 6E7C9@;?=?>@>A=E<H =E>C@@B?D?E@EBDEDGEHFHHGIFKC|<2C4@6?7@7A6E5H 6E7C9@;?=?>@>B=E=G>H?HAGBFDC|:8?6?4@3A2C2E3G5H7H9G:F;D;B:@8?7@7B8D:E=E?D@C|:2C4@5>4B.T 4B5@7?9?;@<B<D;F:G8H 4G6H9H<G>FAC|;;B:@8?6?4@3A2C2E3G5H7H9G <?;B9G6N5Q5S6T8S9P9I;H>FAC|:2C4@5>5@8@9A9C8F8G9H:H<G=F?C|92C4@5>5@7C8E8G6H 2G4H8H:G;F=C|82C4@6< 933E3G4H6H8G9F;C 3;:;|;2C4?2E2G3H5H7G9E;B <?:E:G;H<H>G?FAC|;2C4?3D3G4H5H8G:E;B;? ;?<C=D?DAC|>5?3A2D2F3H5H7G9E ;?9E9G:H<H>G@EABA? A?BCCDEDGC|:2C4@6?8?9@9G:H=H@FBC ?@>?<?;@7G6H4H3G|;2C4?2E2G3H5H7G9E;B <?6Q5S3T2S2Q3N6K9I;H>FAC|:2C4@6?8?:A:C9E7G4H6I7K7N6Q5S3T2S2Q3N6K9I=F@C|9;/908173758798:::<8> 90828496:7;9;;:=6?:A;C;E:G9H8J8L9N 8@:B:D9F8G7I7K8M9N;O|66/6O|97/90:1;3;5:7988:8<:> 90:2:49687797;8=<?8A7C7E8G9H:J:L9N :@8B8D9F:G;I;K:M9N7O|>5B5@6=8<:<<=@@BADAF@G> 5@6>8=:=<>@ABBDBFAG>G<";
+var ATP_SANS = "7737A 7F6G7H8G7F|:636: >3>:|==/6O C/<O 6<D< 5BCB|<:/:L >/>L C6A4>3:37456586:7;9<?>A?B@CBCEAG>H:H7G5E|>G35H :3<5<7;99:7:58566483:3<4?5B5E4G3 CAAB@D@FBHDHFGGEGCEACA|?I<I;H:G:F;E=CBAE?G=H9H7G6F5D5B6@7?>;?:@8@6?4=3;4:6:8;;=>BEDGFHHHIGIF|775647384867869|9=/;194786=6A7F9J;M=O|95/7194;8<=<A;F9J7M5O|::9:E 5<?B ?<5B|??6?H 6?H?|67D6E5D6C7D7F5H|?6?H?|66C5D6E7D6C|=F/4O|<;384675<5?6D8G;H=H@GBDC?C<B7@4=3;3|<87:6=3=H|<68677584:3>3@4A5B7B9A;?>5HCH|<73B3<;?;A<B=C@CBBE@G=H:H7G6F5D|<?35ADA ?3?H|<A3736<7;::=:@;B=C@CBBE@G=H:H7G6F5D|<B6A4>3<394776<6A7E9G<H=H@GBECBCAB>@<=;<;9<7>6A|<C39H 53C3|<:37466687:9;=<@=B?CACDBFAG>H:H7G6F5D5A6?8=;<?;A:B8B6A4>3:3|<B:A=??<@;@8?6=5:596684;3<3?4A6B:B?AD?G<H:H7G6E|66<5=6>7=6< 6C5D6E7D6C|66<5=6>7=6< 7D6E5D6C7D7F5H|>F66?FH|?6<H< 6BHB|>66F?6H|;5857657493=3?4@5A7A9@;?<;>;A ;F:G;H<G;F|@D;C9A8>8<9;::=:@;B=C@CBBC@ >8<:;=;@<B=C D8C@CBECGCIAJ>J<I9H7F5D4A3>3;49577695<5?6B7D9F;G>HAHDGFFGE E8D@DBEC|;;33H ;3CH 6A@A|<636H 63?3B4C5D7D9C;B<?= 6=?=B>C?DADDCFBG?H6H|=D8C6A4?3;39476685;5@6C7E9G;H?HAGCEDC|<636H 63=3@4B6C8D;D@CCBE@G=H6H|;636H 63C3 6=>= 6HCH|:636H 63C3 6=>=|=D8C6A4?3;39476685;5@6C7E9G;H?HAGCEDCD@ ?@D@|=636H D3DH 6=D=|6636H|:>3>C=F<G:H8H6G5F4C4A|<636H D36A ;<DH|9636H 6HBH|>636H 63>H F3>H F3FH|=636H 63DH D3DH|=;39476685;5@6C7E9G;H?HAGCEDCE@E;D8C6A4?3;3|<636H 63?3B4C5D7D:C<B=?>6>|=;39476685;5@6C7E9G;H?HAGCEDCE@E;D8C6A4?3;3 >DDJ|<636H 63?3B4C5D7D9C;B<?=6= ==DH|<C6A4>3:37456586:7;9<?>A?B@CBCEAG>H:H7G5E|::3:H 33A3|=636B7E9G<H>HAGCEDBD3|;33;H C3;H|>439H >39H >3CH H3CH|<53CH C35H|;33;=;H C3;=|<C35H 53C3 5HCH|96/6O 7/7O 6/=/ 6O=O|923@K|9;/;O </<O 5/</ 5O<O|::12? :1B?|;2ODO|6785:5<6=7<6;5<|<A:AH A=?;=:::8;6=5@5B6E8G:H=H?GAE|;636H 6=8;::=:?;A=B@BBAE?G=H:H8G6E|;A=?;=:::8;6=5@5B6E8G:H=H?GAE|<A3AH A=?;=:::8;6=5@5B6E8G:H=H?GAE|;5@A@A>@<?;=:::8;6=5@5B6E8G:H=H?GAE|9<3:384777H 4:;:|<A:AJ@M?N=O:O8N A=?;=:::8;6=5@5B6E8G:H=H?GAE|<636H 6>9;;:>:@;A>AH|65364736253 6:6H|77384938273 8:8K7N5O3O|:636H @:6D :@AH|6636H|A6:6H 6>9;;:>:@;A>AH A>D;F:I:K;L>LH|<6:6H 6>9;;:>:@;A>AH|<::8;6=5@5B6E8G:H=H?GAEBBB@A=?;=:::|;6:6O 6=8;::=:?;A=B@BBAE?G=H:H8G6E|<A:AO A=?;=:::8;6=5@5B6E8G:H=H?GAE|86:6H 6@7=9;;:>:|;@=?;<:9:6;5=6?8@=A?B@D@E?G<H9H6G5E|9737D8G:H<H 4:;:|<6:6D7G9H<H>GAD A:AH|:4::H @::H|=5:9H =:9H =:AH E:AH|;5:@H @:5H|:4::H @::H8L6N4O3O|;@:5H 5:@: 5H@H|9;/908173758798:::<8> 90828496:7;9;;:=6?:A;C;E:G9H8J8L9N 8@:B:D9F8G7I7K8M9N;O|66/6O|97/90:1;3;5:7988:8<:> 90:2:49687797;8=<?8A7C7E8G9H:J:L9N :@8B8D9F:G;I;K:M9N7O|>5B5@6=8<:<<=@@BADAF@G> 5@6>8=:=<>@ABBDBFAG>G<";
+
+function atpRandom(seed) {
+  var a = (seed >>> 0) || 1;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    var t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+var SIM_KEYS = [0, 0, 0.1, 16, 0.26, 33, 0.38, 38, 0.56, 63, 0.68, 68, 0.86, 92, 1, 100];
+function atpSimulated(t) {
+  var k = t < 0 ? 0 : t > 1 ? 1 : t;
+  for (var i = 2; i < SIM_KEYS.length; i += 2) {
+    if (k <= SIM_KEYS[i]) {
+      var a = SIM_KEYS[i - 2];
+      var u = (k - a) / (SIM_KEYS[i] - a);
+      return SIM_KEYS[i - 1] + (SIM_KEYS[i + 1] - SIM_KEYS[i - 1]) * u * u * (3 - 2 * u);
+    }
+  }
+  return 100;
+}
+
+function atpDecode(data) {
+  return data.split('|').map(function (g) {
+    var strokes = g.slice(1).split(' ').filter(function (s) { return s.length > 1; }).map(function (s) {
+      var pts = [];
+      for (var i = 0; i + 1 < s.length; i += 2) pts.push(s.charCodeAt(i) - 50, s.charCodeAt(i + 1) - 50);
+      return pts;
+    });
+    return { half: g.charCodeAt(0) - 50, strokes: strokes };
+  });
+}
+function atpSupported(text) { return /^[\x20-\x7e]*$/.test(text); }
+
+function atpLayout(text, font, opts) {
+  var rand = atpRandom(opts.seed);
+  var strokes = [];
+  var pen = 0, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  Array.from(text).forEach(function (ch) {
+    var g = ch === ' ' ? null : font[ch.charCodeAt(0) - 33];
+    if (!g || !g.strokes.length) { pen += opts.space; return; }
+    var gx0 = Infinity, gx1 = -Infinity;
+    g.strokes.forEach(function (s) { for (var i = 0; i < s.length; i += 2) { gx0 = Math.min(gx0, s[i]); gx1 = Math.max(gx1, s[i]); } });
+    var cx = (gx0 + gx1) / 2;
+    var rot = (rand() - 0.5) * 0.07;
+    var sc = 1 + (rand() - 0.5) * 0.07;
+    var dy = (rand() - 0.5) * opts.jitter * 2.2;
+    var cos = Math.cos(rot), sin = Math.sin(rot);
+    g.strokes.forEach(function (s) {
+      var out = [];
+      for (var i = 0; i < s.length; i += 2) {
+        var lx = (s[i] - cx) * sc;
+        var ly = (s[i + 1] - 14) * sc;
+        var x = (pen + (cx - gx0) + lx * cos - ly * sin) * opts.condense + (rand() - 0.5) * opts.jitter;
+        var y = 14 + lx * sin + ly * cos + dy + (rand() - 0.5) * opts.jitter;
+        out.push(x, y);
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      }
+      strokes.push(out);
+    });
+    pen += gx1 - gx0 + opts.tracking + (ch >= 'A' && ch <= 'Z' ? opts.capGap : 0);
+  });
+  if (!strokes.length) return { strokes: strokes, x0: 0, y0: 0, x1: 1, y1: 22, lengths: [] };
+  var lengths = strokes.map(function (s) {
+    var l = 0;
+    for (var i = 2; i < s.length; i += 2) l += Math.hypot(s[i] - s[i - 2], s[i + 1] - s[i - 1]);
+    return l;
+  });
+  return { strokes: strokes, x0: x0, y0: y0, x1: x1, y1: y1, lengths: lengths };
+}
+
+function rnd2(v) { return Math.round(v * 100) / 100; }
+function atpNib(pts, nx, ny) {
+  var d = '';
+  for (var i = 2; i < pts.length; i += 2) {
+    var ax = pts[i - 2], ay = pts[i - 1], bx = pts[i], by = pts[i + 1];
+    var cross = (bx - ax) * ny - (by - ay) * nx;
+    var s = cross >= 0 ? 1 : -1;
+    d += 'M' + rnd2(ax + nx * s) + ' ' + rnd2(ay + ny * s) +
+         'L' + rnd2(bx + nx * s) + ' ' + rnd2(by + ny * s) +
+         'L' + rnd2(bx - nx * s) + ' ' + rnd2(by - ny * s) +
+         'L' + rnd2(ax - nx * s) + ' ' + rnd2(ay - ny * s) + 'Z';
+  }
+  return d;
+}
+function atpPath(pts) {
+  var d = '';
+  for (var i = 0; i < pts.length; i += 2) d += (i ? 'L' : 'M') + rnd2(pts[i]) + ' ' + rnd2(pts[i + 1]);
+  return pts.length === 2 ? d + 'l0.01 0' : d;
+}
+function atpBeats(i, n) {
+  var k = n <= 1 ? 0 : i / (n - 1);
+  return { ink: 34 + k * 38, paint: 50 + k * 40 };
+}
+function atpStage(pct) { return pct >= 100 ? 3 : pct >= 50 ? 2 : pct >= 34 ? 1 : 0; }
+function atpFrame(pct, frames) {
+  var total = Math.max(1, Math.round(frames));
+  var f = Math.round((Math.max(0, Math.min(100, pct)) / 100) * total);
+  var w = Math.max(4, String(total).length);
+  return { frame: String(f).padStart(w, '0'), total: String(total).padStart(w, '0') };
+}
+
+var SCRIPT_FONT = null, SANS_FONT = null;
+function scriptFont() { return SCRIPT_FONT || (SCRIPT_FONT = atpDecode(ATP_SCRIPT)); }
+function sansFont() { return SANS_FONT || (SANS_FONT = atpDecode(ATP_SANS)); }
+var SCRIPT_OPTS = { jitter: 0.3, condense: 0.86, tracking: 0.3, space: 9, capGap: 2 };
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function r1(v) { return Math.round(v * 10) / 10; }
+
+/* ======================================================================
+   Tangan, dilukis sekali dalam satuan lokal. Ujung jari di titik asal,
+   lengan memanjang ke -x. Tangan kanan adalah cerminnya.
+   ====================================================================== */
+function handFinger(x0, y, len, h) {
+  var r = h * 0.46, tx = x0 + len;
+  return 'M' + x0 + ' ' + r1(y - h / 2) +
+    ' Q' + r1(x0 + len * 0.5) + ' ' + r1(y - h * 0.56) + ' ' + r1(tx - r) + ' ' + r1(y - h * 0.46) +
+    ' A' + r1(r) + ' ' + r1(r) + ' 0 0 1 ' + r1(tx - r) + ' ' + r1(y + h * 0.46) +
+    ' Q' + r1(x0 + len * 0.5) + ' ' + r1(y + h * 0.56) + ' ' + x0 + ' ' + r1(y + h / 2) + 'Z';
+}
+function handNail(tx, y, h) {
+  return 'M' + r1(tx - h * 0.62) + ' ' + r1(y - h * 0.3) +
+    ' Q' + r1(tx - h * 0.2) + ' ' + r1(y - h * 0.34) + ' ' + r1(tx - h * 0.1) + ' ' + r1(y - h * 0.04) +
+    ' Q' + r1(tx - h * 0.2) + ' ' + r1(y + h * 0.14) + ' ' + r1(tx - h * 0.62) + ' ' + r1(y + h * 0.1) + 'Z';
+}
+function spiral(cx, cy, turns, radius) {
+  var d = '', n = Math.round(40 * turns);
+  for (var i = 0; i <= n; i++) {
+    var t = i / n, a = t * turns * Math.PI * 2, r = 2 + radius * t;
+    d += (i ? ' L' : 'M') + r1(cx + Math.cos(a) * r) + ' ' + r1(cy + Math.sin(a) * r);
+  }
+  return d;
+}
+function arc(cx, cy, r, a0, a1) {
+  function p(a) { return r1(cx + Math.cos(a) * r) + ' ' + r1(cy + Math.sin(a) * r); }
+  return 'M' + p(a0) + ' A' + r + ' ' + r + ' 0 ' + (a1 - a0 > Math.PI ? 1 : 0) + ' 1 ' + p(a1);
+}
+var SWIRLS = [spiral(30, 34, 2.2, 20), spiral(92, 92, 1.6, 15), arc(96, 26, 14, 0.4, 3.6), arc(96, 26, 7, 0.6, 3.2), arc(26, 96, 12, 3.6, 6.6), arc(62, 62, 9, 1, 4)].join(' ');
+var FINGERS = [[-182, 58, 150, 40], [-182, 20, 172, 44], [-182, -22, 184, 46], [-186, -64, 180, 46]];
+var SLEEVE = 'M-2100 -176 L-256 -118 Q-228 -116 -228 -96 L-220 104 Q-220 124 -244 124 L-2100 190 Z';
+var SLEEVE_LIGHT = 'M-2100 -176 L-256 -118 Q-238 -117 -232 -108 L-2100 -150 Z';
+var PALM = 'M-212 -96 Q-150 -112 -60 -100 L-40 70 Q-120 96 -212 90 Z';
+var THUMB = 'M-196 -92 C-150 -128 -90 -136 -30 -126 C-6 -122 4 -110 0 -98 C-4 -86 -18 -82 -34 -86 C-90 -96 -140 -86 -176 -58 Z';
+
+function handSvg(id, side) {
+  var s = '<g filter="url(#' + id + '-paint)"' + (side === 'r' ? ' transform="scale(-1 1)"' : '') + '>';
+  s += '<path d="' + SLEEVE + '" fill="url(#' + id + '-sleeve)"/>';
+  s += '<path d="' + SLEEVE + '" fill="url(#' + id + '-swirl)"/>';
+  s += '<path d="' + SLEEVE_LIGHT + '" fill="#fff" opacity=".16"/>';
+  s += '<path d="' + PALM + '" style="fill:var(--atp-skin2)"/>';
+  FINGERS.forEach(function (f) {
+    var x0 = f[0], y = f[1], len = f[2], h = f[3];
+    s += '<g>';
+    s += '<path d="' + handFinger(x0, y, len, h) + '" fill="url(#' + id + '-skin)"/>';
+    s += '<path d="' + handNail(x0 + len, y, h) + '" style="fill:var(--atp-nail)" opacity=".78"/>';
+    s += '<path d="M' + r1(x0 + len * 0.42) + ' ' + r1(y - h * 0.36) + ' q' + r1(len * 0.12) + ' ' + r1(-h * 0.08) + ' ' + r1(len * 0.26) + ' ' + r1(-h * 0.02) + '" fill="none" style="stroke:var(--atp-nail)" stroke-width="3.2" stroke-linecap="round" opacity=".8"/>';
+    s += '<path d="M' + r1(x0 + len * 0.62) + ' ' + r1(y - h * 0.3) + ' q-4 ' + r1(h * 0.3) + ' 0 ' + r1(h * 0.6) + '" fill="none" style="stroke:var(--atp-skin2)" stroke-width="2.6" stroke-linecap="round" opacity=".7"/>';
+    s += '</g>';
+  });
+  s += '<g class="atp-thumb">';
+  s += '<path d="' + THUMB + '" style="fill:var(--atp-skin0)"/>';
+  s += '<path d="M-150 -116 C-110 -128 -70 -130 -34 -124" fill="none" style="stroke:var(--atp-nail)" stroke-width="3.5" stroke-linecap="round" opacity=".85"/>';
+  s += '<path d="' + handNail(0, -106, 34) + '" style="fill:var(--atp-nail)" opacity=".85"/>';
+  s += '</g>';
+  s += '<rect x="-268" y="-128" width="78" height="258" rx="28" style="fill:var(--atp-cuff)"/>';
+  s += '<rect x="-254" y="-124" width="12" height="250" rx="6" fill="#fff" opacity=".2"/>';
+  s += '<rect x="-216" y="-124" width="8" height="250" rx="4" fill="#000" opacity=".22"/>';
+  s += '</g>';
+  return s;
+}
+
+/* ======================================================================
+   Baris tulisan tangan dengan pena nib lebar.
+   ====================================================================== */
+function scriptLine(laid, text, maskId, filterId, duration, className, flourish) {
+  if (!atpSupported(text)) {
+    return '<span class="atp-line atp-fallback ' + className + '" data-on="0" style="font-family:' + FALLBACK_SCRIPT + '" aria-hidden="true">' + esc(text) + '</span>';
+  }
+  var strokes = laid.strokes.slice();
+  var lengths = laid.lengths.slice();
+  var y1 = laid.y1;
+  if (flourish && strokes.length) {
+    var a = laid.x0 - 2, b = laid.x1 + 6, w0 = b - a, by = laid.y1 + 3, pts = [];
+    for (var i = 0; i <= 48; i++) {
+      var t = i / 48;
+      var x = a + w0 * t - Math.sin(t * Math.PI * 2) * w0 * 0.03;
+      var y = by + Math.sin(t * Math.PI) * 2.4 - Math.max(0, Math.sin((t - 0.78) * Math.PI * 4.5)) * 5 * (t > 0.78 ? 1 : 0);
+      pts.push(x, y);
+    }
+    strokes.push(pts);
+    lengths.push(w0 * 1.1);
+    y1 = by + 3.5;
+  }
+  var pad = 4;
+  var vx = laid.x0 - pad, vy = Math.min(laid.y0, -2) - pad;
+  var vw = laid.x1 - laid.x0 + pad * 2 + (flourish ? 8 : 0);
+  var vh = Math.max(y1, 30) - vy + pad;
+  var total = lengths.reduce(function (s, l) { return s + l; }, 0) || 1;
+  var pause = 0.03, span = 1 + pause * strokes.length, acc = 0, nib = 1.3;
+  var angle = (-38 * Math.PI) / 180;
+  var nx = Math.cos(angle) * nib, ny = Math.sin(angle) * nib;
+  var maskPaths = strokes.map(function (s, i) {
+    var start = (acc / total + pause * i) / span;
+    acc += lengths[i];
+    var len = lengths[i] / total / span;
+    return '<path class="atp-w" d="' + atpPath(s) + '" pathLength="1" style="transition-delay:' + Math.round(start * duration) + 'ms;transition-duration:' + Math.max(40, Math.round(len * duration)) + 'ms"/>';
+  }).join('');
+  return '<svg class="atp-line ' + className + '" data-on="0" viewBox="' + r1(vx) + ' ' + r1(vy) + ' ' + r1(vw) + ' ' + r1(vh) + '" style="width:' + r1(vw / 21) + 'em;height:' + r1(vh / 21) + 'em" aria-hidden="true">' +
+    '<defs><mask id="' + maskId + '" maskUnits="userSpaceOnUse" x="' + vx + '" y="' + vy + '" width="' + vw + '" height="' + vh + '">' +
+    '<g fill="none" stroke="#fff" stroke-width="' + (nib * 3.4) + '" stroke-linecap="round" stroke-linejoin="round">' + maskPaths + '</g></mask></defs>' +
+    '<g mask="url(#' + maskId + ')" filter="url(#' + filterId + ')">' +
+    '<path d="' + strokes.map(function (s) { return atpNib(s, nx, ny); }).join('') + '" fill="currentColor"/>' +
+    '<path d="' + strokes.map(atpPath).join('') + '" fill="none" stroke="currentColor" stroke-width="' + (nib * 0.55) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</g></svg>';
+}
+
+function trinket(filterId, extra) {
+  return '<svg class="atp-trinket ' + (extra || '') + '" viewBox="0 0 30 70" aria-hidden="true">' +
+    '<g filter="url(#' + filterId + ')" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M15 1 L15 16"/><circle cx="15" cy="21" r="4.4"/>' +
+    '<path d="M15 27 C22 31 26 37 25 44 C24 52 19 57 15 63 C11 57 6 52 5 44 C4 37 8 31 15 27 Z"/>' +
+    '<path d="M11 41 C13 38 17 38 19 41" opacity=".7"/>' +
+    '<circle cx="15" cy="49" r="1.6" fill="currentColor" stroke="none"/></g></svg>';
+}
+
+/* Rough pass: garis konstruksi, lalu dua goresan longgar kerangka sans per huruf. */
+function computeRough(m, letters, seed) {
+  var font = sansFont();
+  var rand = atpRandom(seed + 9);
+  var boxes = m.boxes, base = m.base, size = m.size;
+  var cap = size * 0.72, s = cap / 21;
+  var out = [];
+  function kept(i) {
+    return letters.length < 4 || i === 0 || (i >= letters.length - 3 && !/[\sIJLTiljtf1!|.,'-]/.test(letters[i]));
+  }
+  var left = (boxes[0] ? boxes[0].x : 0) - size * 0.12;
+  var last = boxes[boxes.length - 1];
+  var right = (last ? last.x + last.w : m.ww) + size * 0.16;
+  function guide(y, k) {
+    var pts = [];
+    for (var i = 0; i <= 8; i++) {
+      var t = i / 8;
+      pts.push(left + (right - left) * t + (rand() - 0.5) * 2, y + (rand() - 0.5) * size * 0.012 + k * t * size * 0.02);
+    }
+    out.push({ d: atpPath(pts), w: Math.max(1, size * 0.005), pts: pts, guide: true });
+  }
+  guide(base, 0.4);
+  guide(base - cap, -0.3);
+  letters.forEach(function (ch, i) {
+    var box = boxes[i];
+    var g = ch === ' ' ? null : font[ch.charCodeAt(0) - 33];
+    if (!box || !g) return;
+    var gx0 = Infinity, gx1 = -Infinity;
+    g.strokes.forEach(function (st) { for (var k = 0; k < st.length; k += 2) { gx0 = Math.min(gx0, st[k]); gx1 = Math.max(gx1, st[k]); } });
+    var gcx = (gx0 + gx1) / 2;
+    var cx = box.x + box.w / 2;
+    for (var pass = 0; pass < 2; pass++) {
+      var sx = s * (pass ? 1.04 : 0.98) * (1.12 + (rand() - 0.5) * 0.08);
+      var sy = s * (pass ? 1.03 : 1);
+      var rot = (rand() - 0.5) * 0.08;
+      var ox = (rand() - 0.5) * size * 0.03 + (pass ? size * 0.012 : 0);
+      var oy = (rand() - 0.5) * size * 0.02;
+      var cos = Math.cos(rot), sin = Math.sin(rot);
+      g.strokes.forEach(function (st) {
+        var pts = [];
+        for (var k = 0; k < st.length; k += 2) {
+          var lx = (st[k] - gcx) * sx;
+          var ly = (st[k + 1] - 22) * sy;
+          pts.push(
+            cx + ox + lx * cos - ly * sin + (rand() - 0.5) * size * 0.008,
+            base + oy + lx * sin + ly * cos + (rand() - 0.5) * size * 0.008
+          );
+        }
+        out.push({ d: atpPath(pts), w: size * (pass ? 0.009 : 0.018), pts: pts, keep: kept(i) });
+      });
+    }
+  });
+  var lens = out.map(function (o) {
+    var l = 0;
+    for (var k = 2; k < o.pts.length; k += 2) l += Math.hypot(o.pts[k] - o.pts[k - 2], o.pts[k + 1] - o.pts[k - 1]);
+    return Math.max(l, size * 0.02);
+  });
+  var total = lens.reduce(function (a, b) { return a + b; }, 0) || 1;
+  var acc = 0;
+  return out.map(function (o, i) {
+    var a = acc / total;
+    acc += lens[i];
+    return { d: o.d, w: o.w, a: a, b: acc / total, guide: o.guide, keep: o.keep };
+  });
+}
+
+/* ======================================================================
+   Hero: jendela aksara (port HeroAksara). Dikendalikan lewat gulir.
+   ====================================================================== */
+var Hero = (function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hero = document.getElementById('hero'), stick = document.getElementById('stick');
+  var svg = document.getElementById('bsvg'), mask = document.getElementById('bm');
+  var m0 = document.getElementById('m0'), mf = document.getElementById('mf');
+  var t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
+  var img = document.getElementById('bimg'), scrim = document.getElementById('scrim');
+  var teks = document.getElementById('teks'), hint = document.getElementById('hint');
+  var AKSARA = 'ꦆꦏꦱꦢ';
+  var W = 0, H = 0, two = false, p = 0, px = 0, ix = 0, tpx = 0, tix = 0, raf = 0, isStatic = false;
+  var api = { ready: false, center: center };
+
+  function render() {
+    var e = p * p * (3 - 2 * p);
+    var fs = (two ? W * 0.3 : W * 0.14) * (1 + e * 3.2);
+    var x = W / 2 + px * (1 - p);
+    var cy = two ? H * (0.46 - 0.17 * e) : H * 0.5;
+    var sw = (fs * 0.045).toFixed(2);
+    [t1, t2].forEach(function (t) { t.setAttribute('font-size', fs); t.setAttribute('x', x); t.setAttribute('stroke-width', sw); });
+    t1.setAttribute('y', two ? cy - fs * 0.5 : cy);
+    t2.setAttribute('y', cy + fs * 0.5);
+    mf.setAttribute('opacity', clamp((p - 0.62) / 0.28, 0, 1));
+    img.setAttribute('transform', 'translate(' + ix.toFixed(1) + ',0)');
+    scrim.style.opacity = clamp((p - 0.6) / 0.3, 0, 1);
+    teks.style.opacity = clamp((p - 0.74) / 0.16, 0, 1);
+    hint.style.opacity = p < 0.04 ? 1 : 0;
+  }
+  function layout() {
+    W = stick.clientWidth; H = stick.clientHeight; two = W < 700;
+    var ph = two ? H * 0.58 : H;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    m0.setAttribute('width', W); m0.setAttribute('height', H);
+    mf.setAttribute('width', W); mf.setAttribute('height', ph);
+    mask.setAttribute('width', W); mask.setAttribute('height', H);
+    img.setAttribute('x', -40);
+    img.setAttribute('y', two ? -H * 0.04 : -40);
+    img.setAttribute('width', W + 80);
+    img.setAttribute('height', two ? ph + H * 0.04 : H + 80);
+    t1.textContent = two ? AKSARA.slice(0, 2) : AKSARA;
+    t2.textContent = two ? AKSARA.slice(2) : '';
+    render();
+  }
+  function onScroll() {
+    if (isStatic) return;
+    var r = hero.getBoundingClientRect();
+    p = clamp(-r.top / (r.height - innerHeight), 0, 1);
+    render();
+  }
+  function tick() {
+    px += (tpx - px) * 0.12; ix += (tix - ix) * 0.12;
+    render();
+    raf = (Math.abs(tpx - px) > 0.3 || Math.abs(tix - ix) > 0.3) ? requestAnimationFrame(tick) : 0;
+  }
+  /* Titik tengah aksara saat gulir 0: tempat iris preloader membuka. */
+  function center() {
+    var w = stick.clientWidth, h = stick.clientHeight;
+    return { x: w / 2, y: w < 700 ? h * 0.46 : h * 0.5 };
+  }
+  function init(ok) {
+    if (!ok || reduce) { isStatic = true; p = 1; hero.classList.add('static'); }
+    layout();
+    stick.classList.add('ready');
+    if (!isStatic) {
+      onScroll();
+      addEventListener('scroll', onScroll, { passive: true });
+      stick.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch') return;
+        var n = e.clientX / W - 0.5;
+        tpx = n * W * 0.08; tix = -n * 30;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+    }
+    addEventListener('resize', function () { layout(); if (!isStatic) onScroll(); });
+    api.ready = true;
+  }
+
+  var fontOk = (document.fonts && document.fonts.load)
+    ? document.fonts.load('500 100px "Noto Sans Javanese"', AKSARA).then(function (f) { return f.length > 0; }).catch(function () { return false; })
+    : Promise.resolve(false);
+  var photoOk = new Promise(function (resolve) {
+    var im = new Image();
+    im.onload = im.onerror = function () { resolve(); };
+    im.src = img.getAttribute('href');
+  });
+  var fontRace = Promise.race([fontOk, new Promise(function (r) { setTimeout(function () { r(false); }, 4000); })]);
+  Promise.all([fontRace, photoOk]).then(function (r) { init(r[0]); });
+  return api;
+})();
+
+/* ======================================================================
+   Preloader: kartu judul animator.
+   ====================================================================== */
+var html = document.documentElement;
+var seq = 0;
+var current = null;
+
+function startGate() {
+  if (current) current.destroy();
+  html.dataset.intro = 'wait';
+  scrollTo(0, 0);
+
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var uid = 'atp' + (++seq);
+  var letters = Array.from(CFG.title);
+  var n = letters.length;
+  var kickLaid = atpLayout(CFG.kicker, scriptFont(), Object.assign({ seed: CFG.seed + 1 }, SCRIPT_OPTS));
+  var ofLaid = atpLayout(CFG.connector, scriptFont(), Object.assign({ seed: CFG.seed + 2 }, SCRIPT_OPTS));
+  var nameLaid = atpLayout(CFG.name, scriptFont(), Object.assign({ seed: CFG.seed + 3 }, SCRIPT_OPTS));
+
+  var c = COLORS;
+  var gate = document.createElement('div');
+  gate.className = 'atp-gate';
+  gate.dataset.phase = 'draw';
+  gate.setAttribute('role', 'progressbar');
+  gate.setAttribute('aria-label', 'Memuat beranda IKASADA');
+  gate.setAttribute('aria-valuemin', '0');
+  gate.setAttribute('aria-valuemax', '100');
+  gate.setAttribute('aria-valuenow', '0');
+  gate.tabIndex = 0;
+  var lum = (function () {
+    var m = /^#([0-9a-f]{6})$/i.exec(c.stage);
+    if (!m) return 0;
+    var v = parseInt(m[1], 16);
+    return ((v >> 16) & 255) * 0.3 + ((v >> 8) & 255) * 0.59 + (v & 255) * 0.11;
+  })();
+  var light = lum > 150;
+  var vars = {
+    '--atp-stage': c.stage, '--atp-ink': c.ink, '--atp-muted': c.muted, '--atp-rough': c.rough,
+    '--atp-word0': c.word0, '--atp-word1': c.word1, '--atp-word2': c.word2,
+    '--atp-skin0': c.skin0, '--atp-skin2': c.skin2, '--atp-nail': c.nail, '--atp-cuff': c.cuff,
+    '--atp-display': DISPLAY_STACK, '--atp-mono': MONO_STACK,
+    '--atp-vig': light ? 0.16 : 0.55, '--atp-grain': light ? 0.4 : 0.09,
+    '--atp-grain-blend': light ? 'multiply' : 'screen', '--atp-peg': light ? 0.1 : 0.42
+  };
+  var fit = 1;
+  function setWordSize() {
+    gate.style.setProperty('--atp-word-size', 'calc(min(' + (Math.round(1400 / Math.max(n, 6)) / 10) + 'cqw, 21cqh) * ' + fit.toFixed(3) + ')');
+  }
+  Object.keys(vars).forEach(function (k) { gate.style.setProperty(k, String(vars[k])); });
+  setWordSize();
+
+  var letterHtml = letters.map(function (ch) {
+    var g = ch === ' ' ? '&nbsp;' : esc(ch);
+    return '<span class="atp-ch" data-ink="0" data-paint="0"><span class="atp-ink">' + g + '</span><span class="atp-paint">' + g + '</span></span>';
+  }).join('');
+
+  gate.innerHTML =
+    '<div class="atp-backdrop"></div>' +
+    '<div class="atp-stage" data-trinkets="0" data-mascot="0" data-final="0">' +
+      '<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>' +
+        '<filter id="' + uid + '-boil" x="-10%" y="-30%" width="120%" height="160%">' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="2" result="n">' +
+            (reduced ? '' : '<animate attributeName="seed" values="2;5;8" dur="0.375s" calcMode="discrete" repeatCount="indefinite"/>') +
+          '</feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/></filter>' +
+        '<filter id="' + uid + '-boilpx" x="-5%" y="-20%" width="110%" height="140%" filterUnits="objectBoundingBox">' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="3" result="n">' +
+            (reduced ? '' : '<animate attributeName="seed" values="3;6;9" dur="0.375s" calcMode="discrete" repeatCount="indefinite"/>') +
+          '</feTurbulence><feDisplacementMap class="atp-boilpx-map" in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G"/></filter>' +
+        '<filter id="' + uid + '-paint" x="-5%" y="-15%" width="110%" height="130%">' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="n"/>' +
+          '<feColorMatrix in="n" type="matrix" values="0 0 0 0 .1  0 0 0 0 0  0 0 0 0 .02  0 0 0 -1.7 1.08" result="dark"/>' +
+          '<feComposite in="dark" in2="SourceGraphic" operator="in" result="grain"/>' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="5" result="w"/>' +
+          '<feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G" result="wob"/>' +
+          '<feMerge><feMergeNode in="wob"/><feMergeNode in="grain"/></feMerge></filter>' +
+        '<filter id="' + uid + '-grain" x="0" y="0" width="100%" height="100%">' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" result="n"/>' +
+          '<feColorMatrix in="n" type="saturate" values="0"/></filter>' +
+        '<linearGradient id="' + uid + '-sleeve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c.sleeve0 + '"/><stop offset=".5" stop-color="' + c.sleeve1 + '"/><stop offset="1" stop-color="' + c.sleeve2 + '"/></linearGradient>' +
+        '<linearGradient id="' + uid + '-skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c.skin0 + '"/><stop offset=".55" stop-color="' + c.skin1 + '"/><stop offset="1" stop-color="' + c.skin2 + '"/></linearGradient>' +
+        '<pattern id="' + uid + '-swirl" width="124" height="124" patternUnits="userSpaceOnUse" patternTransform="rotate(-6)">' +
+          '<path d="' + SWIRLS + '" fill="none" stroke="' + c.pattern + '" stroke-width="4.5" stroke-linecap="round" opacity=".55"/>' +
+          '<circle cx="70" cy="18" r="3" fill="' + c.speck + '" opacity=".6"/><circle cx="8" cy="64" r="2.4" fill="' + c.speck + '" opacity=".5"/>' +
+          '<circle cx="60" cy="108" r="1.8" fill="' + c.speck + '" opacity=".55"/><circle cx="112" cy="58" r="2.6" fill="' + c.speck + '" opacity=".5"/>' +
+          '<circle cx="48" cy="80" r="1.4" fill="' + c.speck + '" opacity=".5"/></pattern>' +
+      '</defs></svg>' +
+      '<svg class="atp-grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#' + uid + '-grain)"/></svg>' +
+      '<div class="atp-vignette" aria-hidden="true"></div>' +
+      '<div class="atp-pegs" aria-hidden="true"><span class="atp-peg" style="width:30px;height:10px"></span><span class="atp-peg" style="width:13px;height:13px"></span><span class="atp-peg" style="width:30px;height:10px"></span></div>' +
+      '<div class="atp-card">' +
+        (CFG.kicker ? '<div class="atp-kickrow">' + trinket(uid + '-boil', '') + scriptLine(kickLaid, CFG.kicker, uid + '-mk', uid + '-boil', reduced ? 0 : 1600, 'atp-kicker', false) + trinket(uid + '-boil', 'atp-t2') + '</div>' : '') +
+        '<div class="atp-titlewrap">' +
+          '<div class="atp-hands"></div>' +
+          '<p class="atp-word" aria-hidden="true">' + letterHtml + '<span class="atp-probe" style="display:inline-block;width:0;height:0"></span></p>' +
+          '<div class="atp-roughhost"></div>' +
+        '</div>' +
+        (CFG.connector ? '<div class="atp-ofrow">' + scriptLine(ofLaid, CFG.connector, uid + '-mo', uid + '-boil', reduced ? 0 : 500, 'atp-of', false) + '</div>' : '') +
+        (CFG.name ? '<div class="atp-namerow">' + scriptLine(nameLaid, CFG.name, uid + '-mn', uid + '-boil', reduced ? 0 : 1900, 'atp-name', true) + '</div>' : '') +
+        '<svg class="atp-mascot" viewBox="0 0 120 84" aria-hidden="true">' +
+          '<g filter="url(#' + uid + '-boil)" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">' +
+            '<circle class="atp-mdot" cx="44" cy="12" r="2.4" fill="currentColor" stroke="none"/>' +
+            '<circle class="atp-mdot atp-d2" cx="60" cy="10" r="5" fill="currentColor" stroke="none"/>' +
+            '<circle class="atp-mdot atp-d3" cx="76" cy="12" r="2.4" fill="currentColor" stroke="none"/>' +
+            '<path class="atp-mdraw" pathLength="1" d="M58 52 C58 40 44 36 34 40 C22 45 22 62 34 65 C46 68 56 62 58 52 C60 62 70 68 82 65 C94 62 98 45 86 40 C76 36 62 40 62 52"/>' +
+            '<path class="atp-mdraw" pathLength="1" d="M22 46 C14 44 9 47 6 52 M98 46 C106 44 111 47 114 52"/>' +
+            '<g class="atp-eye atp-e1"><circle class="atp-pupil" cx="40" cy="53" r="4.6" fill="currentColor" stroke="none"/></g>' +
+            '<g class="atp-eye atp-e2"><circle class="atp-pupil" cx="80" cy="53" r="4.6" fill="currentColor" stroke="none"/></g>' +
+            '<path class="atp-lid" d="M71 54 Q80 59 89 54"/>' +
+          '</g></svg>' +
+      '</div>' +
+    '</div>' +
+    '<span class="atp-sr" aria-live="polite"></span>';
+
+  document.body.appendChild(gate);
+
+  var $ = function (sel) { return gate.querySelector(sel); };
+  var stage = $('.atp-stage'), backdrop = $('.atp-backdrop'), card = $('.atp-card');
+  var word = $('.atp-word'), probe = $('.atp-probe'), handsHost = $('.atp-hands'), roughHost = $('.atp-roughhost');
+  var mascot = $('.atp-mascot'), pupils = Array.prototype.slice.call(gate.querySelectorAll('.atp-pupil'));
+  var chEls = Array.prototype.slice.call(gate.querySelectorAll('.atp-ch'));
+  var srEl = $('.atp-sr');
+  var kickEl = $('.atp-kicker'), ofEl = $('.atp-of'), nameEl = $('.atp-name');
+
+  var phase = 'draw', pct = 0;
+  var metrics = null, armDeg = ARM_DEG, roughEls = [], handL = null, handR = null;
+  var rush = false;
+  var pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  var fullTitle = [CFG.kicker, CFG.title, CFG.connector, CFG.name].filter(Boolean).join(' ');
+
+  /* ---- keadaan yang berubah per persen atau per fase (bukan per frame) ---- */
+  function sync() {
+    var final = phase !== 'draw';
+    var st = final ? 3 : atpStage(pct);
+    var shownPct = final ? 100 : pct;
+    gate.setAttribute('aria-valuenow', String(shownPct));
+    gate.setAttribute('aria-valuetext', STAGES[st] + ', ' + shownPct + '%');
+    stage.dataset.trinkets = (pct >= 3 || final) ? '1' : '0';
+    stage.dataset.mascot = (pct >= 88 || final) ? '1' : '0';
+    stage.dataset.final = final ? '1' : '0';
+    chEls.forEach(function (el, i) {
+      var b = atpBeats(i, n);
+      el.dataset.ink = (pct >= b.ink || final) ? '1' : '0';
+      el.dataset.paint = (pct >= b.paint || final) ? '1' : '0';
+    });
+    if (kickEl) kickEl.dataset.on = (pct >= 1 || final) ? '1' : '0';
+    if (ofEl) ofEl.dataset.on = (pct >= 72 || final) ? '1' : '0';
+    if (nameEl) nameEl.dataset.on = (pct >= 78 || final) ? '1' : '0';
+    srEl.textContent = fullTitle + (final ? '. Selesai dimuat.' : '');
+  }
+
+  /* ---- ukur tiap huruf judul, lalu pasang rough, gradasi cat dan tangan ---- */
+  function applyMetrics(m) {
+    metrics = m;
+    armDeg = m.tall ? ARM_DEG_TALL : ARM_DEG;
+    word.style.setProperty('--atp-ww', m.ww + 'px');
+    chEls.forEach(function (el, i) { if (m.boxes[i]) el.style.setProperty('--atp-gx', (-m.boxes[i].x) + 'px'); });
+    var map = gate.querySelector('.atp-boilpx-map');
+    if (map) map.setAttribute('scale', String(Math.max(2, m.size * 0.022)));
+
+    var strokes = computeRough(m, letters, CFG.seed);
+    var ds = (m.size * 0.014).toFixed(1) + ' ' + (m.size * 0.01).toFixed(1);
+    function pathsHtml() {
+      return strokes.map(function (s) {
+        return '<path d="' + s.d + '" stroke-width="' + s.w + '" stroke-opacity="' + (s.guide ? 0.5 : 1) + '" pathLength="1" data-a="' + s.a + '" data-b="' + s.b + '" data-keep="' + (s.keep ? '1' : '0') + '"/>';
+      }).join('');
+    }
+    roughHost.innerHTML =
+      '<svg class="atp-rough" width="' + m.ww + '" height="' + m.wh + '" aria-hidden="true">' +
+        '<g class="atp-roughg" filter="url(#' + uid + '-boilpx)" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+          '<g stroke="' + c.ghost + '" opacity=".7" transform="translate(' + ds + ')">' + pathsHtml() + '</g>' +
+          '<g stroke="' + c.rough + '">' + pathsHtml() + '</g>' +
+        '</g></svg>';
+    roughEls = Array.prototype.slice.call(roughHost.querySelectorAll('path'));
+
+    var hs = m.size * (m.tall ? 0.0046 : 0.0036);
+    var hy = m.base - m.size * 0.3;
+    var fb = m.boxes[0], lb = m.boxes[m.boxes.length - 1];
+    var hlx = fb ? fb.x + m.size * 0.05 : 0;
+    var hrx = lb ? lb.x + lb.w - m.size * 0.04 : 0;
+    handsHost.innerHTML =
+      '<div class="atp-handslot" style="left:' + hlx + 'px;top:' + hy + 'px" aria-hidden="true"><div class="atp-hand atp-hand-l" style="visibility:hidden"><svg><g transform="scale(' + hs + ') rotate(' + (-armDeg) + ')">' + handSvg(uid, 'l') + '</g></svg></div></div>' +
+      '<div class="atp-handslot" style="left:' + hrx + 'px;top:' + hy + 'px" aria-hidden="true"><div class="atp-hand atp-hand-r" style="visibility:hidden"><svg><g transform="scale(' + hs + ') rotate(' + armDeg + ')">' + handSvg(uid, 'r') + '</g></svg></div></div>';
+    handL = handsHost.querySelector('.atp-hand-l');
+    handR = handsHost.querySelector('.atp-hand-r');
+  }
+
+  var depth = 0;
+  function measure() {
+    var ww = word.offsetWidth, sw = stage.clientWidth;
+    if (!ww || !sw) return;
+    var tall = stage.clientHeight > sw * 1.15;
+    var room = sw * (tall ? 0.74 : sw > 720 ? 0.6 : 0.7);
+    var natural = ww / fit;
+    var nf = Math.min(tall ? 1.5 : 1, room / natural);
+    if (Math.abs(nf - fit) > 0.005 && depth < 4) {
+      fit = nf; setWordSize(); depth++;
+      measure();
+      depth--;
+      return;
+    }
+    var boxes = chEls.map(function (el) { return { x: el.offsetLeft, w: el.offsetWidth }; });
+    var size = parseFloat(getComputedStyle(word).fontSize) || 100;
+    var next = { boxes: boxes, base: probe.offsetTop, size: size, ww: ww, wh: word.offsetHeight, tall: tall };
+    var m = metrics;
+    if (m && m.tall === tall && m.ww === next.ww && m.wh === next.wh && m.base === next.base && m.boxes.every(function (b, i) { return b.x === boxes[i].x; })) return;
+    applyMetrics(next);
+  }
+  measure();
+  var ro = new ResizeObserver(function () { measure(); });
+  ro.observe(word); ro.observe(stage);
+  var alive = true;
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (alive) measure(); });
+  sync();
+
+  /* ---- iris ---- */
+  var irisX = 0, irisY = 0, irisMax = 1, openX = 0, openY = 0, openMax = 1;
+  function setIris(el, r, inside, x, y) {
+    var R = Math.max(0, r);
+    var g = inside
+      ? 'radial-gradient(circle at ' + x + 'px ' + y + 'px, #000 ' + R + 'px, transparent ' + (R + 1.5) + 'px)'
+      : 'radial-gradient(circle at ' + x + 'px ' + y + 'px, transparent ' + R + 'px, #000 ' + (R + 1.5) + 'px)';
+    el.style.webkitMaskImage = g;
+    el.style.maskImage = g;
+  }
+  function farthest(x, y) {
+    var gw = gate.clientWidth, gh = gate.clientHeight;
+    return Math.hypot(Math.max(x, gw - x), Math.max(y, gh - y)) + 4;
+  }
+  function aimIris() {
+    var gr = gate.getBoundingClientRect();
+    var r = mascot.getBoundingClientRect();
+    irisX = r.left + r.width / 2 - gr.left;
+    irisY = r.top + r.height * 0.56 - gr.top;
+    irisMax = farthest(irisX, irisY);
+  }
+  function mascotR() { return mascot.getBoundingClientRect().width * 0.64; }
+  var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
+  var easeIn = function (t) { return t * t * t; };
+  var easeInOut = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+
+  /* ---- loop ---- */
+  var raf = 0, shown = 0, pctLast = -1;
+  var last = performance.now(), started = last, phaseAt = last, local = 'draw';
+
+  function go(p, now) {
+    local = p; phaseAt = now; phase = p;
+    gate.dataset.phase = p;
+    if (p === 'reveal') {
+      // Iris membuka tepat di tengah aksara hero, lalu hero masuk.
+      var ctr = Hero.center();
+      openX = ctr.x; openY = ctr.y; openMax = farthest(openX, openY);
+      html.dataset.intro = 'play';
+    }
+    if (p === 'fade') html.dataset.intro = 'done';
+    sync();
+  }
+
+  function finish() {
+    html.dataset.intro = 'done';
+    destroy();
+    scrollTo(0, 0);
+  }
+
+  function frame(now) {
+    if (!alive) return;
+    raf = requestAnimationFrame(frame);
+    var dt = Math.min(64, now - last);
+    last = now;
+    var ph = local;
+    var since = now - phaseAt;
+
+    if (ph === 'draw') {
+      var t = (now - started) / CFG.durationMs;
+      var target = atpSimulated(t);
+      // Progres nyata: tidak sampai 100 sebelum hero (font aksara + foto) siap.
+      if (!Hero.ready) target = Math.min(target, 92);
+      if (rush) target = Hero.ready ? 100 : 92;
+      var cap = (dt / (rush ? 1100 : 2600)) * 100;
+      var ease = 1 - Math.exp(-dt / 160);
+      shown = reduced ? target : Math.min(target, shown + Math.min(cap, Math.max(0.02, (target - shown) * ease)));
+      if (target >= 100 && shown > 99.6) shown = 100;
+      var pp = Math.floor(shown);
+      if (pp !== pctLast) { pctLast = pp; pct = pp; sync(); }
+      if (shown >= 100) go(reduced ? 'hold' : 'grip', now);
+    } else if (ph === 'grip' && since > GRIP_MS) go('hold', now);
+    else if (ph === 'hold' && since > (reduced ? 900 : HOLD_MS)) go(reduced ? 'fade' : 'fling', now);
+    else if (ph === 'fling' && since > FLING_MS) { aimIris(); go('iris', now); }
+    else if (ph === 'iris' && since > IRIS_MS) go('wink', now);
+    else if (ph === 'wink' && since > WINK_MS) go('shut', now);
+    else if (ph === 'shut' && since > SHUT_MS) go('reveal', now);
+    else if (ph === 'reveal' && since > REVEAL_MS) { finish(); return; }
+    else if (ph === 'fade' && since > FADE_MS) { finish(); return; }
+
+    /* iris */
+    if (ph === 'iris') {
+      var r0 = mascotR();
+      setIris(stage, r0 + (irisMax - r0) * (1 - easeInOut(clamp(since / IRIS_MS, 0, 1))), true, irisX, irisY);
+    } else if (ph === 'wink') {
+      setIris(stage, mascotR(), true, irisX, irisY);
+    } else if (ph === 'shut') {
+      setIris(stage, mascotR() * (1 - easeIn(clamp(since / SHUT_MS, 0, 1))), true, irisX, irisY);
+    } else if (ph === 'reveal') {
+      stage.style.visibility = 'hidden';
+      setIris(backdrop, openMax * easeOut(clamp(since / REVEAL_MS, 0, 1)), false, openX, openY);
+    }
+
+    /* pointer */
+    pointer.x += (pointer.tx - pointer.x) * 0.08;
+    pointer.y += (pointer.ty - pointer.y) * 0.08;
+    if (!reduced) card.style.transform = 'translate(calc(-50% + ' + (pointer.x * 7).toFixed(2) + 'px), calc(-50% + ' + (pointer.y * 5).toFixed(2) + 'px))';
+    pupils.forEach(function (el) { el.setAttribute('transform', 'translate(' + (pointer.x * 3.2).toFixed(2) + ' ' + (pointer.y * 2.4).toFixed(2) + ')'); });
+
+    /* rough digambar mengikuti progres */
+    var k = ph === 'draw' ? clamp((shown - 4) / 48, 0, 1) : 1;
+    for (var i = 0; i < roughEls.length; i++) {
+      var el = roughEls[i];
+      var a = +el.getAttribute('data-a'), b = +el.getAttribute('data-b');
+      var v = clamp((k - a) / Math.max(1e-6, b - a), 0, 1);
+      var off = v >= 1 ? '0' : v <= 0 ? '1.001' : (1 - v).toFixed(4);
+      if (el.style.strokeDashoffset !== off) el.style.strokeDashoffset = off;
+    }
+
+    /* tangan */
+    if (handL && handR) {
+      var sw = stage.clientWidth;
+      var D = Math.max(sw, 700) * 0.85;
+      var reach = reduced ? (shown >= 10 ? 1 : 0) : easeOut(clamp((shown - 10) / 62, 0, 1));
+      var push = 0;
+      if (ph === 'grip') push = Math.sin(clamp(since / GRIP_MS, 0, 1) * Math.PI) * 10;
+      if (ph === 'hold') push = 3;
+      if (ph === 'fling') {
+        var tf = clamp(since / FLING_MS, 0, 1);
+        push = tf < 0.24 ? Math.sin((tf / 0.24) * (Math.PI / 2)) * 16 : 16 - easeIn((tf - 0.24) / 0.76) * (D * 1.3);
+        reach = 1;
+      }
+      if (ph === 'iris' || ph === 'wink' || ph === 'shut' || ph === 'reveal') reach = -0.6;
+      // Gerak diam di dua: tangan bergerak 12fps seperti gambar tangan.
+      var tw = Math.floor((now - started) / 83.3) * 83.3;
+      var bob = reduced ? 0 : Math.sin(tw / 620) * 3.2;
+      var tilt = reduced ? 0 : Math.sin(tw / 910) * 0.8;
+      var along = -(1 - reach) * D + push;
+      var rad = (armDeg * Math.PI) / 180;
+      var dx = along * Math.cos(rad), dy = -along * Math.sin(rad);
+      var py = reduced ? 0 : pointer.y * 9;
+      handL.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + (dy + bob + py).toFixed(1) + 'px) rotate(' + (tilt + pointer.y * 1.5).toFixed(2) + 'deg)';
+      handR.style.transform = 'translate(' + (-dx).toFixed(1) + 'px,' + (dy - bob * 0.8 + py).toFixed(1) + 'px) rotate(' + (-tilt - pointer.y * 1.5).toFixed(2) + 'deg)';
+      var vis = reach > -0.55 ? 'visible' : 'hidden';
+      if (handL.style.visibility !== vis) { handL.style.visibility = vis; handR.style.visibility = vis; }
+    }
+  }
+  raf = requestAnimationFrame(frame);
+
+  /* ---- interaksi ---- */
+  function onActivate() { if (local === 'draw') rush = true; }
+  gate.addEventListener('click', onActivate);
+  gate.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(); }
+  });
+  gate.addEventListener('pointermove', function (e) {
+    var r = gate.getBoundingClientRect();
+    pointer.tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+    pointer.ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+  });
+  gate.addEventListener('pointerleave', function () { pointer.tx = 0; pointer.ty = 0; });
+
+  function destroy() {
+    alive = false;
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    if (gate.parentNode) gate.parentNode.removeChild(gate);
+    if (current && current.gate === gate) current = null;
+  }
+  current = { gate: gate, destroy: destroy };
+}
+
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+document.getElementById('replay').addEventListener('click', startGate);
+startGate();
+})();
+</script>
+</body>
+</html>

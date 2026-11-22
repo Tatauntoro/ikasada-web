@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IKASADA mockup: Tentang Kami dan Lima cara menyatu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f1012;--muted:#5e5e5e;--paper:#f2f2f4;--blue:#0b5ed7;--sans:"Plus Jakarta Sans",system-ui,sans-serif;--mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;--gutter:clamp(20px,4.65vw,74px);--ease:cubic-bezier(.22,.61,.36,1)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+button{cursor:pointer}
+:focus-visible{outline:2px solid #0071e3;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.akhir{display:grid;place-items:center;height:22vh;min-height:120px;background:#101a22;color:rgba(255,255,255,.6);font-size:13px}
+
+/* Paragraf Tentang Kami (efek naik per baris dan kata kunci biru, seperti yang sudah dipilih) */
+.eyebrow{margin:0;padding-top:.45em;font-size:clamp(16px,1.3vw,19px);font-weight:500;line-height:1.4;color:var(--blue)}
+.para{margin:0;max-width:30em;font-size:clamp(24px,2.9vw,42px);font-weight:400;line-height:1.3;letter-spacing:-.02em;text-wrap:pretty}
+.para .k{white-space:nowrap}
+.para .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.16em;margin-bottom:-.16em}
+.para .i{display:inline-block;transform:translateY(112%);transition:transform .9s var(--ease);transition-delay:var(--d,0ms)}
+.para.go .i{transform:none}
+.para .k{transition:color .7s var(--ease);transition-delay:calc(var(--kb,700)*1ms + var(--kd,0)*350ms)}
+.para.go .k{color:var(--blue)}
+
+.wrap{max-width:1600px;margin:0 auto;padding:0 var(--gutter)}
+.grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,9fr);gap:clamp(24px,5vw,80px)}
+@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr);gap:16px}}
+
+.about{padding:clamp(96px,14vw,200px) 0 0}
+.judul{padding:clamp(72px,9vw,140px) 0 clamp(72px,9vw,140px)}
+.judul h2{margin:0;font-weight:400;letter-spacing:-.025em;line-height:1.1;text-wrap:balance}
+
+/* A. Judul sejajar paragraf */
+body[data-opsi="a"] .judul h2{font-size:clamp(36px,4.4vw,64px)}
+body[data-opsi="a"] .judul .grid>:first-child{display:block}
+/* B. Judul besar rata kiri selebar halaman */
+body[data-opsi="b"] .judul .grid{grid-template-columns:minmax(0,1fr)}
+body[data-opsi="b"] .judul h2{font-size:clamp(44px,7.4vw,120px);letter-spacing:-.035em;line-height:1.02;max-width:12em}
+/* D. Tanpa judul terpisah */
+body[data-opsi="d"] .judul,body[data-opsi="c"] .judul,body[data-opsi="c"] .about{display:none}
+body[data-opsi="d"] .about{padding-bottom:clamp(72px,9vw,140px)}
+body:not([data-opsi="c"]) .nol{display:none}
+
+/* Tumpukan panel Lima cara */
+.stack{overflow:clip}
+.sec{position:sticky;top:0;height:100svh}
+.inner{position:relative;display:grid;grid-template-columns:1fr 1fr;height:100svh;background:var(--panel);color:var(--ink-p);transform-origin:bottom left;will-change:transform}
+.copy{display:flex;flex-direction:column;justify-content:space-between;padding:clamp(20px,2.4vw,36px);min-width:0}
+.index,.foot{display:flex;justify-content:space-between;gap:16px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.tag{display:block;margin-bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.inner h3{margin:0;font-size:clamp(34px,4.2vw,64px);font-weight:400;letter-spacing:-.035em;line-height:1.05}
+.inner .d{max-width:34ch;margin:16px 0 0;font-size:clamp(16px,1.35vw,20px);line-height:1.5}
+.foto{position:relative;margin:0;min-height:0}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media(max-width:800px){
+ .inner{grid-template-columns:1fr;grid-template-rows:44% 56%}
+ .foto{order:-1}
+ .inner h3{font-size:clamp(30px,8.6vw,44px)}
+}
+
+/* C. Panel nol: Tentang Kami jadi kartu pertama tumpukan */
+.nol .inner{background:var(--paper);color:var(--ink)}
+.nol .judul-nol{align-self:end;padding:clamp(20px,2.4vw,36px);margin:0;font-size:clamp(36px,5.2vw,80px);font-weight:400;letter-spacing:-.03em;line-height:1.04;text-wrap:balance}
+.nol .para{max-width:22em;font-size:clamp(22px,2.3vw,34px)}
+.nol .body{display:flex;flex-direction:column;gap:18px}
+@media(max-width:800px){.nol .inner{grid-template-rows:auto 1fr}.nol .judul-nol{align-self:start;order:-1;padding-bottom:0}}
+
+.stub{display:grid;place-items:center;min-height:36vh;padding:48px 24px;background:#fff;text-align:center;color:var(--muted);font-size:14px}
+
+.opsi{position:fixed;left:50%;bottom:14px;z-index:90;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;padding:6px;border-radius:8px;background:rgba(255,255,255,.96);border:1px solid rgba(15,16,18,.14);font-size:13px;color:var(--muted);max-width:calc(100% - 16px)}
+.opsi span{padding:0 6px}
+.opsi button{padding:7px 10px;border:1px solid transparent;border-radius:6px;background:none;font:inherit;color:var(--ink);white-space:nowrap}
+.opsi button[aria-pressed=true]{border-color:var(--blue);background:#e8f0fc;color:var(--blue)}
+@media(max-width:699px){.opsi{left:8px;right:8px;transform:none;max-width:none;font-size:12px}.opsi span{display:none}.opsi button{padding:6px 8px}}
+</style>
+</head>
+<body data-opsi="a">
+
+<div class="akhir">[akhir hero: foto penuh]</div>
+
+<main>
+<section class="about" id="tentang" aria-labelledby="t-label">
+  <div class="wrap"><div class="grid">
+    <h2 class="eyebrow" id="t-label" style="font-size:clamp(16px,1.3vw,19px);font-weight:500">Tentang Kami</h2>
+    <p class="para">Jejaring alumni yang tumbuh dari <span class="k">satu akar</span>, bergerak lebih jauh bersama. IKASADA merawat hubungan <span class="k">lintas angkatan</span> melalui ruang bertemu, berbagi pengetahuan, dan <span class="k">kontribusi</span> yang terus hidup di dalam dan di luar kampus.</p>
+  </div></div>
+</section>
+
+<section class="judul" aria-labelledby="c-judul">
+  <div class="wrap"><div class="grid">
+    <div aria-hidden="true"></div>
+    <h2 id="c-judul">Lima cara kami menyambung.</h2>
+  </div></div>
+</section>
+
+<div class="stack" id="lima-cara">
+  <section class="sec nol" aria-label="Tentang Kami">
+    <article class="inner">
+      <div class="copy">
+        <div class="index"><span>IKASADA / 00</span><span>Tentang kami</span></div>
+        <div class="body">
+          <p class="eyebrow">Tentang Kami</p>
+          <p class="para">Jejaring alumni yang tumbuh dari <span class="k">satu akar</span>, bergerak lebih jauh bersama. IKASADA merawat hubungan <span class="k">lintas angkatan</span> melalui ruang bertemu, berbagi pengetahuan, dan <span class="k">kontribusi</span> yang terus hidup di dalam dan di luar kampus.</p>
+        </div>
+        <div class="foot"><span>Jejaring IKASADA FIB UI</span><span>00 / 05</span></div>
+      </div>
+      <h2 class="judul-nol">Lima cara kami menyambung.</h2>
+    </article>
+  </section>
+</div>
+
+<section class="stub" id="berikutnya">[bagian berikutnya dari situs asli, tidak ikut di mockup ini]</section>
+</main>
+
+<div class="opsi" role="group" aria-label="Kontrol mockup: cara menyatukan">
+  <span>Penyatuan</span>
+  <button type="button" data-o="a" aria-pressed="true">A. Judul sejajar</button>
+  <button type="button" data-o="b" aria-pressed="false">B. Judul besar</button>
+  <button type="button" data-o="c" aria-pressed="false">C. Panel nol</button>
+  <button type="button" data-o="d" aria-pressed="false">D. Tanpa judul</button>
+</div>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var stack = document.getElementById('lima-cara');
+
+  /* Panel Lima cara dibangun dari data, sama dengan isi situs */
+  var cara = [
+    ['Bertemu', 'Ruang Terhubung', 'IKASADA membuka ruang bagi alumni lintas angkatan untuk bertemu, berbagi cerita, dan kembali terhubung.', 'alumni-discussion', '#076bda', '#ffffff'],
+    ['Berkolaborasi', 'Koneksi Jadi Kolaborasi', 'Koneksi antaralumni bisa berkembang menjadi ruang berbagi gagasan dan kerja sama.', 'collaboration', '#f4c430', '#17191c'],
+    ['Berkegiatan', 'Kegiatan yang Terus Tumbuh', 'Ragam kegiatan IKASADA terus berkembang mengikuti semangat dan kebutuhan komunitas.', 'seminar', '#087e59', '#ffffff'],
+    ['Bertumbuh', 'Ruang Tumbuh Bersama', 'Mahasiswa aktif, terutama tingkat akhir, bertemu alumni, bertukar pengalaman, dan mencari bekal untuk langkah setelah kampus.', 'mentoring', '#f27b65', '#17191c'],
+    ['Terhubung', 'Dosen dan Prodi Terhubung', 'Dosen yang juga alumni berdialog dan berkolaborasi dengan IKASADA melalui dukungan Prodi.', 'lecturer-discussion', '#b8d9f4', '#17191c']
+  ];
+  cara.forEach(function (c, i) {
+    var s = document.createElement('section');
+    s.className = 'sec'; s.setAttribute('aria-label', 'Cara ' + (i + 1) + ': ' + c[1]);
+    s.innerHTML = '<article class="inner" style="--panel:' + c[4] + ';--ink-p:' + c[5] + '">' +
+      '<div class="copy"><div class="index"><span>IKASADA / 0' + (i + 1) + '</span><span>Lima cara menyambung</span></div>' +
+      '<div class="body"><span class="tag">' + c[0] + '</span><h3>' + c[1] + '</h3><p class="d">' + c[2] + '</p></div>' +
+      '<div class="foot"><span>Jejaring IKASADA FIB UI</span><span>0' + (i + 1) + ' / 05</span></div></div>' +
+      '<figure class="foto"><img src="../public/images/beranda/' + c[3] + '.png" alt="[contoh] ' + c[1] + '" width="1672" height="941" loading="lazy"></figure></article>';
+    stack.appendChild(s);
+  });
+  var secs = Array.prototype.slice.call(stack.querySelectorAll('.sec'));
+  secs.forEach(function (s, i) { s.style.zIndex = i + 1; });
+
+  /* Putaran masuk tiap panel, sama dengan situs: 10 derajat ke 0 saat panel naik */
+  function putar() {
+    var vh = innerHeight, mobile = innerWidth <= 800;
+    secs.forEach(function (s, i) {
+      if (i === 0) return;
+      var inner = s.querySelector('.inner'), top = s.getBoundingClientRect().top;
+      var t = mobile ? clamp(top / vh, 0, 1) : clamp((top - vh * 0.25) / (vh * 0.75), 0, 1);
+      inner.style.transform = reduce ? 'none' : 'rotate(' + (t * (mobile ? 4 : 10)).toFixed(2) + 'deg)';
+    });
+  }
+  addEventListener('scroll', putar, { passive: true });
+  addEventListener('resize', putar);
+  putar();
+
+  /* Paragraf: kata dibungkus, jeda mengikuti baris, kata kunci menunggu baris terakhir */
+  var paras = Array.prototype.slice.call(document.querySelectorAll('.para'));
+  function wrap(node, words) {
+    Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (p) {
+          if (!p) return;
+          if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+          var w = document.createElement('span'); w.className = 'w';
+          var i = document.createElement('span'); i.className = 'i'; i.textContent = p;
+          w.appendChild(i); frag.appendChild(w); words.push(w);
+        });
+        node.replaceChild(frag, n);
+      } else if (n.nodeType === 1) { wrap(n, words); }
+    });
+  }
+  var data = paras.map(function (p) {
+    var words = []; wrap(p, words);
+    Array.prototype.slice.call(p.querySelectorAll('.k')).forEach(function (k, i) { k.style.setProperty('--kd', i); });
+    return { p: p, words: words };
+  });
+  function jeda() {
+    data.forEach(function (d) {
+      if (!d.p.offsetParent) return;
+      var idx = -1, last = null;
+      d.words.forEach(function (w) {
+        var t = w.offsetTop;
+        if (last === null || Math.abs(t - last) > 4) { idx++; last = t; }
+        w.style.setProperty('--d', (idx * 110) + 'ms');
+      });
+      d.p.style.setProperty('--kb', idx * 110 + 700);
+    });
+  }
+  function dilihat(p) {
+    if (!p.offsetParent) return false;
+    var r = p.getBoundingClientRect();
+    return r.top < innerHeight * 0.75 && r.bottom > innerHeight * 0.25;
+  }
+  function cek() {
+    data.forEach(function (d) {
+      if (!d.p.classList.contains('go') && dilihat(d.p)) { jeda(); d.p.classList.add('go'); }
+    });
+  }
+  addEventListener('scroll', cek, { passive: true });
+  addEventListener('resize', jeda);
+
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.opsi button'));
+  function setOpsi(o) {
+    document.body.dataset.opsi = o;
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.o === o ? 'true' : 'false'); });
+    data.forEach(function (d) { d.p.classList.remove('go'); });
+    jeda(); putar();
+    setTimeout(function () { if (reduce) data.forEach(function (d) { d.p.classList.add('go'); }); else cek(); }, 80);
+    history.replaceState(null, '', '?opsi=' + o);
+  }
+  buttons.forEach(function (b) { b.addEventListener('click', function () { setOpsi(b.dataset.o); }); });
+  var awal = (new URLSearchParams(location.search).get('opsi') || 'a').toLowerCase();
+  setOpsi(['a', 'b', 'c', 'd'].indexOf(awal) < 0 ? 'a' : awal);
+})();
+</script>
+</body>
+</html>
