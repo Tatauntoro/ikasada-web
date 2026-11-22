@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IKASADA mockup: Tentang Kami opsi B (Jendela aksara)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Noto+Sans+Javanese:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"PP Neue Montreal";src:url("../src/app/fonts/ppneuemontreal-book.woff") format("woff");font-weight:400;font-display:swap}
+@font-face{font-family:"PP Neue Montreal";src:url("../src/app/fonts/ppneuemontreal-medium.woff") format("woff");font-weight:500;font-display:swap}
+:root{--ink:#0f1012;--muted:#5e5e5e;--paper:#f2f2f4;--blue:#0b5ed7;--cta:#0071e3;--serif:"Instrument Serif",Georgia,serif;--sans:"PP Neue Montreal","Plus Jakarta Sans",system-ui,sans-serif;--jv:"Noto Sans Javanese",serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+a,button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cta);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.hero{position:relative;isolation:isolate;height:100svh;min-height:560px;overflow:hidden;background:#101a22;color:#fff}
+.hero>img{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover}
+.hero-in{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:120px clamp(24px,6vw,90px) 90px;background:linear-gradient(90deg,rgba(6,14,22,.85) 0%,rgba(6,14,22,.62) 45%,rgba(6,14,22,.42) 100%)}
+.logo{position:absolute;top:28px;left:clamp(24px,6vw,90px);display:block;padding:5px;border-radius:6px;background:#fff}
+.logo img{display:block;width:48px;height:auto}
+.pill{position:fixed;top:28px;left:50%;z-index:50;transform:translateX(-50%);display:flex;gap:2px;padding:8px;border-radius:10px;background:rgba(244,244,245,.92);border:1px solid rgba(15,16,18,.12)}
+.pill a{display:block;padding:12px;border-radius:6px;font-size:15px;line-height:1;color:var(--ink);text-decoration:none}
+.pill a:hover{background:rgba(15,16,18,.06)}
+.desc{margin:0;max-width:42ch;font-size:clamp(16px,1.5vw,20px);line-height:1.5;color:rgba(255,255,255,.9)}
+h1{margin:8px 0 0;max-width:11em;font:400 clamp(44px,6.2vw,92px)/1.05 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.actions{margin-top:30px}
+.cta{display:inline-flex;align-items:center;min-height:44px;padding:0 24px;border-radius:999px;background:var(--cta);color:#fff;font-size:14px;text-decoration:none}
+.cta:hover{background:#005fc1}
+.cta:focus-visible{outline-color:#fff;outline-offset:4px}
+.aksara{position:absolute;right:clamp(16px,4vw,72px);bottom:clamp(32px,6vh,80px);font:400 clamp(96px,15vw,240px)/1 var(--jv);white-space:nowrap;color:#fff;opacity:.14;pointer-events:none;user-select:none}
+@media(max-width:600px){
+ .aksara{display:none}.hero{height:82svh}
+ .hero-in{justify-content:flex-start;padding:46svh 20px 100px}
+ .logo{top:24px;left:20px}.logo img{width:38px}
+ h1{max-width:10em;font-size:clamp(38px,11vw,54px)}
+ .pill{top:20px;left:auto;right:20px;transform:none}
+}
+
+.kicker{display:flex;align-items:center;gap:12px;margin:0 0 20px;font-size:16px;font-weight:500;color:var(--blue)}
+.kicker .jv{font:400 24px/1 var(--jv);opacity:.7}
+.about h2{margin:0;font:400 clamp(34px,4.4vw,60px)/1.1 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.body{max-width:46ch;margin:24px 0 0;font-size:clamp(17px,1.4vw,20px);line-height:1.6;color:var(--muted)}
+
+.b-pin{height:280vh}
+.b-stick{position:sticky;top:0;height:100svh;overflow:hidden}
+.b-stick svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .3s}
+.b-stick.ready svg{opacity:1}
+.b-scrim{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(6,14,22,.6) 0%,rgba(6,14,22,0) 24%),linear-gradient(0deg,rgba(6,14,22,.82) 0%,rgba(6,14,22,.55) 42%,rgba(6,14,22,0) 75%);pointer-events:none}
+.b-kick{position:absolute;left:clamp(20px,5vw,72px);top:112px;margin:0;transition:color .3s}
+.b-stick.light .b-kick{color:#fff}
+.b-text{position:absolute;left:clamp(20px,5vw,72px);right:clamp(20px,5vw,72px);bottom:clamp(40px,8vh,88px);max-width:760px;opacity:0;color:#fff}
+.b-text .body{color:rgba(255,255,255,.92);max-width:52ch}
+.b-text .cap{margin:20px 0 0;font-size:14px;line-height:1.45;color:rgba(255,255,255,.85)}
+.b-hint{position:absolute;left:0;right:0;bottom:28px;margin:0;text-align:center;font-size:14px;color:var(--muted);transition:opacity .3s}
+.b-stick.light .b-hint{color:#fff}
+.b.static .b-pin{height:auto}
+.b.static .b-stick{position:relative}
+.b.static .b-hint{display:none}
+
+.stub{display:grid;place-items:center;min-height:40vh;padding:48px 24px;background:#fff;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+.stub p{max-width:60ch;margin:0}
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero">
+  <img src="../public/images/beranda/seminar.png" alt="" width="1672" height="941" fetchpriority="high">
+  <div class="hero-in">
+    <a class="logo" href="#hero"><img src="../public/logo/ikasada-logo.jpeg" alt="IKASADA FIB UI" width="64" height="80"></a>
+    <nav class="pill" aria-label="Navigasi mockup"><a href="#hero">Beranda</a><a href="#tentang">Tentang kami</a></nav>
+    <div class="copy">
+      <p class="desc">Ikatan Alumni Sastra Daerah, Fakultas Ilmu Pengetahuan Budaya, Universitas Indonesia.</p>
+      <h1>Ruang jejaring dan kontribusi antar alumni</h1>
+      <div class="actions"><a class="cta" href="#kegiatan">Lihat kegiatan</a></div>
+    </div>
+    <span class="aksara" aria-hidden="true">ꦆꦏꦱꦢ</span>
+  </div>
+</header>
+
+<main>
+<section id="tentang" class="about b" aria-labelledby="t-judul">
+  <div class="b-pin" id="pin">
+    <div class="b-stick" id="stick">
+      <svg id="bsvg" role="img" aria-label="[contoh, ganti dengan foto asli] Alumni berbincang dalam pertemuan santai">
+        <defs>
+          <mask id="bm" maskUnits="userSpaceOnUse" x="0" y="0">
+            <rect id="m0" fill="#000"/>
+            <text id="t1" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans Javanese', serif" font-weight="700" fill="#fff"></text>
+            <text id="t2" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans Javanese', serif" font-weight="700" fill="#fff"></text>
+            <rect id="mf" fill="#fff" opacity="0"/>
+          </mask>
+        </defs>
+        <g mask="url(#bm)"><image id="bimg" href="../public/images/beranda/alumni-discussion.png" preserveAspectRatio="xMidYMid slice"/></g>
+      </svg>
+      <div class="b-scrim" id="scrim"></div>
+      <p class="kicker b-kick"><span class="jv" aria-hidden="true">ꦆꦏꦱꦢ</span>Tentang Kami</p>
+      <div class="b-text" id="btxt">
+        <h2 id="t-judul">Jejaring alumni yang tumbuh dari satu akar, bergerak lebih jauh bersama.</h2>
+        <p class="body">IKASADA merawat hubungan lintas angkatan melalui ruang bertemu, berbagi pengetahuan, dan kontribusi yang terus hidup di dalam dan di luar kampus.</p>
+        <p class="cap">Jejaring yang terus hidup lintas angkatan</p>
+      </div>
+      <p class="b-hint" id="hint">Gulir untuk membuka foto</p>
+    </div>
+  </div>
+</section>
+
+<section id="kegiatan" class="stub">
+  <p>[Bagian Kegiatan dari situs asli, tidak ikut di mockup ini.] Foto di mockup ini adalah contoh dari public/images/beranda, ganti dengan foto kegiatan asli yang kuat dan kontras tinggi.</p>
+</section>
+</main>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var section = document.getElementById('tentang');
+  var pin = document.getElementById('pin');
+  var stick = document.getElementById('stick');
+  var svg = document.getElementById('bsvg');
+  var mask = document.getElementById('bm');
+  var m0 = document.getElementById('m0'), mf = document.getElementById('mf');
+  var t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
+  var img = document.getElementById('bimg');
+  var scrim = document.getElementById('scrim');
+  var btxt = document.getElementById('btxt');
+  var hint = document.getElementById('hint');
+  var W = 0, H = 0, two = false, p = 0, px = 0, ix = 0, tpx = 0, tix = 0, raf = 0, isStatic = false;
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var smooth = function (t) { return t * t * (3 - 2 * t); };
+
+  function render() {
+    var e = smooth(p);
+    var base = two ? W * 0.3 : W * 0.135;
+    var fs = base * (1 + e * 3.2);
+    var x = W / 2 + px * (1 - p);
+    t1.setAttribute('font-size', fs);
+    t1.setAttribute('x', x);
+    t1.setAttribute('y', two ? H / 2 - fs * 0.5 : H / 2);
+    t2.setAttribute('font-size', fs);
+    t2.setAttribute('x', x);
+    t2.setAttribute('y', H / 2 + fs * 0.5);
+    mf.setAttribute('opacity', clamp((p - 0.62) / 0.28, 0, 1));
+    img.setAttribute('transform', 'translate(' + ix.toFixed(1) + ',0)');
+    scrim.style.opacity = clamp((p - 0.7) / 0.25, 0, 1);
+    var tt = clamp((p - 0.78) / 0.2, 0, 1);
+    btxt.style.opacity = tt;
+    btxt.style.transform = 'translateY(' + ((1 - tt) * 24).toFixed(1) + 'px)';
+    stick.classList.toggle('light', p > 0.55);
+    hint.style.opacity = p < 0.04 ? 1 : 0;
+  }
+
+  function layout() {
+    W = stick.clientWidth; H = stick.clientHeight;
+    two = W < 700;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    [m0, mf].forEach(function (r) { r.setAttribute('width', W); r.setAttribute('height', H); });
+    mask.setAttribute('width', W); mask.setAttribute('height', H);
+    img.setAttribute('x', -40); img.setAttribute('y', -40);
+    img.setAttribute('width', W + 80); img.setAttribute('height', H + 80);
+    t1.textContent = two ? 'ꦆꦏ' : 'ꦆꦏꦱꦢ';
+    t2.textContent = two ? 'ꦱꦢ' : '';
+    render();
+  }
+
+  function onScroll() {
+    if (isStatic) return;
+    var r = pin.getBoundingClientRect();
+    p = clamp(-r.top / (r.height - innerHeight), 0, 1);
+    render();
+  }
+
+  function tick() {
+    px += (tpx - px) * 0.12; ix += (tix - ix) * 0.12;
+    render();
+    if (Math.abs(tpx - px) > 0.3 || Math.abs(tix - ix) > 0.3) raf = requestAnimationFrame(tick); else raf = 0;
+  }
+
+  function init(ok) {
+    if (!ok || reduce) { isStatic = true; p = 1; section.classList.add('static'); }
+    layout();
+    stick.classList.add('ready');
+    if (!isStatic) {
+      onScroll();
+      addEventListener('scroll', onScroll, { passive: true });
+      stick.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch') return;
+        var nx = e.clientX / W - 0.5;
+        tpx = nx * W * 0.08; tix = -nx * 30;
+        if (!raf) raf = requestAnimationFrame(tick);
+      });
+    }
+    addEventListener('resize', function () { layout(); if (!isStatic) onScroll(); });
+  }
+
+  var fontOk = (document.fonts && document.fonts.load)
+    ? document.fonts.load('700 100px "Noto Sans Javanese"', 'ꦆꦏꦱꦢ').then(function (f) { return f.length > 0; }).catch(function () { return false; })
+    : Promise.resolve(false);
+  Promise.race([fontOk, new Promise(function (r) { setTimeout(function () { r(false); }, 4000); })]).then(init);
+})();
+</script>
+</body>
+</html>

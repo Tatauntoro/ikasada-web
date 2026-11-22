@@ -1,0 +1,95 @@
+/* Latar dan tinta dari pengaturan admin (diset inline); bawaannya biru seperti
+   panel Tentang Kami sebelumnya. */
+.section {
+  position: relative;
+  background: #0071e3;
+  color: var(--panel-ink, #fff);
+}
+
+.wrap {
+  padding-block: clamp(96px, 14vw, 200px) clamp(72px, 9vw, 140px);
+}
+
+.kolom {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+  gap: clamp(24px, 5vw, 80px);
+}
+
+/* Penanda bagian: kecil dan jelas. Skala dari admin hanya boleh mengecilkan,
+   supaya tidak pernah mengalahkan paragraf. */
+.label {
+  margin: 0;
+  padding-top: 0.45em;
+  color: var(--panel-ink, rgba(255, 255, 255, 0.84));
+  font-family: var(--font-pp-neue), sans-serif;
+  font-size: min(
+    calc(clamp(16px, 1.3vw, 19px) * var(--skala-eyebrow, 1)),
+    clamp(16px, 1.3vw, 19px)
+  );
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+/* Skala admin hanya boleh memperbesar paragraf; mengecilkannya menyisakan teks
+   yang terlalu kecil untuk satu-satunya isi bagian ini. */
+.kolom .paragraf {
+  max-width: 30em;
+  margin: 0;
+  color: var(--teks-ink, var(--panel-ink, #fff));
+  font-size: calc(clamp(24px, 2.9vw, 42px) * max(var(--skala-judul, 1), 1));
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+/* Kata kunci tidak putus antarbaris supaya penekanannya utuh. */
+.kunci {
+  white-space: nowrap;
+}
+
+/* Efek hanya aktif bila JS berjalan (kelas .efek); tanpa itu teks tampil biasa. */
+.efek .kata {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
+.efek .dalam {
+  display: inline-block;
+  transform: translateY(112%);
+  transition: transform 900ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--d, 0ms);
+}
+
+.efek.mulai .dalam {
+  transform: none;
+}
+
+.efek .kunci {
+  transition: color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: calc(var(--kb, 700) * 1ms + var(--kd, 0) * 350ms);
+}
+
+.efek.mulai .kunci {
+  color: var(--warna-kunci, #0b5ed7);
+}
+
+@media (max-width: 760px) {
+  .kolom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .efek .dalam,
+  .efek .kunci {
+    transition: none;
+  }
+}

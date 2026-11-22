@@ -1,81 +1,446 @@
-.veil {
+/*
+ * Preloader kartu judul animator. Warna dan font datang lewat custom property
+ * `--atp-*` yang dipasang komponen pada `.gate`.
+ */
+.gate {
   position: fixed;
   inset: 0;
-  height: 100svh;
   z-index: 9999;
-  display: grid;
-  place-items: center;
   overflow: hidden;
-  background: #fff;
-  color: #0071e3;
-  transform: translateY(0);
-  transition: transform 760ms cubic-bezier(0.76, 0, 0.22, 1);
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: opacity 600ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-.veil[data-exiting] {
-  transform: translateY(-100%);
+.gate[data-phase="fade"] {
+  opacity: 0;
+}
+
+.gate:focus-visible .stage {
+  box-shadow: inset 0 0 0 2px var(--atp-rough);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: #0071e3;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--atp-stage);
+  color: var(--atp-ink);
+  container-type: size;
+  cursor: pointer;
+}
+
+.stage svg {
+  max-width: none;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 46%, transparent 52%, rgba(0, 0, 0, 0.16) 100%);
+}
+
+.grain {
+  position: absolute;
+  left: -60px;
+  top: -60px;
+  width: calc(100% + 120px);
+  height: calc(100% + 120px);
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  animation: grain 0.5s steps(1) infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-31px, 17px); }
+  50% { transform: translate(23px, -27px); }
+  75% { transform: translate(-13px, -41px); }
+}
+
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: 100%;
+}
+
+.kickrow {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.9em;
+  font-size: calc(var(--atp-word-size) * 0.2);
+  color: var(--atp-ink);
+}
+
+.kicker {
+  margin-bottom: 0.15em;
+}
+
+.line {
+  display: block;
+  overflow: visible;
+  flex: none;
+}
+
+.line .w {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.001;
+  transition-property: stroke-dashoffset;
+  transition-timing-function: linear;
+}
+
+.line[data-on="1"] .w {
+  stroke-dashoffset: 0;
+}
+
+.fallback {
+  font-size: 1.5em;
+  line-height: 1.2;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fallback[data-on="1"] {
+  clip-path: inset(0 -10% 0 0);
+}
+
+.trinket {
+  width: 1.05em;
+  height: 2.4em;
+  color: var(--atp-muted);
+  transform-origin: 50% 0;
+  opacity: 0;
+  transform: translateY(-0.6em) rotate(0deg);
+  transition: opacity 500ms ease, transform 900ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.stage[data-trinkets="1"] .trinket {
+  opacity: 1;
+  transform: none;
+  animation: swing 2.6s ease-in-out 900ms infinite;
+}
+
+.stage[data-trinkets="1"] .trinket.t2 {
+  animation-delay: 1.3s;
+}
+
+@keyframes swing {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+
+.titlewrap {
+  position: relative;
+  margin: 0.06em 0 0.02em;
+}
+
+.word {
+  position: relative;
+  z-index: 2;
+  display: block;
+  white-space: nowrap;
+  margin: 0;
+  font-family: var(--atp-display);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-size: var(--atp-word-size);
+  color: transparent;
+  transform-origin: 50% 60%;
+}
+
+.gate[data-phase="grip"] .word {
+  animation: squeeze 520ms cubic-bezier(0.3, 0, 0.3, 1) both;
+}
+
+.gate[data-phase="fling"] .word {
+  animation: stretch 760ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes squeeze {
+  0% { transform: none; }
+  45% { transform: scale(0.955, 1.05); }
+  100% { transform: scale(0.985, 1.015); }
+}
+
+@keyframes stretch {
+  0% { transform: scale(0.985, 1.015); }
+  22% { transform: scale(0.94, 1.07); }
+  55% { transform: scale(1.05, 0.95); }
+  100% { transform: none; }
+}
+
+.ch {
+  position: relative;
+  display: inline-block;
+  opacity: 0;
+  transform-origin: 50% 85%;
+}
+
+.ch[data-ink="1"] {
+  opacity: 1;
+  animation: pop 640ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: translateY(-0.18em) scale(0.55, 1.45); }
+  38% { opacity: 1; transform: translateY(0.02em) scale(1.22, 0.78); }
+  62% { transform: translateY(-0.03em) scale(0.93, 1.08); }
+  82% { transform: scale(1.03, 0.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+.ink {
+  -webkit-text-stroke: max(1.5px, 0.014em) var(--atp-ink);
+  color: transparent;
+  transition: -webkit-text-stroke-color 600ms ease;
+}
+
+.paint {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--atp-word0), var(--atp-word1) 55%, var(--atp-word2));
+  background-size: var(--atp-ww, 100%) 100%;
+  background-position: var(--atp-gx, 0) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  clip-path: inset(100% -10% -10% -10%);
+  transition: clip-path 760ms cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+.ch[data-paint="1"] .paint {
+  clip-path: inset(-10% -10% -10% -10%);
+}
+
+.ch[data-paint="1"] .ink {
+  -webkit-text-stroke-color: transparent;
+  transition-delay: 500ms;
+}
+
+.rough {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  overflow: visible;
   pointer-events: none;
 }
 
-.lockup {
-  display: grid;
-  place-items: center;
+.rough path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.001;
+  transition: opacity 900ms ease;
 }
 
-.aksara {
-  display: block;
-  width: min(70vw, 320px);
-  height: 89px;
-  overflow: visible;
-  color: currentColor;
-  font-family: var(--font-javanese), "Noto Sans Javanese", sans-serif;
-}
-
-.garis {
-  stroke-dasharray: 320;
-  stroke-dashoffset: 320;
-  animation: tulis 420ms cubic-bezier(0.45, 0, 0.35, 1) both;
-}
-
-.isi {
+.stage[data-final="1"] .rough path[data-keep="0"] {
   opacity: 0;
-  animation: isi-in 180ms ease-out 980ms both;
 }
 
-@keyframes tulis {
-  from { stroke-dashoffset: 320; }
-  to { stroke-dashoffset: 0; }
+.handslot {
+  position: absolute;
+  z-index: 1;
+  width: 0;
+  height: 0;
 }
 
-@keyframes isi-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
 }
 
-@media (max-width: 640px) {
-  .aksara {
-    width: min(76vw, 280px);
-    height: 78px;
-  }
+.hand svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
 }
 
-@media (max-height: 500px) {
-  .aksara {
-    width: 200px;
-    height: 55px;
-  }
+.thumb {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  transition: transform 420ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.gate[data-phase="grip"] .thumb,
+.gate[data-phase="hold"] .thumb {
+  transform: rotate(5deg) translateY(4px);
+}
+
+.ofrow {
+  font-size: calc(var(--atp-word-size) * 0.14);
+  margin-top: 0.4em;
+}
+
+.namerow {
+  font-size: calc(var(--atp-word-size) * 0.28);
+  margin-top: 0.25em;
+}
+
+.mascot {
+  width: calc(var(--atp-word-size) * 0.62);
+  margin-top: calc(var(--atp-word-size) * 0.17);
+  color: var(--atp-muted);
+  overflow: visible;
+}
+
+.mascot .mdraw {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.001;
+  transition: stroke-dashoffset 700ms cubic-bezier(0.5, 0, 0.3, 1);
+}
+
+.mascot .mdot {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scale(0);
+  transition: opacity 300ms ease, transform 500ms cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.stage[data-mascot="1"] .mdraw {
+  stroke-dashoffset: 0;
+}
+
+.stage[data-mascot="1"] .mdot {
+  opacity: 1;
+  transform: none;
+}
+
+.stage[data-mascot="1"] .mdot.d2 {
+  transition-delay: 120ms;
+}
+
+.stage[data-mascot="1"] .mdot.d3 {
+  transition-delay: 240ms;
+}
+
+.eye {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  transition: opacity 300ms ease 500ms;
+  animation: blink 4.8s ease-in-out 2s infinite;
+}
+
+.stage[data-mascot="1"] .eye {
+  opacity: 1;
+}
+
+@keyframes blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+.lid {
+  opacity: 0;
+}
+
+.gate[data-phase="wink"] .eye.e2,
+.gate[data-phase="shut"] .eye.e2 {
+  opacity: 0;
+}
+
+.gate[data-phase="wink"] .lid,
+.gate[data-phase="shut"] .lid {
+  opacity: 1;
+}
+
+.gate[data-phase="wink"] .mascot {
+  animation: nod 760ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes nod {
+  0% { transform: none; }
+  30% { transform: translateY(-6%) rotate(-6deg); }
+  100% { transform: rotate(-3deg); }
+}
+
+.pegs {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  padding-top: 14px;
+  pointer-events: none;
+}
+
+.peg {
+  background: rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .pegs { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .garis {
+  .grain,
+  .eye,
+  .trinket,
+  .stage[data-trinkets="1"] .trinket {
     animation: none;
-    stroke-dashoffset: 0;
   }
 
-  .isi {
+  .ch[data-ink="1"] {
     animation: none;
-    opacity: 1;
   }
 
-  .veil { transition-duration: 150ms; }
+  .gate[data-phase] .word,
+  .gate[data-phase] .mascot {
+    animation: none;
+  }
+
+  .line .w,
+  .paint,
+  .thumb,
+  .mascot .mdraw {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+
+  .fallback {
+    transition: none;
+  }
 }

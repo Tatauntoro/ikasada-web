@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IKASADA mockup: Tentang Kami satu paragraf, efek dasar dan penekanan kata kunci</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f1012;--muted:#5e5e5e;--paper:#f2f2f4;--blue:#0b5ed7;--sans:"Plus Jakarta Sans",system-ui,sans-serif;--gutter:clamp(20px,4.65vw,74px);--ease:cubic-bezier(.22,.61,.36,1)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans)}
+button{cursor:pointer}
+:focus-visible{outline:2px solid #0071e3;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.akhir{display:grid;place-items:center;height:22vh;min-height:120px;background:#101a22;color:rgba(255,255,255,.6);font-size:13px}
+
+.about{background:var(--paper)}
+.wrap{max-width:1600px;margin:0 auto;padding:clamp(96px,14vw,200px) var(--gutter)}
+.col{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,9fr);gap:clamp(24px,5vw,80px)}
+.eyebrow{margin:0;padding-top:.45em;font-size:clamp(16px,1.3vw,19px);font-weight:500;line-height:1.4;color:var(--blue)}
+.para{margin:0;max-width:30em;font-size:clamp(24px,2.9vw,42px);font-weight:400;line-height:1.3;letter-spacing:-.02em;text-wrap:pretty}
+@media(max-width:760px){.col{grid-template-columns:minmax(0,1fr);gap:16px}}
+
+/* Kata kunci: tak pernah putus baris supaya penekanannya utuh */
+.k{position:relative;white-space:nowrap;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* Efek dasar: naik per baris */
+body[data-dasar="baris"] .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.16em;margin-bottom:-.16em}
+body[data-dasar="baris"] .i{display:inline-block;transform:translateY(112%);transition:transform .9s var(--ease);transition-delay:var(--d,0ms)}
+body[data-dasar="baris"].go .i{transform:none}
+
+/* Penekanan: tiap gaya menunggu efek dasar selesai lewat --kb */
+body[data-tekan="garis"] .k{padding-bottom:.06em;background:linear-gradient(var(--blue),var(--blue)) no-repeat 0 100%/0 .075em;transition:background-size 1s var(--ease);transition-delay:calc(var(--kb,250)*1ms + var(--kd,0)*350ms)}
+body[data-tekan="garis"].go .k{background-size:100% .075em}
+
+body[data-tekan="sorot"] .k{background:linear-gradient(rgba(11,94,215,.17),rgba(11,94,215,.17)) no-repeat 0 82%/0 .62em;transition:background-size .9s var(--ease);transition-delay:calc(var(--kb,250)*1ms + var(--kd,0)*350ms)}
+body[data-tekan="sorot"].go .k{background-size:100% .62em}
+
+body[data-tekan="biru"] .k{transition:color .7s var(--ease);transition-delay:calc(var(--kb,250)*1ms + var(--kd,0)*350ms)}
+body[data-tekan="biru"].go .k{color:var(--blue)}
+
+.k .o{position:absolute;pointer-events:none;overflow:visible;display:none}
+body[data-tekan="lingkaran"] .k .o{display:block}
+.k .o path{fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1s var(--ease);transition-delay:calc(var(--kb,250)*1ms + var(--kd,0)*350ms)}
+body.go .k .o path{stroke-dashoffset:0}
+
+.cara{background:#fff;text-align:center;padding:clamp(72px,9vw,128px) 24px clamp(56px,7vw,96px)}
+.cara h2{margin:0 auto;max-width:18em;font-size:clamp(36px,4.4vw,64px);font-weight:400;line-height:1.1;letter-spacing:-.025em;text-wrap:balance}
+.panel{display:grid;grid-template-columns:1fr 1fr;height:clamp(200px,24vw,340px);color:rgba(255,255,255,.75);font-size:13px}
+.panel div{display:flex;align-items:flex-end;padding:16px}
+.panel .biru{background:#0a66d6}
+.panel .foto{background:#3b4750}
+@media(max-width:699px){.panel{grid-template-columns:1fr}.panel div{min-height:140px}}
+
+.opsi{position:fixed;left:50%;bottom:14px;z-index:60;transform:translateX(-50%);display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:8px;background:rgba(255,255,255,.96);border:1px solid rgba(15,16,18,.14);font-size:13px;color:var(--muted);max-width:calc(100% - 16px)}
+.opsi .baris{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
+.opsi span{min-width:74px;padding:0 6px}
+.opsi button{padding:7px 10px;border:1px solid transparent;border-radius:6px;background:none;font:inherit;color:var(--ink);white-space:nowrap}
+.opsi button[aria-pressed=true]{border-color:var(--blue);background:#e8f0fc;color:var(--blue)}
+@media(max-width:699px){.opsi{left:8px;right:8px;transform:none;max-width:none;font-size:12px}.opsi span{min-width:100%;text-align:center;padding:2px 0 0}.opsi button{padding:6px 8px}}
+</style>
+</head>
+<body data-dasar="baris" data-tekan="garis">
+
+<div class="akhir">[akhir hero: foto penuh]</div>
+
+<main>
+<section id="tentang" class="about" aria-labelledby="t-label">
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow" id="t-label">Tentang Kami</p>
+      <p class="para" id="para">Jejaring alumni yang tumbuh dari <span class="k">satu akar</span>, bergerak lebih jauh bersama. IKASADA merawat hubungan <span class="k">lintas angkatan</span> melalui ruang bertemu, berbagi pengetahuan, dan <span class="k">kontribusi</span> yang terus hidup di dalam dan di luar kampus.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lima-cara" class="cara" aria-labelledby="c-judul">
+  <h2 id="c-judul">Lima cara kami menyambung.</h2>
+</section>
+
+<div class="panel" aria-hidden="true">
+  <div class="biru">[panel pertama Lima cara, tidak diubah]</div>
+  <div class="foto">[foto panel pertama]</div>
+</div>
+</main>
+
+<div class="opsi" role="group" aria-label="Kontrol mockup: efek teks">
+  <div class="baris" data-grup="dasar">
+    <span>Efek dasar</span>
+    <button type="button" data-v="tanpa" aria-pressed="false">Tanpa</button>
+    <button type="button" data-v="baris" aria-pressed="true">Naik per baris</button>
+  </div>
+  <div class="baris" data-grup="tekan">
+    <span>Penekanan</span>
+    <button type="button" data-v="garis" aria-pressed="true">Garis</button>
+    <button type="button" data-v="sorot" aria-pressed="false">Sorot</button>
+    <button type="button" data-v="biru" aria-pressed="false">Warna biru</button>
+    <button type="button" data-v="lingkaran" aria-pressed="false">Lingkaran</button>
+    <button type="button" data-v="tanpa" aria-pressed="false">Tanpa</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var NS = 'http://www.w3.org/2000/svg';
+  var body = document.body;
+  var para = document.getElementById('para');
+  var words = [];
+  var keys = Array.prototype.slice.call(para.querySelectorAll('.k'));
+
+  function wrap(node) {
+    Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (p) {
+          if (!p) return;
+          if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+          var w = document.createElement('span'); w.className = 'w';
+          var i = document.createElement('span'); i.className = 'i'; i.textContent = p;
+          w.appendChild(i); frag.appendChild(w); words.push(w);
+        });
+        node.replaceChild(frag, n);
+      } else if (n.nodeType === 1) { wrap(n); }
+    });
+  }
+  wrap(para);
+  keys.forEach(function (k, i) { k.style.setProperty('--kd', i); });
+
+  function hitung() {
+    var idx = -1, last = null;
+    words.forEach(function (w) {
+      var t = w.offsetTop;
+      if (last === null || Math.abs(t - last) > 4) { idx++; last = t; }
+      w.style.setProperty('--d', (idx * 110) + 'ms');
+    });
+    // Penekanan menunggu baris terakhir selesai naik
+    body.style.setProperty('--kb', body.dataset.dasar === 'baris' ? (idx * 110 + 700) : 250);
+  }
+
+  function lingkar() {
+    keys.forEach(function (k) {
+      var lama = k.querySelector('.o'); if (lama) k.removeChild(lama);
+      var r = k.getBoundingClientRect();
+      var fs = parseFloat(getComputedStyle(k).fontSize);
+      var w = r.width, h = fs * 1.44, px = fs * 0.35, py = 0;
+      var s = document.createElementNS(NS, 'svg');
+      s.setAttribute('class', 'o'); s.setAttribute('aria-hidden', 'true');
+      s.setAttribute('width', w + px * 2); s.setAttribute('height', h + py * 2);
+      // Berpusat pada tinggi huruf kecil, bukan pada kotak baris yang lebih tinggi
+      s.style.left = (-px) + 'px'; s.style.top = '50%';
+      s.style.marginTop = (-(h + py * 2) / 2 + fs * 0.24) + 'px';
+      var cx = (w + px * 2) / 2, cy = (h + py * 2) / 2, rx = (w + px * 2) / 2 - 1, ry = (h + py * 2) / 2 - 1;
+      var d = 'M ' + (cx - rx) + ' ' + cy +
+        ' A ' + rx + ' ' + ry + ' 0 1 1 ' + (cx + rx) + ' ' + cy +
+        ' A ' + rx + ' ' + ry + ' 0 0 1 ' + (cx - rx * 0.9) + ' ' + (cy - ry * 0.42);
+      var p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d); p.setAttribute('pathLength', '1');
+      s.appendChild(p); k.appendChild(s);
+    });
+  }
+
+  var visible = false;
+  function play() {
+    body.classList.remove('go');
+    void para.offsetWidth;
+    if (reduce) { body.classList.add('go'); return; }
+    if (visible) setTimeout(function () { body.classList.add('go'); }, 60);
+  }
+
+  new IntersectionObserver(function (es) {
+    var now = es[0].isIntersecting;
+    if (now && !visible) { visible = true; play(); }
+    else if (!now && visible) { visible = false; body.classList.remove('go'); }
+  }, { threshold: 0.4 }).observe(para);
+
+  function set(grup, v) {
+    body.dataset[grup] = v;
+    Array.prototype.slice.call(document.querySelectorAll('[data-grup=' + grup + '] button')).forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.v === v ? 'true' : 'false');
+    });
+    hitung(); lingkar(); play();
+    var q = new URLSearchParams({ dasar: body.dataset.dasar, tekan: body.dataset.tekan });
+    history.replaceState(null, '', '?' + q.toString());
+  }
+  Array.prototype.slice.call(document.querySelectorAll('.opsi .baris')).forEach(function (g) {
+    Array.prototype.slice.call(g.querySelectorAll('button')).forEach(function (b) {
+      b.addEventListener('click', function () { set(g.dataset.grup, b.dataset.v); });
+    });
+  });
+  addEventListener('resize', function () { hitung(); lingkar(); });
+
+  var qs = new URLSearchParams(location.search);
+  var d0 = qs.get('dasar'), t0 = qs.get('tekan');
+  if (['tanpa', 'baris'].indexOf(d0) >= 0) body.dataset.dasar = d0;
+  if (['garis', 'sorot', 'biru', 'lingkaran', 'tanpa'].indexOf(t0) >= 0) body.dataset.tekan = t0;
+  set('dasar', body.dataset.dasar);
+  set('tekan', body.dataset.tekan);
+})();
+</script>
+</body>
+</html>

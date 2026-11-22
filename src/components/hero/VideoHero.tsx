@@ -14,41 +14,9 @@ import {
   teksSection,
   useBerandaConfig,
 } from "@/lib/beranda-client";
-import {
-  HERO_POSTER_BAWAAN,
-  HERO_VIDEO_BAWAAN,
-  type KonfigurasiHero,
-} from "@/lib/beranda";
+import { HERO_POSTER_BAWAAN, konfigurasiHeroDari } from "@/lib/beranda";
 import { scrollToSection } from "@/lib/scroll";
 import styles from "./video-hero.module.css";
-
-function konfigurasiHeroDari(nilai: unknown): KonfigurasiHero {
-  if (!nilai || typeof nilai !== "object" || Array.isArray(nilai)) {
-    return {
-      mode: "video",
-      videoUrl: HERO_VIDEO_BAWAAN,
-      posterUrl: HERO_POSTER_BAWAAN,
-      fotoUrls: [],
-    };
-  }
-  const config = nilai as Partial<KonfigurasiHero>;
-  const mode =
-    config.mode === "foto" || config.mode === "slideshow" ? config.mode : "video";
-  return {
-    mode,
-    videoUrl:
-      typeof config.videoUrl === "string" && config.videoUrl
-        ? config.videoUrl
-        : HERO_VIDEO_BAWAAN,
-    posterUrl:
-      typeof config.posterUrl === "string" && config.posterUrl
-        ? config.posterUrl
-        : HERO_POSTER_BAWAAN,
-    fotoUrls: Array.isArray(config.fotoUrls)
-      ? config.fotoUrls.filter((url): url is string => typeof url === "string" && url.length > 0)
-      : [],
-  };
-}
 
 /**
  * Hero beranda: video latar layar penuh dengan teks rata kiri di atasnya.
