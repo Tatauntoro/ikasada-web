@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { PublicKegiatan } from "@/lib/types";
 import { formatTanggalWIB } from "@/lib/format";
@@ -22,7 +24,12 @@ export default function EventCard({
         <span className={styles.image}>
           {item.gambarThumbnailUrl && (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={item.gambarThumbnailUrl} alt={item.judul} />
+            <img
+              src={item.gambarThumbnailUrl}
+              alt={item.judul}
+              data-aset-opsional=""
+              onError={(e) => { e.currentTarget.style.visibility = "hidden"; }}
+            />
           )}
         </span>
         <Heading className={styles.eventTitle}>{item.judul}</Heading>

@@ -19,6 +19,7 @@ export default function AssetErrorBanner() {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       if (!RESOURCE_TAGS.has(target.tagName)) return;
+      if (target.hasAttribute("data-aset-opsional")) return; // sudah punya placeholder sendiri
       const el = target as HTMLElement & {
         currentSrc?: string;
         src?: string;

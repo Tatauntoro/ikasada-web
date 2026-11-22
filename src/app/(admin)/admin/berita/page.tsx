@@ -4,11 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, MagnifyingGlass, Faders, Pencil, Trash } from "@phosphor-icons/react";
-import Image from "next/image";
 import { StatusBerita } from "@/generated/prisma/enums";
 import type { BeritaModel } from "@/generated/prisma/models/Berita";
 import type { JenisBeritaModel as JenisBerita } from "@/generated/prisma/models/JenisBerita";
 import { DataTable } from "@/components/admin/DataTable";
+import { ThumbAdmin } from "@/components/admin/ThumbAdmin";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -164,21 +164,15 @@ export default function BeritaListPage() {
       key: "thumbnail",
       header: "Gambar",
       cell: (row: Berita) =>
-        row.gambarUrl ? (
-          <div className="relative w-16 h-10 rounded-lg overflow-hidden">
-            <Image
-              src={row.gambarUrl}
-              alt={row.judul}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          </div>
-        ) : (
-          <div className="w-16 h-10 rounded-lg bg-[#f2f2f4] flex items-center justify-center text-xs text-[#8f8f8f]">
+        <ThumbAdmin
+            src={row.gambarUrl}
+            alt={row.judul}
+            sizes="64px"
+            className="relative w-16 h-10 rounded-lg overflow-hidden"
+            fallback={<div className="w-16 h-10 rounded-lg bg-[#f2f2f4] flex items-center justify-center text-xs text-[#8f8f8f]">
             -
-          </div>
-        ),
+          </div>}
+          />,
     },
     {
       key: "judul",

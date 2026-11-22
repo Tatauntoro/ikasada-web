@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Pencil, Trash } from "@phosphor-icons/react";
-import Image from "next/image";
 import type { PengurusModel as Pengurus } from "@/generated/prisma/models/Pengurus";
 import { DataTable } from "@/components/admin/DataTable";
+import { ThumbAdmin } from "@/components/admin/ThumbAdmin";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { TableSkeleton } from "@/components/admin/TableSkeleton";
@@ -191,21 +191,15 @@ export default function PengurusPage() {
       header: "Foto",
       className: "w-20",
       cell: (row: Pengurus) =>
-        row.fotoUrl ? (
-          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-black/[0.08]">
-            <Image
-              src={row.fotoUrl}
-              alt={row.nama}
-              fill
-              className="object-cover"
-              sizes="48px"
-            />
-          </div>
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-black/[0.05] text-[#0071e3] flex items-center justify-center text-xs font-bold">
+        <ThumbAdmin
+            src={row.fotoUrl}
+            alt={row.nama}
+            sizes="48px"
+            className="relative w-12 h-12 rounded-full overflow-hidden border border-black/[0.08]"
+            fallback={<div className="w-12 h-12 rounded-full bg-black/[0.05] text-[#0071e3] flex items-center justify-center text-xs font-bold">
             {getInitials(row.nama)}
-          </div>
-        ),
+          </div>}
+          />,
     },
     {
       key: "nama",

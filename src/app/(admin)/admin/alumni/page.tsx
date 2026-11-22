@@ -10,11 +10,11 @@ import {
   Pencil,
   Trash,
 } from "@phosphor-icons/react";
-import Image from "next/image";
 import { StatusAlumni, StatusAlumniAccount } from "@/generated/prisma/enums";
 import type { AlumniModel } from "@/generated/prisma/models/Alumni";
 import type { SektorIndustriModel as SektorIndustri } from "@/generated/prisma/models/SektorIndustri";
 import { DataTable } from "@/components/admin/DataTable";
+import { ThumbAdmin } from "@/components/admin/ThumbAdmin";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -266,21 +266,15 @@ export default function AlumniListPage() {
       header: "Foto",
       className: "w-16",
       cell: (row: Alumni) =>
-        row.fotoUrl ? (
-          <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            <Image
-              src={row.fotoUrl}
-              alt={row.namaLengkap}
-              fill
-              className="object-cover"
-              sizes="40px"
-            />
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-black/[0.05] text-[#0071e3] flex items-center justify-center text-xs font-bold">
+        <ThumbAdmin
+            src={row.fotoUrl}
+            alt={row.namaLengkap}
+            sizes="40px"
+            className="relative w-10 h-10 rounded-full overflow-hidden"
+            fallback={<div className="w-10 h-10 rounded-full bg-black/[0.05] text-[#0071e3] flex items-center justify-center text-xs font-bold">
             {getInitials(row.namaLengkap)}
-          </div>
-        ),
+          </div>}
+          />,
     },
     {
       key: "namaLengkap",

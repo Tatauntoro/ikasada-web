@@ -29,6 +29,7 @@ export function ImageUpload({
   const inputId = useId();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [gagalUrl, setGagalUrl] = useState<string | null>(null);
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -89,13 +90,21 @@ export function ImageUpload({
       {value ? (
         <div className="relative rounded-2xl overflow-hidden border border-black/[0.08] bg-[#fdfdfd]">
           <div className="relative w-full aspect-video">
-            <Image
-              src={value}
-              alt={label}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 500px"
-            />
+            {gagalUrl === value ? (
+              <div className="grid h-full w-full place-items-center bg-[#f2f2f4] px-4 text-center text-xs text-[#5e5e5e]">
+                Gambar tidak ditemukan. Klik Ganti untuk unggah ulang.
+              </div>
+            ) : (
+              <Image
+                src={value}
+                alt={label}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 500px"
+                data-aset-opsional=""
+                onError={() => setGagalUrl(value)}
+              />
+            )}
           </div>
           <div className="absolute top-3 right-3 flex gap-2">
             <button

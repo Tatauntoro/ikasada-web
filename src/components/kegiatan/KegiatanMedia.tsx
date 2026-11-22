@@ -9,7 +9,7 @@ export function FotoKegiatan({ item, className, eager = false }: { item: PublicK
   if (!item.gambarThumbnailUrl || failedUrl === item.gambarThumbnailUrl) return <span className={className} aria-hidden="true" style={{ display: "grid", placeItems: "center", background: "#294156", color: "#fff", minHeight: 130 }}><CalendarBlank size={32} /></span>;
   // Public thumbnails include remote images and local uploads.
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className={className} src={item.gambarThumbnailUrl} alt="" width={800} height={540} loading={eager ? "eager" : "lazy"} decoding="async" onError={() => setFailedUrl(item.gambarThumbnailUrl)} />;
+  return <img className={className} src={item.gambarThumbnailUrl} alt="" width={800} height={540} loading={eager ? "eager" : "lazy"} decoding="async" data-aset-opsional="" onError={() => setFailedUrl(item.gambarThumbnailUrl)} />;
 }
 export function MetadataKegiatan({ item, className, showRange = false }: { item: PublicKegiatan; className: string; showRange?: boolean }) {
   const tanggalMulai = formatAgenda(item.tanggalMulai, { day: "numeric", month: "short", year: "numeric" });
