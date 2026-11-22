@@ -215,6 +215,8 @@ export function MediaUpload({
                       src={sumber}
                       alt={media.caption ?? media.namaAsli ?? "Media galeri"}
                       loading="lazy"
+                      data-aset-opsional=""
+                      onError={(e) => { e.currentTarget.style.visibility = "hidden"; }}
                       className="h-full w-full object-cover"
                     />
                   )}

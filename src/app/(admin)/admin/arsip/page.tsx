@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Faders,
@@ -15,6 +14,7 @@ import { StatusArsip } from "@/generated/prisma/enums";
 import type { ArsipModel as Arsip } from "@/generated/prisma/models/Arsip";
 import type { JenisArsipModel as JenisArsip } from "@/generated/prisma/models/JenisArsip";
 import { DataTable } from "@/components/admin/DataTable";
+import { ThumbAdmin } from "@/components/admin/ThumbAdmin";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -180,21 +180,15 @@ export default function ArsipListPage() {
       key: "sampul",
       header: "Sampul",
       cell: (row: ArsipDenganJenis) =>
-        row.gambarSampulUrl ? (
-          <div className="relative h-10 w-16 overflow-hidden rounded-lg">
-            <Image
-              src={row.gambarSampulUrl}
-              alt={row.alt ?? row.judul}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          </div>
-        ) : (
-          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-[#f2f2f4] text-xs text-[#8f8f8f]">
+        <ThumbAdmin
+            src={row.gambarSampulUrl}
+            alt={row.alt ?? row.judul}
+            sizes="64px"
+            className="relative h-10 w-16 overflow-hidden rounded-lg"
+            fallback={<div className="flex h-10 w-16 items-center justify-center rounded-lg bg-[#f2f2f4] text-xs text-[#8f8f8f]">
             -
-          </div>
-        ),
+          </div>}
+          />,
     },
     {
       key: "judul",

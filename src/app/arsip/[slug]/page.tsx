@@ -16,6 +16,7 @@ import { alumniAktif } from "@/lib/sesi-alumni";
 import { bolehUnduh, labelGembokArsip, terkunci } from "@/lib/akses-arsip";
 import { AKSES_ALUMNI_TERBUKA } from "@/lib/fitur";
 import { formatPeriodeKegiatan, formatTanggalWIB } from "@/lib/format";
+import SampulArsipDetail from "@/components/SampulArsipDetail";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -96,14 +97,7 @@ export default async function ArsipDetailPage({ params }: PageProps) {
 
         {/* Sampul dokumen — hanya bila ada gambarnya (tanpa placeholder). */}
         {dokumen.gambarSampulUrl && (
-          <div className="relative mb-10 aspect-[4/3] w-full overflow-hidden border border-black/10 sm:aspect-[16/9]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={dokumen.gambarSampulUrl}
-              alt={dokumen.alt ?? dokumen.judul}
-              className="h-full w-full object-cover"
-            />
-          </div>
+          <SampulArsipDetail src={dokumen.gambarSampulUrl} alt={dokumen.alt ?? dokumen.judul} />
         )}
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

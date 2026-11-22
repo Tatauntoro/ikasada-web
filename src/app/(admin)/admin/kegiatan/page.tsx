@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, MagnifyingGlass, Faders, Pencil, Trash } from "@phosphor-icons/react";
-import Image from "next/image";
 import { StatusKegiatan } from "@/generated/prisma/enums";
 import type { KegiatanModel } from "@/generated/prisma/models/Kegiatan";
 import type { KategoriKegiatanModel as KategoriKegiatan } from "@/generated/prisma/models/KategoriKegiatan";
 import { DataTable } from "@/components/admin/DataTable";
+import { ThumbAdmin } from "@/components/admin/ThumbAdmin";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -168,21 +168,15 @@ export default function KegiatanListPage() {
       key: "thumbnail",
       header: "Thumbnail",
       cell: (row: Kegiatan) =>
-        row.gambarThumbnailUrl ? (
-          <div className="relative w-16 h-10 rounded-lg overflow-hidden">
-            <Image
-              src={row.gambarThumbnailUrl}
-              alt={row.judul}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          </div>
-        ) : (
-          <div className="w-16 h-10 rounded-lg bg-[#f2f2f4] flex items-center justify-center text-xs text-[#8f8f8f]">
+        <ThumbAdmin
+            src={row.gambarThumbnailUrl}
+            alt={row.judul}
+            sizes="64px"
+            className="relative w-16 h-10 rounded-lg overflow-hidden"
+            fallback={<div className="w-16 h-10 rounded-lg bg-[#f2f2f4] flex items-center justify-center text-xs text-[#8f8f8f]">
             -
-          </div>
-        ),
+          </div>}
+          />,
     },
     {
       key: "judul",

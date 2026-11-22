@@ -61,6 +61,7 @@ export function BeritaRow({
               src={item.gambarUrl}
               alt={item.judul}
               loading="lazy"
+              data-aset-opsional=""
               className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.visibility = "hidden";

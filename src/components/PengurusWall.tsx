@@ -15,6 +15,31 @@ export type PengurusItem = {
 
 const rotasiKartu = [-8, 7, -5, 9];
 
+/** Foto pengurus; kosong atau gagal dimuat → ikon placeholder (tanpa memicu banner aset). */
+function FotoPengurus({ fotoUrl }: { fotoUrl: string | null }) {
+  const [gagalUrl, setGagalUrl] = useState<string | null>(null);
+
+  if (fotoUrl && gagalUrl !== fotoUrl) {
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={fotoUrl}
+        alt=""
+        draggable={false}
+        data-aset-opsional=""
+        onError={() => setGagalUrl(fotoUrl)}
+        className="h-full w-full object-cover object-center"
+      />
+    );
+  }
+
+  return (
+    <div className="grid h-full w-full place-items-center text-[#5e5e5e]">
+      <Users aria-hidden="true" size={64} weight="thin" />
+    </div>
+  );
+}
+
 export function PengurusCarousel({ pengurus }: { pengurus: PengurusItem[] }) {
   const [active, setActive] = useState(0);
   const reducedMotion = useReducedMotion();
@@ -87,20 +112,7 @@ export function PengurusCarousel({ pengurus }: { pengurus: PengurusItem[] }) {
               }}
               className="absolute inset-0 overflow-hidden rounded-3xl bg-[#e7e7ec]"
             >
-              {item.fotoUrl ? (
-                /* Foto pengurus dapat berasal dari upload privat; URL publiknya sudah dilayani route aplikasi. */
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={item.fotoUrl}
-                  alt=""
-                  draggable={false}
-                  className="h-full w-full object-cover object-center"
-                />
-              ) : (
-                <div className="grid h-full w-full place-items-center text-[#5e5e5e]">
-                  <Users aria-hidden="true" size={64} weight="thin" />
-                </div>
-              )}
+              <FotoPengurus fotoUrl={item.fotoUrl} />
             </m.div>
           );
         })}

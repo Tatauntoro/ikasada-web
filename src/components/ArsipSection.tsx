@@ -26,6 +26,9 @@ function SampulArsip({ item }: { item: PublicArsip }) {
   const url = item.terkunci ? null : item.gambarSampulUrl;
   const dapatDioptimasi = url?.startsWith("/api/uploads/") ?? false;
 
+  // Tanpa sampul (atau gambar gagal dimuat): tidak menampilkan apa pun.
+  if (!item.terkunci && (!url || failedUrl === url)) return null;
+
   return (
     <figure className={styles.cover}>
       {url && failedUrl !== url ? (
@@ -36,29 +39,12 @@ function SampulArsip({ item }: { item: PublicArsip }) {
           unoptimized={!dapatDioptimasi}
           sizes="(max-width: 700px) 53vw, 38vw"
           quality={75}
-          onError={() => {
-            reportAssetError(url, "image");
-            setFailedUrl(url);
-          }}
+          data-aset-opsional=""
+          onError={() => setFailedUrl(url)}
         />
-      ) : item.terkunci ? (
+      ) : (
         <div className={styles.coverFallback}>
           <LockSimple aria-hidden="true" size={22} /> Arsip khusus alumni
-        </div>
-      ) : (
-        <div className={styles.emptyCover} aria-label="Dokumen tanpa sampul">
-          <span className={styles.paperStack} aria-hidden="true">
-            <span className={styles.paperBack} />
-            <span className={styles.paperFront}>
-              <svg viewBox="0 0 32 32">
-                <path d="M9 10h14M9 16h14M9 22h9" />
-              </svg>
-            </span>
-          </span>
-          <div className={styles.emptyCoverCopy}>
-            <strong className={styles.emptyCoverTitle}>Dokumen tanpa sampul</strong>
-            <p>Buka arsip untuk melihat informasi dokumen selengkapnya.</p>
-          </div>
         </div>
       )}
     </figure>

@@ -130,6 +130,8 @@ export default function ArsipDirectory({
   const previewRef = useRef<HTMLDivElement>(null);
   const [previewItem, setPreviewItem] = useState<PublicArsip | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
+  const [sampulGagal, setSampulGagal] = useState<string | null>(null);
+  const adaSampul = !!previewItem?.gambarSampulUrl && previewItem.gambarSampulUrl !== sampulGagal;
   // Render pertama memakai data dari server; jangan langsung menimpa dengan
   // hasil fetch yang isinya sama.
   const lewatiFetchPertama = useRef(true);
@@ -331,9 +333,9 @@ export default function ArsipDirectory({
           aria-hidden="true"
           className={`pointer-events-none fixed left-0 top-0 z-[1000] hidden h-[186px] w-[278px] overflow-hidden rounded-[10px] bg-[#ece7da] shadow-[0_18px_42px_-20px_rgba(17,17,17,0.42)] transition-opacity duration-200 md:block ${previewItem ? "opacity-100" : "opacity-0"}`}
         >
-          {previewItem?.gambarSampulUrl && <Image src={previewItem.gambarSampulUrl} alt="" fill unoptimized sizes="278px" className="object-cover" />}
-          {!previewItem?.gambarSampulUrl && previewItem && <div className="flex h-full flex-col justify-between bg-[#fffdf7] p-5 text-[#111]"><span className="font-mono text-[9px] uppercase tracking-widest">IKASADA / ARSIP</span><strong className="text-xl leading-tight">{previewItem.judul}</strong><span className="font-mono text-[9px] uppercase tracking-widest">{previewItem.jenis.nama} · {previewItem.berkasFormat || "ARSIP"}</span></div>}
-          {previewItem?.gambarSampulUrl && <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />}
+          {adaSampul && <Image src={previewItem.gambarSampulUrl!} alt="" fill unoptimized sizes="278px" className="object-cover" data-aset-opsional="" onError={() => setSampulGagal(previewItem.gambarSampulUrl)} />}
+          {!adaSampul && previewItem && <div className="flex h-full flex-col justify-between bg-[#fffdf7] p-5 text-[#111]"><span className="font-mono text-[9px] uppercase tracking-widest">IKASADA / ARSIP</span><strong className="text-xl leading-tight">{previewItem.judul}</strong><span className="font-mono text-[9px] uppercase tracking-widest">{previewItem.jenis.nama} · {previewItem.berkasFormat || "ARSIP"}</span></div>}
+          {adaSampul && <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />}
         </div>, document.body
       )}
     </div>
