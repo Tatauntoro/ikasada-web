@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,10 +8,8 @@ import type { WayStoryItem } from "./WaysStory";
 import styles from "./FlowWaysStory.module.css";
 
 type Props = {
-  kicker: string;
-  title: ReactNode;
-  titleStyle?: CSSProperties;
-  kickerStyle?: CSSProperties;
+  /** Latar yang sama dengan Tentang Kami, supaya sudut panel yang berputar tidak membuka warna lain. */
+  background?: string;
   firstBackground?: string;
   firstInk: string;
   items: WayStoryItem[];
@@ -21,7 +19,7 @@ const labels = ["Bertemu", "Berkolaborasi", "Berkegiatan", "Bertumbuh", "Terhubu
 const surfaces = ["#076bda", "#f4c430", "#087e59", "#f27b65", "#b8d9f4"];
 const inks = ["#ffffff", "#17191c", "#ffffff", "#17191c", "#17191c"];
 
-export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, firstBackground, firstInk, items }: Props) {
+export default function FlowWaysStory({ background, firstBackground, firstInk, items }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,12 +106,7 @@ export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, 
 
   return (
     <>
-      <header id="tiga-cara" className={styles.intro} aria-labelledby="ways-title">
-        <p className={styles.kicker} style={kickerStyle}>{kicker}</p>
-        <h2 id="ways-title" className={styles.introTitle} style={titleStyle}>{title}</h2>
-        <p className={styles.hint}>Gulir untuk menjelajah ↓</p>
-      </header>
-      <div id="lima-cara" className={styles.flow} ref={rootRef} role="region" aria-label="Lima cara kami menyambung">
+      <div id="lima-cara" className={styles.flow} ref={rootRef} role="region" aria-label="Lima cara kami menyambung" style={background ? { background } : undefined}>
         {items.map((item, index) => (
           <section key={index} className={styles.section} aria-label={`Cara ${index + 1}: ${item.title}`}>
             <article className={styles.inner} style={{
@@ -121,7 +114,7 @@ export default function FlowWaysStory({ kicker, title, titleStyle, kickerStyle, 
               "--ink": item.inkColor || (index === 0 ? firstInk : inks[index % inks.length]),
             } as CSSProperties}>
               <div className={styles.copy}>
-                <div className={styles.index}>IKASADA / {String(index + 1).padStart(2, "0")} <span>Lima cara menyambung</span></div>
+                <div className={styles.index}>IKASADA / {String(index + 1).padStart(2, "0")} <span>Lima Cara Kami Menyambung</span></div>
                 <div className={styles.body}>
                   <span className={styles.tag}>{labels[index]}</span>
                   <h3 className={styles.panelTitle}>{item.title}</h3>

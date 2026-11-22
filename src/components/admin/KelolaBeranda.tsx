@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
-  ArrowDown,
-  ArrowUp,
   GlobeHemisphereWest,
   Pencil,
   Plus,
@@ -20,6 +18,7 @@ import {
   SECTION_PAKAI_EYEBROW,
   SECTION_POSISI,
   kunciValid,
+  paragrafTentang,
 } from "@/lib/beranda";
 import { EmptyState } from "./EmptyState";
 import { TableSkeleton } from "./TableSkeleton";
@@ -86,8 +85,6 @@ type ItemLima = {
   tampilkanFoto: boolean;
   warnaLatar: string;
 };
-type ModeMediaTentang = "foto" | "slideshow" | "video";
-type MediaTentang = { mode: ModeMediaTentang; fotoUrls: string[]; videoUrl: string; posterUrl: string };
 
 const inputClass =
   "w-full min-w-0 rounded-xl border border-black/[0.08] bg-[#fdfdfd] px-3 py-2.5 text-sm text-[#0f1012] focus:outline-none focus:ring-2 focus:ring-[#0071e3] sm:py-2";
@@ -180,19 +177,6 @@ function itemsLimaUntukEditor(konfig: Record<string, unknown>): ItemLima[] {
   });
 }
 
-function mediaTentang(konfig: Record<string, unknown>): MediaTentang {
-  const legacyFoto = typeof konfig.fotoUrl === "string" ? konfig.fotoUrl : "";
-  const fotoUrls = Array.isArray(konfig.fotoUrls)
-    ? konfig.fotoUrls.filter((url): url is string => typeof url === "string")
-    : legacyFoto ? [legacyFoto] : [];
-  return {
-    mode: konfig.mode === "slideshow" || konfig.mode === "video" ? konfig.mode : "foto",
-    fotoUrls,
-    videoUrl: typeof konfig.videoUrl === "string" ? konfig.videoUrl : "",
-    posterUrl: typeof konfig.posterUrl === "string" ? konfig.posterUrl : legacyFoto,
-  };
-}
-
 function emailKontak(konfig: Record<string, unknown>): string {
   return typeof konfig.email === "string" ? konfig.email : "";
 }
@@ -216,8 +200,13 @@ function draftDari(s: SectionItem): DraftSection {
     aktif: s.aktif,
     urutan: String(s.urutan),
     eyebrow: s.eyebrow ?? "",
-    judul: s.judul ?? "",
-    deskripsi: s.deskripsi ?? "",
+    // Tentang Kami kini satu paragraf: judul lama digabung ke deskripsi dan
+    // dikosongkan, jadi menyimpan ulang memindahkan datanya tanpa kehilangan teks.
+    judul: s.kunci === "tentang-kami" ? "" : (s.judul ?? ""),
+    deskripsi:
+      s.kunci === "tentang-kami"
+        ? paragrafTentang(s.judul, s.deskripsi)
+        : (s.deskripsi ?? ""),
     warnaJudul: s.warnaJudul ?? "",
     warnaEyebrow: s.warnaEyebrow ?? "",
     warnaBackground: s.warnaBackground ?? "",
@@ -382,9 +371,6 @@ export function KelolaBeranda() {
 
   const [draft, setDraft] = useState<Record<string, DraftSection>>({});
   const [menyimpanSection, setMenyimpanSection] = useState<string | null>(null);
-  const [mengunggahVideo, setMengunggahVideo] = useState(false);
-  const [galatVideo, setGalatVideo] = useState<string | null>(null);
-  const [sectionUnggahVideo, setSectionUnggahVideo] = useState<string | null>(null);
 
   const [titikBuka, setTitikBuka] = useState(false);
   const [titikEdit, setTitikEdit] = useState<TitikItem | null>(null);
@@ -527,8 +513,7 @@ export function KelolaBeranda() {
                 ? Number(d.ukuranEyebrow)
                 : null,
               // Section dengan data khas ikut menyimpan konfigurasi.
-              ...(s.kunci === "tentang-kami" ||
-              s.kunci === "lima-cara" ||
+              ...(s.kunci === "lima-cara" ||
               s.kunci === "arsip" ||
               s.kunci === "kontak" ||
               s.kunci === "sebaran-geografis"
@@ -545,73 +530,6 @@ export function KelolaBeranda() {
     invalidasiBerandaConfig();
     setSukses(`Section "${labelSection(s.kunci)}" disimpan.`);
     muat();
-  }
-
-  async function unggahVideo(file: File, sectionId: string) {
-    setGalatVideo(null);
-    setSectionUnggahVideo(sectionId);
-    const typeValid = file.type === "video/mp4" || file.type === "video/webm";
-    if (!typeValid) {
-      setGalatVideo("Format video harus MP4 atau WebM.");
-      return;
-    }
-    if (file.size < 1 || file.size > 30 * 1024 * 1024) {
-      setGalatVideo("Ukuran video maksimal 30 MB.");
-      return;
-    }
-
-    setMengunggahVideo(true);
-    try {
-      const signResponse = await fetch("/api/admin/upload/hero-video/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, size: file.size }),
-      });
-      const signed = await signResponse.json();
-      if (!signResponse.ok || !signed?.data?.uploadUrl) {
-        throw new Error(signed?.error?.message || "Gagal menyiapkan unggahan video.");
-      }
-
-      let uploadResponse: Response;
-      try {
-        uploadResponse = await fetch(signed.data.uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type },
-          body: file,
-        });
-      } catch {
-        throw new Error(
-          "Tidak dapat mengunggah ke R2. Pastikan CORS bucket mengizinkan PUT dari domain situs."
-        );
-      }
-      if (!uploadResponse.ok) {
-        throw new Error(
-          "Unggahan video gagal. Pastikan CORS bucket R2 mengizinkan PUT dari domain situs."
-        );
-      }
-
-      const completeResponse = await fetch(
-        "/api/admin/upload/hero-video/complete",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: signed.data.filename }),
-        }
-      );
-      const complete = await completeResponse.json();
-      if (!completeResponse.ok || !complete?.data?.url) {
-        throw new Error(complete?.error?.message || "Video gagal diverifikasi.");
-      }
-
-      ubahKonfig(sectionId, { videoUrl: complete.data.url });
-      setSukses("Video berhasil diunggah. Simpan section untuk menerapkan.");
-    } catch (error) {
-      setGalatVideo(
-        error instanceof Error ? error.message : "Unggahan video gagal."
-      );
-    } finally {
-      setMengunggahVideo(false);
-    }
   }
 
   function bukaTitikBaru() {
@@ -820,9 +738,9 @@ export function KelolaBeranda() {
                       />
                     </div>
                   )}
-                  {(!panelStatistik || panelGeografis || s.kunci === "sebaran-angkatan" || s.kunci === "statistik") && <div className="sm:col-span-2">
+                  {s.kunci !== "tentang-kami" && s.kunci !== "lima-cara" && (!panelStatistik || panelGeografis || s.kunci === "sebaran-angkatan" || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                      {s.kunci === "hero" ? "Judul utama" : "Judul"}
+                      {s.kunci === "hero" ? "Judul utama (muncul setelah foto terbuka)" : "Judul"}
                     </label>
                     <input
                       type="text"
@@ -834,21 +752,41 @@ export function KelolaBeranda() {
                   {SECTION_PAKAI_DESKRIPSI.some((k) => k === s.kunci) && (!bagianStatistik || s.kunci === "statistik") && (
                     <div className="sm:col-span-2">
                       <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                        {s.kunci === "hero" ? "Teks pengantar" : "Deskripsi"}
+                        {s.kunci === "hero"
+                          ? "Teks pengantar (kalimat kecil di atas judul)"
+                          : s.kunci === "tentang-kami"
+                            ? "Isi paragraf"
+                            : "Deskripsi"}
                       </label>
                       <textarea
-                        rows={2}
+                        rows={s.kunci === "tentang-kami" ? 5 : 2}
+                        maxLength={s.kunci === "tentang-kami" ? 500 : undefined}
                         value={d.deskripsi}
                         onChange={(e) =>
                           ubahDraft(s.id, { deskripsi: e.target.value })
                         }
                         className={inputClass}
                       />
+                      {s.kunci === "tentang-kami" && (
+                        <p className="mt-1 text-xs text-[#8f8f8f]">
+                          Satu paragraf, maksimal 500 karakter. Apit kata kunci dengan tanda bintang, mis. *satu akar*, supaya berganti warna setelah paragraf naik.
+                        </p>
+                      )}
                     </div>
                   )}
                   {(!bagianStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <KontrolWarna
-                      label={bagianStatistik ? "Warna latar seluruh section statistik" : `Warna latar seluruh blok · ${labelSection(s.kunci)}`}
+                      label={
+                        bagianStatistik
+                          ? "Warna latar seluruh section statistik"
+                          : s.kunci === "hero"
+                            ? "Warna latar hero (sebelum foto terbuka)"
+                            : s.kunci === "tentang-kami"
+                              ? "Warna latar Tentang Kami dan area di belakang panel Lima cara"
+                              : s.kunci === "lima-cara"
+                                ? "Warna panel pertama Lima cara"
+                                : `Warna latar seluruh blok · ${labelSection(s.kunci)}`
+                      }
                       nilai={d.warnaBackground}
                       palet={PALET_WARNA_BACKGROUND}
                       onUbah={(v) => ubahDraft(s.id, { warnaBackground: v })}
@@ -856,12 +794,16 @@ export function KelolaBeranda() {
                     <p className="mt-1 text-xs text-[#8f8f8f]">
                       {bagianStatistik
                         ? "Warna ini mencakup judul, peta, sebaran angkatan, sektor, relevansi, dan angka utama. Kosongkan untuk memakai warna bawaan."
-                        : "Warna ini diterapkan ke seluruh blok section. Kosongkan untuk memakai warna bawaan."}
+                        : s.kunci === "lima-cara"
+                          ? "Hanya mengubah panel pertama; warna panel lain diatur per poin di bawah. Kosongkan untuk memakai warna bawaan."
+                          : s.kunci === "tentang-kami"
+                            ? "Warna ini juga menjadi latar di belakang panel Lima cara. Kosongkan untuk memakai warna bawaan."
+                            : "Warna ini diterapkan ke seluruh blok section. Kosongkan untuk memakai warna bawaan."}
                     </p>
                   </div>}
-                  {s.kunci !== "hero" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
+                  {s.kunci !== "hero" && s.kunci !== "lima-cara" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <KontrolWarna
-                      label="Warna judul"
+                      label={s.kunci === "tentang-kami" ? "Warna teks" : "Warna judul"}
                       nilai={d.warnaJudul}
                       onUbah={(v) => ubahDraft(s.id, { warnaJudul: v })}
                     />
@@ -875,9 +817,9 @@ export function KelolaBeranda() {
                       />
                     </div>
                   )}
-                  {s.kunci !== "hero" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
+                  {s.kunci !== "hero" && s.kunci !== "lima-cara" && (!panelStatistik || s.kunci === "statistik") && <div className="sm:col-span-2">
                     <KontrolUkuran
-                      label="Ukuran judul (%)"
+                      label={s.kunci === "tentang-kami" ? "Ukuran teks (%), hanya untuk memperbesar" : "Ukuran judul (%)"}
                       nilai={d.ukuranJudul}
                       onUbah={(v) => ubahDraft(s.id, { ukuranJudul: v })}
                     />
@@ -895,282 +837,29 @@ export function KelolaBeranda() {
 
                 {s.kunci === "hero" && (() => {
                   const hero = konfigurasiHero(d.konfigurasi);
-                  const fotoYangDitampilkan = hero.fotoUrls.length
-                    ? hero.fotoUrls
-                    : [""];
-                  const ubahFoto = (index: number, url: string | null) => {
-                    const fotoUrls = [...hero.fotoUrls];
-                    if (url) {
-                      fotoUrls[index] = url;
-                    } else {
-                      fotoUrls.splice(index, 1);
-                    }
-                    ubahKonfig(s.id, { fotoUrls });
-                  };
-                  const geserFoto = (index: number, arah: -1 | 1) => {
-                    const tujuan = index + arah;
-                    if (tujuan < 0 || tujuan >= hero.fotoUrls.length) return;
-                    const fotoUrls = [...hero.fotoUrls];
-                    [fotoUrls[index], fotoUrls[tujuan]] = [
-                      fotoUrls[tujuan],
-                      fotoUrls[index],
-                    ];
-                    ubahKonfig(s.id, { fotoUrls });
-                  };
+                  // Hero kini satu foto di dalam aksara; mode video dan slideshow lama tidak dipakai lagi.
+                  const foto =
+                    (hero.mode === "video" ? hero.posterUrl : hero.fotoUrls[0]) || "";
+                  const fotoUnggahan = foto === HERO_POSTER_BAWAAN ? "" : foto;
 
                   return (
-                    <div className="space-y-4 border-t border-black/[0.08] pt-4">
-                      <div className="max-w-sm">
-                        <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                          Latar Hero
-                        </label>
-                        <select
-                          value={hero.mode}
-                          onChange={(e) => {
-                            const mode = e.target.value as ModeHero;
-                            ubahKonfig(s.id, {
-                              mode,
-                              fotoUrls:
-                                mode === "foto" ? hero.fotoUrls.slice(0, 1) : hero.fotoUrls,
-                            });
-                          }}
-                          className={inputClass}
-                        >
-                          <option value="video">Video</option>
-                          <option value="foto">Satu foto</option>
-                          <option value="slideshow">Slideshow foto</option>
-                        </select>
+                    <div className="space-y-3 border-t border-black/[0.08] pt-4">
+                      <div>
+                        <p className="text-sm font-semibold text-[#0f1012]">Foto hero</p>
+                        <p className="mt-1 text-xs text-[#8f8f8f]">
+                          Satu foto yang tampil di dalam aksara IKASADA, lalu memenuhi layar saat digulir. Pakai foto lanskap dengan kontras tinggi. Kosongkan untuk memakai gambar bawaan.
+                        </p>
                       </div>
-
-                      {hero.mode === "video" ? (
-                        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-                          <div className="order-2 min-w-0 space-y-3 lg:order-1">
-                            <label className="block text-xs font-semibold text-[#5e5e5e]">
-                              Video latar (MP4 atau WebM, maksimal 30 MB)
-                            </label>
-                            <input
-                              type="file"
-                              accept="video/mp4,video/webm"
-                              disabled={mengunggahVideo}
-                              onChange={(e) => {
-                                const file = e.currentTarget.files?.[0];
-                                if (file) void unggahVideo(file, s.id);
-                                e.currentTarget.value = "";
-                              }}
-                              className={inputClass}
-                            />
-                            {mengunggahVideo && sectionUnggahVideo === s.id && (
-                              <p role="status" className="text-xs text-[#5e5e5e]">
-                                Mengunggah dan memverifikasi video…
-                              </p>
-                            )}
-                            {galatVideo && sectionUnggahVideo === s.id && (
-                              <p role="alert" className="text-xs text-red-600">
-                                {galatVideo}
-                              </p>
-                            )}
-                            <p className="text-xs text-[#8f8f8f]">
-                              Video diputar tanpa suara. Unggahan baru aktif setelah Hero disimpan.
-                            </p>
-                            <ImageUpload
-                              label="Poster / gambar cadangan"
-                              tipe="hero"
-                              value={hero.posterUrl}
-                              hint="Tampil jika video tidak dapat diputar."
-                              onChange={(url) => ubahKonfig(s.id, { posterUrl: url ?? "" })}
-                            />
-                          </div>
-                          <div className="order-1 min-w-0 lg:order-2">
-                            <p className="mb-2 text-xs font-semibold text-[#5e5e5e]">
-                              Pratinjau video
-                            </p>
-                            <video
-                              key={hero.videoUrl}
-                              src={hero.videoUrl}
-                              poster={hero.posterUrl || HERO_POSTER_BAWAAN}
-                              controls
-                              muted
-                              playsInline
-                              className="aspect-video w-full rounded-xl bg-black object-cover"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm font-semibold text-[#0f1012]">
-                              {hero.mode === "foto" ? "Foto latar" : "Urutan foto slideshow"}
-                            </p>
-                            <p className="mt-1 text-xs text-[#8f8f8f]">
-                              {hero.mode === "foto"
-                                ? "Gunakan satu foto lanskap yang tetap tampil."
-                                : "Foto berganti otomatis dengan transisi lembut setiap 6 detik. Maksimal 5 foto."}
-                            </p>
-                          </div>
-                          <div className="grid gap-4 sm:grid-cols-2">
-                            {fotoYangDitampilkan.map((url, index) => (
-                              <div key={`${url || "kosong"}-${index}`} className="space-y-2">
-                                <ImageUpload
-                                  label={`Foto ${index + 1}`}
-                                  tipe="hero"
-                                  value={url || null}
-                                  onChange={(nilai) => ubahFoto(index, nilai)}
-                                />
-                                {url && hero.mode === "slideshow" && (
-                                  <div className="flex flex-wrap justify-end gap-2">
-                                    <button
-                                      type="button"
-                                      title="Geser foto ke kiri"
-                                      aria-label={`Naikkan foto ${index + 1}`}
-                                      disabled={index === 0}
-                                      onClick={() => geserFoto(index, -1)}
-                                      className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
-                                    >
-                                      <ArrowUp weight="bold" />
-                                      Naik
-                                    </button>
-                                    <button
-                                      type="button"
-                                      title="Geser foto ke kanan"
-                                      aria-label={`Turunkan foto ${index + 1}`}
-                                      disabled={index === hero.fotoUrls.length - 1}
-                                      onClick={() => geserFoto(index, 1)}
-                                      className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}
-                                    >
-                                      <ArrowDown weight="bold" />
-                                      Turun
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          {hero.mode === "slideshow" &&
-                            hero.fotoUrls.length > 0 &&
-                            hero.fotoUrls.length < 5 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  ubahKonfig(s.id, {
-                                    fotoUrls: [...hero.fotoUrls, ""],
-                                  })
-                                }
-                                className={`${tombolKecil} bg-[#0071e3]/10 text-[#0071e3] hover:bg-[#0071e3]/[0.18]`}
-                              >
-                                <Plus weight="bold" />
-                                Tambah foto
-                              </button>
-                            )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {s.kunci === "tentang-kami" && (() => {
-                  const media = mediaTentang(d.konfigurasi);
-                  const fotoYangDitampilkan = media.fotoUrls.length ? media.fotoUrls : [""];
-                  const ubahFoto = (index: number, url: string | null) => {
-                    const fotoUrls = [...media.fotoUrls];
-                    if (url) fotoUrls[index] = url;
-                    else fotoUrls.splice(index, 1);
-                    ubahKonfig(s.id, { fotoUrl: fotoUrls[0] ?? "", fotoUrls });
-                  };
-                  const geserFoto = (index: number, arah: -1 | 1) => {
-                    const tujuan = index + arah;
-                    if (tujuan < 0 || tujuan >= media.fotoUrls.length) return;
-                    const fotoUrls = [...media.fotoUrls];
-                    [fotoUrls[index], fotoUrls[tujuan]] = [fotoUrls[tujuan], fotoUrls[index]];
-                    ubahKonfig(s.id, { fotoUrl: fotoUrls[0] ?? "", fotoUrls });
-                  };
-
-                  return (
-                    <div className="space-y-4 border-t border-black/[0.08] pt-4">
-                      <div className="max-w-sm">
-                        <label className="mb-1 block text-xs font-semibold text-[#5e5e5e]">
-                          Media Tentang Kami
-                        </label>
-                        <select
-                          value={media.mode}
-                          onChange={(e) => {
-                            const mode = e.target.value as ModeMediaTentang;
-                            const fotoUrls = mode === "foto" ? media.fotoUrls.slice(0, 1) : media.fotoUrls;
-                            ubahKonfig(s.id, { mode, fotoUrls, fotoUrl: fotoUrls[0] ?? "" });
-                          }}
-                          className={inputClass}
-                        >
-                          <option value="foto">Satu foto</option>
-                          <option value="slideshow">Slideshow foto</option>
-                          <option value="video">Video</option>
-                        </select>
+                      <div className="max-w-md">
+                        <ImageUpload
+                          label="Foto hero"
+                          tipe="hero"
+                          value={fotoUnggahan || null}
+                          onChange={(url) =>
+                            ubahKonfig(s.id, { mode: "foto", fotoUrls: url ? [url] : [] })
+                          }
+                        />
                       </div>
-
-                      {media.mode === "video" ? (
-                        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-                          <div className="order-2 min-w-0 space-y-3 lg:order-1">
-                            <label className="block text-xs font-semibold text-[#5e5e5e]">
-                              Video (MP4 atau WebM, maksimal 30 MB)
-                            </label>
-                            <input
-                              type="file"
-                              accept="video/mp4,video/webm"
-                              disabled={mengunggahVideo}
-                              onChange={(e) => {
-                                const file = e.currentTarget.files?.[0];
-                                if (file) void unggahVideo(file, s.id);
-                                e.currentTarget.value = "";
-                              }}
-                              className={inputClass}
-                            />
-                            {mengunggahVideo && sectionUnggahVideo === s.id && <p role="status" className="text-xs text-[#5e5e5e]">Mengunggah dan memverifikasi video…</p>}
-                            {galatVideo && sectionUnggahVideo === s.id && <p role="alert" className="text-xs text-red-600">{galatVideo}</p>}
-                            <p className="text-xs text-[#8f8f8f]">Video diputar tanpa suara dan berulang. Simpan section untuk menerapkan.</p>
-                            <ImageUpload
-                              label="Poster / gambar cadangan"
-                              tipe="beranda"
-                              value={media.posterUrl || null}
-                              hint="Ditampilkan saat video dimuat atau jika gerakan dikurangi."
-                              onChange={(url) => ubahKonfig(s.id, { posterUrl: url ?? "" })}
-                            />
-                          </div>
-                          <div className="order-1 min-w-0 lg:order-2">
-                            <p className="mb-2 text-xs font-semibold text-[#5e5e5e]">Pratinjau video</p>
-                            {media.videoUrl ? (
-                              <video key={media.videoUrl} src={media.videoUrl} poster={media.posterUrl || undefined} controls muted playsInline className="aspect-video w-full rounded-xl bg-black object-cover" />
-                            ) : (
-                              <div className="flex aspect-video items-center justify-center rounded-xl bg-black/[0.05] text-sm text-[#8f8f8f]">Belum ada video</div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <p className="text-xs text-[#8f8f8f]">
-                            {media.mode === "foto" ? "Gunakan satu foto yang tetap tampil." : "Foto berganti otomatis setiap 6 detik. Slideshow memerlukan 2 sampai 5 foto."}
-                          </p>
-                          <div className="grid gap-4 sm:grid-cols-2">
-                            {fotoYangDitampilkan.map((url, index) => (
-                              <div key={`${url || "kosong"}-${index}`} className="space-y-2">
-                                <ImageUpload
-                                  label={media.mode === "foto" ? "Foto Tentang Kami" : `Foto ${index + 1}`}
-                                  tipe="beranda"
-                                  value={url || null}
-                                  hint={media.mode === "foto" ? "Kosongkan untuk memakai foto bawaan." : undefined}
-                                  onChange={(nilai) => ubahFoto(index, nilai)}
-                                />
-                                {url && media.mode === "slideshow" && (
-                                  <div className="flex flex-wrap justify-end gap-2">
-                                    <button type="button" aria-label={`Naikkan foto ${index + 1}`} disabled={index === 0} onClick={() => geserFoto(index, -1)} className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}><ArrowUp weight="bold" />Naik</button>
-                                    <button type="button" aria-label={`Turunkan foto ${index + 1}`} disabled={index === media.fotoUrls.length - 1} onClick={() => geserFoto(index, 1)} className={`${tombolKecil} bg-black/[0.05] text-[#0f1012] hover:bg-black/[0.08]`}><ArrowDown weight="bold" />Turun</button>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          {media.mode === "slideshow" && media.fotoUrls.length > 0 && media.fotoUrls.length < 5 && (
-                            <button type="button" onClick={() => ubahKonfig(s.id, { fotoUrls: [...media.fotoUrls, ""] })} className={`${tombolKecil} bg-[#0071e3]/10 text-[#0071e3] hover:bg-[#0071e3]/[0.18]`}><Plus weight="bold" />Tambah foto</button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   );
                 })()}
@@ -1360,10 +1049,7 @@ export function KelolaBeranda() {
                   <button
                     type="button"
                     onClick={() => simpanSection(s)}
-                    disabled={
-                      menyimpanSection === s.id ||
-                      ((s.kunci === "hero" || s.kunci === "tentang-kami") && mengunggahVideo)
-                    }
+                    disabled={menyimpanSection === s.id}
                     className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005fc1] disabled:opacity-60 sm:w-auto"
                   >
                     <Check weight="bold" />

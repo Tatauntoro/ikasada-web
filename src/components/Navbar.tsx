@@ -49,6 +49,11 @@ const KUNCI_SECTION_NAV: Record<string, string> = {
 
 /** Jeda masuk pill navbar dan CTA Masuk/Daftar, dalam milidetik. */
 const JEDA_NAV = { pill: 2900, auth: 3200 };
+/**
+ * Di beranda hero hanya memunculkan aksara dan logo setelah iris preloader
+ * membuka (±1 detik), jadi navbar menyusul tak lama sesudahnya.
+ */
+const JEDA_NAV_BERANDA = { pill: 700, auth: 1000 };
 
 /** Bagian `GET /api/auth/alumni/me` yang dipakai navbar. */
 type SesiAlumni = {
@@ -188,13 +193,14 @@ export default function Navbar() {
     if (!ready) return;
     if (reducedMotion) return;
     if (!introAktif) return;
-    const pill = window.setTimeout(() => setIntroReady(true), JEDA_NAV.pill);
-    const auth = window.setTimeout(() => setAuthReady(true), JEDA_NAV.auth);
+    const jeda = isHome ? JEDA_NAV_BERANDA : JEDA_NAV;
+    const pill = window.setTimeout(() => setIntroReady(true), jeda.pill);
+    const auth = window.setTimeout(() => setAuthReady(true), jeda.auth);
     return () => {
       window.clearTimeout(pill);
       window.clearTimeout(auth);
     };
-  }, [ready, reducedMotion, introAktif]);
+  }, [ready, reducedMotion, introAktif, isHome]);
 
   const navHidden = !(ready && (reducedMotion || introReady)) || hidden;
   const authHidden = !(ready && (reducedMotion || authReady)) || hidden;

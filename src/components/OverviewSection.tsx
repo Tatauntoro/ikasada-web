@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type CSSProperties } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-import SplitType from "split-type";
+import { useMemo, type CSSProperties } from "react";
 import FlowWaysStory from "./FlowWaysStory";
-import AboutMedia from "./AboutMedia";
+import AboutTeks from "./AboutTeks";
 import {
   sectionAktif,
   teksSection,
@@ -15,6 +10,7 @@ import {
   gayaSection,
   gayaBackgroundSection,
 } from "@/lib/beranda-client";
+import { paragrafTentang } from "@/lib/beranda";
 import styles from "./OverviewSection.module.css";
 
 const ways = [
@@ -56,22 +52,13 @@ const ways = [
 ];
 
 /**
- * Tentang Kami.
- *
- * Judulnya masuk kata per kata dengan putaran 3D (flip) sekaligus memudar dari
- * blur — jadi tiap kata seperti berputar naik ke tempatnya, bukan sekadar
- * tersingkap sebaris demi sebaris. Isinya menyusul dengan gerakan yang sama tapi
- * lebih pendek, supaya hierarkinya tetap terbaca.
- *
- * Pemicunya IntersectionObserver, bukan ScrollTrigger: section ini `sticky`, dan
- * ScrollTrigger mengukur posisi elemen yang dipin — di sini posisinya justru
- * sengaja tidak bergerak selama tertempel, jadi pengukuran itu meleset.
+ * Tentang Kami dirender `AboutTeks` (teks saja, judulnya menyala kata demi
+ * kata saat digulir). Section ini hanya menyiapkan teks dan pengaturan dari admin.
  */
-const JUDUL_TENTANG_DEFAULT =
-  "Jejaring alumni yang tumbuh dari satu akar, bergerak lebih jauh bersama.";
-const BODY_TENTANG_DEFAULT =
-  "IKASADA merawat hubungan lintas angkatan melalui ruang bertemu, berbagi pengetahuan, dan kontribusi yang terus hidup di dalam dan di luar kampus.";
-const JUDUL_LIMA_DEFAULT = "Lima cara kami menyambung.";
+// Latar bawaan Tentang Kami (lihat AboutTeks.module.css); dipakai juga oleh Lima cara.
+const LATAR_TENTANG_DEFAULT = "#0071e3";
+const PARAGRAF_TENTANG_DEFAULT =
+  "Jejaring alumni yang tumbuh dari *satu akar*, bergerak lebih jauh bersama. IKASADA merawat hubungan *lintas angkatan* melalui ruang bertemu, berbagi pengetahuan, dan *kontribusi* yang terus hidup di dalam dan di luar kampus.";
 
 function tintaUntukLatar(warna: string | null | undefined): string {
   const hex = warna?.trim().replace(/^#/, "");
@@ -105,7 +92,6 @@ function gayaPanel(
 }
 
 export default function OverviewSection() {
-  const ref = useRef<HTMLDivElement>(null);
   const beranda = useBerandaConfig();
 
   const tentangAktif = sectionAktif(beranda, "tentang-kami");
@@ -116,28 +102,20 @@ export default function OverviewSection() {
     "eyebrow",
     "Tentang Kami"
   );
-  const judulTentang = teksSection(
-    beranda,
-    "tentang-kami",
-    "judul",
-    JUDUL_TENTANG_DEFAULT
+  const sectionTentang = beranda?.sections.find((s) => s.kunci === "tentang-kami");
+  const paragrafGabungan = paragrafTentang(
+    sectionTentang?.judul,
+    sectionTentang?.deskripsi
   );
-  const bodyTentang = teksSection(
-    beranda,
-    "tentang-kami",
-    "deskripsi",
-    BODY_TENTANG_DEFAULT
-  );
-  const kickerLima = teksSection(
-    beranda,
-    "lima-cara",
-    "eyebrow",
-    "Jejaring Ikasada FIB UI"
-  );
+  // Teks bawaan yang belum pernah diubah admin tidak punya tanda kata kunci;
+  // pakai versi bertanda supaya penekanannya tetap muncul.
+  const paragrafTentangTeks =
+    !paragrafGabungan ||
+    paragrafGabungan === PARAGRAF_TENTANG_DEFAULT.replace(/\*/g, "")
+      ? PARAGRAF_TENTANG_DEFAULT
+      : paragrafGabungan;
   const gayaJudulTentang = gayaSection(beranda, "tentang-kami", "judul");
   const gayaEyebrowTentang = gayaSection(beranda, "tentang-kami", "eyebrow");
-  const gayaJudulLima = gayaSection(beranda, "lima-cara", "judul");
-  const gayaEyebrowLima = gayaSection(beranda, "lima-cara", "eyebrow");
   const gayaBackgroundTentang = gayaBackgroundSection(beranda, "tentang-kami");
   const gayaBackgroundLima = gayaBackgroundSection(beranda, "lima-cara");
   const tintaTentang = tintaUntukLatar(
@@ -147,13 +125,6 @@ export default function OverviewSection() {
     beranda?.sections.find((s) => s.kunci === "lima-cara")?.warnaBackground
   );
   const gayaPanelTentang = gayaPanel(gayaBackgroundTentang, tintaTentang);
-  const judulLimaRaw =
-    beranda?.sections.find((s) => s.kunci === "lima-cara")?.judul ?? null;
-  // Judul "Lima cara..." punya markup khusus (kata terakhir di-<span>); pakai
-  // markup itu kecuali admin memberi teks sendiri.
-  const limaKustom = Boolean(
-    judulLimaRaw && judulLimaRaw !== JUDUL_LIMA_DEFAULT
-  );
   // Poin "lima cara" dari config; jatuh ke daftar bawaan bila belum diatur.
   const limaItems = useMemo(() => {
     const konfig = beranda?.sections.find((s) => s.kunci === "lima-cara")
@@ -191,172 +162,31 @@ export default function OverviewSection() {
       inkColor: item.warnaLatar.trim() ? tintaUntukLatar(item.warnaLatar) : undefined,
     };
   }), [limaItems]);
-  const mediaTentang = (() => {
-    const konfig = beranda?.sections.find((s) => s.kunci === "tentang-kami")
-      ?.konfigurasi as {
-        mode?: unknown;
-        fotoUrl?: unknown;
-        fotoUrls?: unknown;
-        videoUrl?: unknown;
-        posterUrl?: unknown;
-      } | null | undefined;
-    const legacyPhoto = typeof konfig?.fotoUrl === "string" ? konfig.fotoUrl : "";
-    const fotoUrls = Array.isArray(konfig?.fotoUrls)
-      ? konfig.fotoUrls.filter((url): url is string => typeof url === "string" && Boolean(url))
-      : legacyPhoto ? [legacyPhoto] : [];
-    return {
-      mode: konfig?.mode === "video" || konfig?.mode === "slideshow" ? konfig.mode : "foto",
-      fotoUrls,
-      videoUrl: typeof konfig?.videoUrl === "string" ? konfig.videoUrl : "",
-      posterUrl: typeof konfig?.posterUrl === "string" ? konfig.posterUrl : "",
-    } as const;
-  })();
-
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    // Kalau gerak dimatikan, teks dibiarkan apa adanya — jangan disentuh sama sekali.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const section = root.querySelector<HTMLElement>("#overview");
-    const judul = root.querySelector<HTMLElement>("#overview-title");
-    const label = root.querySelector<HTMLElement>(`.${styles.label}`);
-    const body = root.querySelector<HTMLElement>(`.${styles.body}`);
-    if (!section || !judul) return;
-
-    const pisahJudul = new SplitType(judul, { types: "words", tagName: "span" });
-    const pisahBody = body ? new SplitType(body, { types: "words", tagName: "span" }) : null;
-
-    const ctx = gsap.context(() => {
-      const garis = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
-
-      if (label) {
-        garis.from(label, { opacity: 0, y: 14, duration: 0.5 }, 0);
-      }
-
-      garis.from(
-        pisahJudul.words,
-        {
-          opacity: 0,
-          rotationX: -92,
-          yPercent: 48,
-          filter: "blur(10px)",
-          duration: 0.85,
-          stagger: 0.055,
-          transformOrigin: "50% 100%",
-        },
-        0.06
-      );
-
-      if (pisahBody?.words) {
-        garis.from(
-          pisahBody.words,
-          {
-            opacity: 0,
-            rotationX: -60,
-            yPercent: 30,
-            filter: "blur(6px)",
-            duration: 0.6,
-            stagger: 0.014,
-            transformOrigin: "50% 100%",
-          },
-          0.42
-        );
-      }
-
-      const pengamat = new IntersectionObserver(
-        (entri) => {
-          if (!entri.some((e) => e.isIntersecting)) return;
-          pengamat.disconnect();
-          garis.play();
-        },
-        { threshold: 0.25, rootMargin: "0px 0px -10% 0px" }
-      );
-      pengamat.observe(section);
-
-      return () => pengamat.disconnect();
-    }, root);
-
-    return () => {
-      ctx.revert();
-      pisahJudul.revert();
-      pisahBody?.revert();
-    };
-  }, [judulTentang, bodyTentang, tentangAktif]);
-
-  useEffect(() => {
-    if (!tentangAktif || !ref.current) return;
-    const match = gsap.matchMedia();
-    match.add({
-      mobile: "(max-width: 700px)",
-      desktop: "(min-width: 701px)",
-      reduced: "(prefers-reduced-motion: reduce)",
-    }, (context) => {
-      if (context.conditions?.reduced) return;
-      const media = ref.current?.querySelector(`.${styles.aboutMedia}`);
-      if (!media) return;
-      gsap.fromTo(media, { yPercent: context.conditions?.mobile ? -6 : -8 }, {
-        yPercent: 0, ease: "none",
-        scrollTrigger: { trigger: ref.current?.querySelector("#overview"), start: "top bottom", end: "bottom top", scrub: true },
-      });
-    }, ref);
-    return () => match.revert();
-  }, [tentangAktif]);
+  const skalaJudulRaw = (gayaJudulTentang as Record<string, unknown> | undefined)?.["--skala-judul"];
+  const skalaJudulTentang = typeof skalaJudulRaw === "string" ? skalaJudulRaw : undefined;
 
   if (!tentangAktif && !limaAktif) return null;
 
   return (
-    <div className={styles.stage} ref={ref}>
+    <div className={styles.stage}>
       {tentangAktif && (
-        <section id="overview" className={styles.section} aria-labelledby="overview-title">
-          <div className={styles.panel} style={gayaPanelTentang}>
-            <div className={styles.aboutSection}>
-              <div className={`${styles.inner} home-section-container`}>
-                <div className={styles.content}>
-                  <p
-                    className={styles.label}
-                    style={{
-                      ...gayaEyebrowTentang,
-                      color: gayaEyebrowTentang?.color ?? tintaTentang,
-                    }}
-                  >
-                    {labelTentang}
-                  </p>
-                  <h2
-                    id="overview-title"
-                    className="section-title"
-                    style={{
-                      ...gayaJudulTentang,
-                      color: gayaJudulTentang?.color ?? tintaTentang,
-                    }}
-                  >
-                    {judulTentang}
-                  </h2>
-                  <p className={styles.body}>{bodyTentang}</p>
-                </div>
-                <figure className={styles.aboutVisual}>
-                  <div className={styles.aboutMedia}>
-                  <AboutMedia
-                    {...mediaTentang}
-                    fallback="/images/beranda/alumni-discussion.png"
-                  />
-                  </div>
-                  <figcaption className={styles.aboutCaption}>
-                    Jejaring yang terus hidup lintas angkatan
-                  </figcaption>
-                </figure>
-              </div>
-            </div>
-          </div>
-        </section>
+        <AboutTeks
+          label={labelTentang}
+          labelStyle={{
+            ...gayaEyebrowTentang,
+            color: gayaEyebrowTentang?.color ?? tintaTentang,
+          }}
+          text={paragrafTentangTeks}
+          textColor={gayaJudulTentang?.color ?? tintaTentang}
+          textScale={skalaJudulTentang}
+          keywordColor={gayaEyebrowTentang?.color}
+          panelStyle={gayaPanelTentang}
+        />
       )}
 
       {limaAktif && (
         <FlowWaysStory
-          kicker={kickerLima}
-          title={limaKustom ? judulLimaRaw : JUDUL_LIMA_DEFAULT}
-          kickerStyle={gayaEyebrowLima}
-          titleStyle={gayaJudulLima}
+          background={gayaBackgroundTentang?.backgroundColor ?? LATAR_TENTANG_DEFAULT}
           firstBackground={gayaBackgroundLima?.backgroundColor}
           firstInk={tintaLima}
           items={storyItems}

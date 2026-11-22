@@ -70,6 +70,30 @@ export const KONFIGURASI_HERO_DEFAULT: KonfigurasiHero = {
   fotoUrls: [],
 };
 
+/** Konfigurasi hero dari JSON section, dengan nilai bawaan untuk bidang yang kosong. */
+export function konfigurasiHeroDari(nilai: unknown): KonfigurasiHero {
+  if (!nilai || typeof nilai !== "object" || Array.isArray(nilai)) {
+    return { ...KONFIGURASI_HERO_DEFAULT, fotoUrls: [] };
+  }
+  const config = nilai as Partial<KonfigurasiHero>;
+  const mode =
+    config.mode === "foto" || config.mode === "slideshow" ? config.mode : "video";
+  return {
+    mode,
+    videoUrl:
+      typeof config.videoUrl === "string" && config.videoUrl
+        ? config.videoUrl
+        : HERO_VIDEO_BAWAAN,
+    posterUrl:
+      typeof config.posterUrl === "string" && config.posterUrl
+        ? config.posterUrl
+        : HERO_POSTER_BAWAAN,
+    fotoUrls: Array.isArray(config.fotoUrls)
+      ? config.fotoUrls.filter((url): url is string => typeof url === "string" && url.length > 0)
+      : [],
+  };
+}
+
 /** Nilai awal tiap section — sengaja sama dengan tampilan beranda sekarang. */
 export const SECTION_DEFAULT: DefaultSection[] = [
   {
@@ -254,10 +278,23 @@ export const SECTION_POSISI: KunciSection[] = [
   "kontak",
 ];
 
+/**
+ * Isi paragraf Tentang Kami. Dulu terbagi jadi judul dan deskripsi; keduanya
+ * digabung supaya data lama tetap terbaca sebelum admin menyimpan ulang.
+ */
+export function paragrafTentang(
+  judul: string | null | undefined,
+  deskripsi: string | null | undefined
+): string {
+  return [judul, deskripsi]
+    .map((teks) => (teks ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** Kunci yang section-nya menampilkan field "Label kecil (eyebrow)". */
 export const SECTION_PAKAI_EYEBROW: KunciSection[] = [
   "tentang-kami",
-  "lima-cara",
   "statistik",
   "sebaran-geografis",
   "direktori-alumni",

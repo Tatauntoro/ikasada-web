@@ -190,11 +190,12 @@ export const heroKonfigSchema = z
     fotoUrls: z.array(fotoHeroUrl).max(5, "Maksimal 5 foto Hero"),
   })
   .superRefine((nilai, ctx) => {
-    if (nilai.mode === "foto" && nilai.fotoUrls.length !== 1) {
+    // Hero kini satu foto di dalam aksara; tanpa foto, gambar bawaan dipakai.
+    if (nilai.mode === "foto" && nilai.fotoUrls.length > 1) {
       ctx.addIssue({
         code: "custom",
         path: ["fotoUrls"],
-        message: "Mode foto harus memiliki tepat 1 foto",
+        message: "Mode foto maksimal 1 foto",
       });
     }
     if (
